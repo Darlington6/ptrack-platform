@@ -1,0 +1,75 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+.venv/
+venv/
+env/
+
+# ── Django ─────────────────────────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+backend/pyrightconfig.json
+
+# ── Environment / secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+*.pem
+*.key
+
+# ── Node / npm ────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── Vite / frontend build artifacts ──────────────────────────────────────────
+frontend/dist/
+frontend/.vite/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*.suo
+*.user
+*.sublime-project
+*.sublime-workspace
+
+# ── Coverage / testing ────────────────────────────────────────────────────────
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+.pytest_cache/
+.tox/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.bak
+*.tmp
+.cache/
