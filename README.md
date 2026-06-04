@@ -6,6 +6,8 @@ Built as a BSc Software Engineering capstone project at African Leadership Unive
 
 ---
 
+## [Demo Video](https://drive.google.com/drive/folders/1xowblkNqjmfCLAZRyZ0o7CyDnBSP8t4C?usp=drive_link)
+
 ## Tech Stack
 
 | Layer | Technology |
