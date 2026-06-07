@@ -40,6 +40,8 @@ pnpm-debug.log*
 # ── Vite / frontend build artifacts ──────────────────────────────────────────
 frontend/dist/
 frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/vite.config.d.ts
 
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
