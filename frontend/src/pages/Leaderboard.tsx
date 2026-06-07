@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import client from "../api/client";
+import type { LeaderboardEntry } from "../types";
 
 const TABS = ["This Week", "This Month", "All Time"];
 
@@ -19,7 +20,7 @@ const AVATAR_COLORS = [
 
 export default function Leaderboard() {
   const { user } = useAuth();
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [activeTab, setActiveTab] = useState("All Time");
 
   useEffect(() => {

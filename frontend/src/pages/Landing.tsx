@@ -20,7 +20,7 @@ export default function Landing() {
           waste, log recycling activities, and climb the leaderboard.
         </p>
 
-        {/* Stacked full-width CTAs matching Figma */}
+        {/* Stacked full-width CTAs */}
         <div className="flex flex-col gap-3 w-full max-w-sm">
           <Link
             to="/register"

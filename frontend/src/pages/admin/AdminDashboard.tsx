@@ -3,6 +3,7 @@ import { FileText, Users, Clock, Star } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { AdminAvatar } from "../../components/AdminAvatar";
 import client from "../../api/client";
+import type { LeaderboardEntry, WasteReportDetail } from "../../types";
 
 const STATUS_BADGE = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -12,8 +13,8 @@ const STATUS_BADGE = {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [reports, setReports] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [reports, setReports] = useState<WasteReportDetail[]>([]);
+  const [users, setUsers] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
     client.get("/reports/").then((r) => setReports(r.data));

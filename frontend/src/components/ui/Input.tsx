@@ -1,4 +1,12 @@
-export function Input({ label, error, className = "", ...props }) {
+import type { InputHTMLAttributes, ReactNode } from "react";
+
+interface Props extends InputHTMLAttributes<HTMLInputElement> {
+  label?: ReactNode;
+  error?: string;
+  className?: string;
+}
+
+export function Input({ label, error, className = "", ...props }: Props) {
   return (
     <div className="flex flex-col gap-1">
       {label && <label className="text-sm font-medium text-gray-700">{label}</label>}

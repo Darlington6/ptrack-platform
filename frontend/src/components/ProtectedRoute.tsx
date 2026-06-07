@@ -1,10 +1,16 @@
 import { Navigate } from "react-router-dom";
+import type { ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 
-export function ProtectedRoute({ children, requireAdmin = false }) {
-  const { user, loading } = useAuth();
+interface Props {
+  children: ReactNode;
+  requireAdmin?: boolean;
+}
 
-  if (loading) {
+export function ProtectedRoute({ children, requireAdmin = false }: Props) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600" />

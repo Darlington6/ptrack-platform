@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AdminAvatar } from "../../components/AdminAvatar";
 import client from "../../api/client";
+import type { WasteReportDetail } from "../../types";
 
 const STATUS_BADGE = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -9,7 +10,7 @@ const STATUS_BADGE = {
 };
 
 export default function AdminReports() {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<WasteReportDetail[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import client from "../api/client";
+import type { WasteReportDetail } from "../types";
 
 const STATUS_COLORS = {
   pending: "bg-yellow-400",
@@ -17,7 +18,7 @@ const STATUS_BADGE = {
 const FILTERS = ["All", "pending", "verified", "resolved"];
 
 export default function MapView() {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<WasteReportDetail[]>([]);
   const [filter, setFilter] = useState("All");
 
   useEffect(() => {

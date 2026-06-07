@@ -34,8 +34,8 @@ export default function ReportWaste() {
     try {
       const data = new FormData();
       // Kimironko centre coordinates — will be replaced by real geolocation in production
-      data.append("latitude", -1.9358);
-      data.append("longitude", 30.1284);
+      data.append("latitude", String(-1.9358));
+      data.append("longitude", String(30.1284));
       data.append("waste_type", form.waste_type);
       data.append("description", form.description);
       if (form.image) data.append("image", form.image);

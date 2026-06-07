@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { AdminAvatar } from "../../components/AdminAvatar";
 import client from "../../api/client";
+import type { LeaderboardEntry } from "../../types";
 
 export default function AdminUsers() {
-  const [users, setUsers] = useState([]);
-  const [reportCounts, setReportCounts] = useState({});
+  const [users, setUsers] = useState<LeaderboardEntry[]>([]);
+  const [reportCounts, setReportCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
     client.get("/leaderboard/").then((r) => setUsers(r.data));

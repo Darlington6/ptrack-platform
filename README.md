@@ -14,11 +14,11 @@ Built as a BSc Software Engineering capstone project at African Leadership Unive
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18, Vite, Tailwind CSS v3, React Router v6, Axios, Lucide React |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v3, React Router v6, Axios, Lucide React |
 | Backend | Django 5, Django REST Framework, Simple JWT, django-cors-headers |
 | Database | SQLite (local dev) / PostgreSQL (production) |
 | Auth | JWT (access + refresh tokens) |
-| Language | JavaScript (frontend), Python 3.13 (backend) |
+| Language | TypeScript (frontend), Python 3.13 (backend) |
 
 ---
 
@@ -30,10 +30,11 @@ ptrack-platform/
 ├── .gitignore
 ├── frontend/                   React + Vite app
 │   ├── src/
-│   │   ├── api/client.js       Axios instance with JWT interceptor
+│   │   ├── api/client.ts       Axios instance with JWT interceptor
 │   │   ├── context/            AuthContext (login, register, logout)
 │   │   ├── components/         Navbar, BottomNav, Sidebar, ProtectedRoute, ui/
-│   │   └── pages/              All screens (citizen + admin)
+│   │   ├── pages/              All screens (citizen + admin)
+│   │   └── types/              Shared domain types
 │   └── ...
 └── backend/                    Django project
     ├── accounts/               Custom User model + auth endpoints
@@ -96,6 +97,7 @@ cd frontend
 
 # Install dependencies
 npm install
+npm install --save-dev typescript @types/react @types/react-dom @types/node
 
 # Start the dev server
 npm run dev
@@ -104,6 +106,8 @@ npm run dev
 Frontend runs at **http://localhost:5173**
 
 > The Vite dev server proxies `/api` → `http://localhost:8000`, so no CORS config is needed during development.
+
+> The frontend was migrated from JavaScript to TypeScript. Entry points now use `src/main.tsx`, `src/App.tsx`, and `vite.config.ts`.
 
 ---
 

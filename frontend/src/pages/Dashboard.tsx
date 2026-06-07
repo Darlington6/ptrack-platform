@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { Card } from "../components/ui/Card";
 import client from "../api/client";
 import RecyclingModal from "./RecyclingModal";
+import type { Reward } from "../types";
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
@@ -22,8 +23,8 @@ const REWARD_LABELS = {
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const [rewards, setRewards] = useState([]);
-  const [rank, setRank] = useState(null);
+  const [rewards, setRewards] = useState<Reward[]>([]);
+  const [rank, setRank] = useState<number | null>(null);
   const [showRecycling, setShowRecycling] = useState(false);
 
   useEffect(() => {

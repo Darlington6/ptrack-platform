@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import client from "../api/client";
+import type { Reward } from "../types";
 
 const BADGES = [
   { emoji: "🌱", name: "Sprout", desc: "First report", threshold: 1 },
@@ -24,7 +25,7 @@ function formatDate(dateStr) {
 
 export default function Rewards() {
   const { user } = useAuth();
-  const [rewards, setRewards] = useState([]);
+  const [rewards, setRewards] = useState<Reward[]>([]);
   const [reportCount, setReportCount] = useState(0);
 
   useEffect(() => {
@@ -105,7 +106,7 @@ export default function Rewards() {
         </div>
       )}
 
-      {/* Partnership notice — matches Figma amber banner */}
+      {/* Partnership notice */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-2">
         <span className="text-amber-500 text-base mt-0.5">💡</span>
         <p className="text-sm text-amber-800">
