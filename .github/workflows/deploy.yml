@@ -26,30 +26,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{}'
 
-  deploy-frontend:
-    name: Deploy Frontend (Vercel)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Deploy to Vercel
-        if: env.VERCEL_TOKEN != ''
-        working-directory: frontend
-        run: npx vercel@latest --prod --yes
-        env:
-          VERCEL_TOKEN: ${{ env.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
   notify:
     name: Notify
     runs-on: ubuntu-24.04
     timeout-minutes: 5
-    needs: [deploy-backend, deploy-frontend]
+    needs: [deploy-backend]
     if: always()
     env:
       NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
@@ -59,7 +40,7 @@ jobs:
         if: env.NOTIFY_WEBHOOK_URL != ''
         run: |
           STATUS="success"
-          if [[ "${{ needs.deploy-backend.result }}" == "failure" || "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
+          if [[ "${{ needs.deploy-backend.result }}" == "failure" ]]; then
             STATUS="failure"
           fi
           curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
