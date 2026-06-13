@@ -25,18 +25,6 @@ jobs:
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{}'
-      - uses: actions/checkout@v6
-
-      - name: Install Railway CLI
-        if: env.RAILWAY_TOKEN != ''
-        run: npm install -g @railway/cli@latest --silent
-
-      - name: Deploy to Railway
-        if: env.RAILWAY_TOKEN != ''
-        continue-on-error: true
-        run: railway up --service backend --detach
-        env:
-          RAILWAY_TOKEN: ${{ env.RAILWAY_TOKEN }}
 
   deploy-frontend:
     name: Deploy Frontend (Vercel)
