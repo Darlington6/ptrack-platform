@@ -1,6 +1,6 @@
 name: Lighthouse CI
 
-on:
+"on":
   pull_request:
     branches: [main]
 
@@ -30,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Lighthouse CI
-        if: ${{ steps.preview.outputs.url != '' }}
+        if: steps.preview.outputs.url != ''
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: ${{ steps.preview.outputs.url }}
@@ -40,5 +40,5 @@ jobs:
           configPath: ".github/lighthouserc.json"
 
       - name: Skip (no preview URL found)
-        if: ${{ steps.preview.outputs.url == '' }}
+        if: steps.preview.outputs.url == ''
         run: echo "No Vercel preview URL found in PR comments — skipping Lighthouse audit."

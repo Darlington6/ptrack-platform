@@ -1,6 +1,6 @@
 name: CI
 
-on:
+"on":
   push:
     branches: [main, develop]
   pull_request:
@@ -14,7 +14,6 @@ permissions:
   contents: read
 
 jobs:
-  # ── Frontend: quality ────────────────────────────────────────────────────────
   frontend-quality:
     name: Frontend Quality
     runs-on: ubuntu-24.04
@@ -48,7 +47,6 @@ jobs:
       - name: Build
         run: npm run build
 
-  # ── Frontend: tests ──────────────────────────────────────────────────────────
   frontend-test:
     name: Frontend Tests
     runs-on: ubuntu-24.04
@@ -70,10 +68,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests (placeholder — exits 0 if no tests yet)
+      - name: Run tests
         run: npm test || true
 
-  # ── Backend: quality ─────────────────────────────────────────────────────────
   backend-quality:
     name: Backend Quality
     runs-on: ubuntu-24.04
@@ -109,7 +106,6 @@ jobs:
           DATABASE_URL: sqlite:///db.sqlite3
         run: mypy . --exclude venv
 
-  # ── Backend: tests ───────────────────────────────────────────────────────────
   backend-test:
     name: Backend Tests
     runs-on: ubuntu-24.04
@@ -146,7 +142,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run tests with coverage
+      - name: Run tests
         env:
           DJANGO_SETTINGS_MODULE: ptrack.settings
           SECRET_KEY: ci-secret-key-not-used-in-tests
@@ -154,7 +150,6 @@ jobs:
           DATABASE_URL: postgres://ptrack:ptrack@localhost:5432/ptrack_test
         run: pytest --tb=short || true
 
-  # ── Secrets scan ─────────────────────────────────────────────────────────────
   secrets-scan:
     name: Secrets Scan
     runs-on: ubuntu-24.04
