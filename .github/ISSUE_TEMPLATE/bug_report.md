@@ -33,7 +33,7 @@ If applicable, add screenshots to help explain the problem.
 
 - **Browser / OS:** (e.g. Chrome 124 / macOS 14)
 - **Device:** (e.g. Desktop, iPhone 14)
-- **App URL:** (e.g. https://ptrack.vercel.app)
+- **App URL:** (e.g. https://ptrack-platform.vercel.app)
 - **Logged in as:** (e.g. citizen / admin / not logged in)
 
 ## Console Errors
