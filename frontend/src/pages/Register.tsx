@@ -1,8 +1,21 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import React, { useState, type ChangeEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
+
+function extractApiError(data: unknown): string {
+  if (!data) return 'Registration failed. Please try again.';
+  if (typeof data === 'string') return data;
+  if (Array.isArray(data)) return data.map(extractApiError).filter(Boolean).join(' ');
+  if (typeof data === 'object') {
+    return Object.values(data as Record<string, unknown>)
+      .map(extractApiError)
+      .filter(Boolean)
+      .join(' ');
+  }
+  return 'Registration failed. Please try again.';
+}
 
 export default function Register() {
   const { register } = useAuth();
@@ -27,7 +40,7 @@ export default function Register() {
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }) as typeof form);
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     if (form.password !== form.confirm_password) {
@@ -46,11 +59,7 @@ export default function Register() {
     } catch (err) {
       const axiosErr = err as { response?: { data?: unknown } };
       const data = axiosErr.response?.data;
-      if (data && typeof data === 'object') {
-        setError((Object.values(data) as string[][]).flat().join(' '));
-      } else {
-        setError('Registration failed. Please try again.');
-      }
+      setError(extractApiError(data));
     } finally {
       setLoading(false);
     }
