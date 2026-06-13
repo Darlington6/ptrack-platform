@@ -30,7 +30,7 @@ uritemplate==4.2.0
 urllib3==2.7.0
 
 # ── Dev / code quality ────────────────────────────────────────────────────────
-black==26.3.1
+black==26.5.1
 ruff==0.11.13
 mypy==1.15.0
 django-stubs[compatible-mypy]==6.0.5
