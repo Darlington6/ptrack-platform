@@ -18,13 +18,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Railway CLI
+        if: env.RAILWAY_TOKEN != ''
+        run: npm install -g @railway/cli@latest --silent
+
       - name: Deploy to Railway
         if: env.RAILWAY_TOKEN != ''
-        uses: bervProject/railway-deploy@v1.3.0
+        run: railway up --service backend --detach
         env:
           RAILWAY_TOKEN: ${{ env.RAILWAY_TOKEN }}
-        with:
-          service: backend
 
   deploy-frontend:
     name: Deploy Frontend (Vercel)
