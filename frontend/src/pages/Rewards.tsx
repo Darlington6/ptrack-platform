@@ -1,25 +1,27 @@
-import { useEffect, useState } from "react";
-import { Star } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import client from "../api/client";
-import type { Reward } from "../types";
+import { useEffect, useState } from 'react';
+import { Star } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import client from '../api/client';
+import type { Reward } from '../types';
 
 const BADGES = [
-  { emoji: "🌱", name: "Sprout", desc: "First report", threshold: 1 },
-  { emoji: "🌿", name: "Recycler", desc: "10 reports", threshold: 10 },
-  { emoji: "🌳", name: "Eco-Warrior", desc: "50 reports", threshold: 50 },
-  { emoji: "🏆", name: "Champion", desc: "100 reports", threshold: 100 },
+  { emoji: '🌱', name: 'Sprout', desc: 'First report', threshold: 1 },
+  { emoji: '🌿', name: 'Recycler', desc: '10 reports', threshold: 10 },
+  { emoji: '🌳', name: 'Eco-Warrior', desc: '50 reports', threshold: 50 },
+  { emoji: '🏆', name: 'Champion', desc: '100 reports', threshold: 100 },
 ];
 
-const REWARD_LABELS = {
-  report_submitted: "Waste Report Submitted",
-  recycling_logged: "Recycling Activity Logged",
-  verification_bonus: "Verification Bonus",
+const REWARD_LABELS: Record<string, string> = {
+  report_submitted: 'Waste Report Submitted',
+  recycling_logged: 'Recycling Activity Logged',
+  verification_bonus: 'Verification Bonus',
 };
 
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    day: "numeric", month: "long", year: "numeric",
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 }
 
@@ -29,8 +31,8 @@ export default function Rewards() {
   const [reportCount, setReportCount] = useState(0);
 
   useEffect(() => {
-    client.get("/rewards/me/").then((r) => setRewards(r.data.rewards || []));
-    client.get("/reports/", { params: { user: "me" } }).then((r) => setReportCount(r.data.length));
+    client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
+    client.get('/reports/', { params: { user: 'me' } }).then((r) => setReportCount(r.data.length));
   }, []);
 
   const points = user?.points ?? 0;
@@ -55,7 +57,10 @@ export default function Rewards() {
           <span>{nextMilestone - points} points needed</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
-          <div className="bg-green-600 h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
+          <div
+            className="bg-green-600 h-2 rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
 
@@ -69,18 +74,16 @@ export default function Rewards() {
               key={badge.name}
               className={`rounded-lg border p-4 text-center transition-all ${
                 earned
-                  ? "border-green-200 bg-white"
-                  : "border-gray-200 bg-gray-50 opacity-60 grayscale"
+                  ? 'border-green-200 bg-white'
+                  : 'border-gray-200 bg-gray-50 opacity-60 grayscale'
               }`}
             >
               <p className="text-3xl mb-1">{badge.emoji}</p>
-              <p className={`text-sm font-semibold ${earned ? "text-gray-800" : "text-gray-500"}`}>
+              <p className={`text-sm font-semibold ${earned ? 'text-gray-800' : 'text-gray-500'}`}>
                 {badge.name}
               </p>
               <p className="text-xs text-gray-400 mt-0.5 capitalize">{badge.desc}</p>
-              {earned && (
-                <p className="text-xs text-green-600 font-medium mt-1">Earned ✓</p>
-              )}
+              {earned && <p className="text-xs text-green-600 font-medium mt-1">Earned ✓</p>}
             </div>
           );
         })}

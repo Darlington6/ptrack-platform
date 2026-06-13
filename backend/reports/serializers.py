@@ -1,6 +1,8 @@
 from rest_framework import serializers
+
 from accounts.serializers import UserSerializer
-from .models import WasteReport, Reward, RecyclingActivity
+
+from .models import RecyclingActivity, Reward, WasteReport
 
 
 class WasteReportSerializer(serializers.ModelSerializer):
@@ -9,8 +11,16 @@ class WasteReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = WasteReport
         fields = [
-            "id", "user", "user_detail", "latitude", "longitude",
-            "image", "description", "waste_type", "status", "created_at",
+            "id",
+            "user",
+            "user_detail",
+            "latitude",
+            "longitude",
+            "image",
+            "description",
+            "waste_type",
+            "status",
+            "created_at",
         ]
         read_only_fields = ["id", "user", "status", "created_at"]
 

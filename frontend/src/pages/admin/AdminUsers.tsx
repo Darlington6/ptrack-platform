@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
-import { AdminAvatar } from "../../components/AdminAvatar";
-import client from "../../api/client";
-import type { LeaderboardEntry } from "../../types";
+import { useEffect, useState } from 'react';
+import { AdminAvatar } from '../../components/AdminAvatar';
+import client from '../../api/client';
+import type { LeaderboardEntry } from '../../types';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<LeaderboardEntry[]>([]);
   const [reportCounts, setReportCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    client.get("/leaderboard/").then((r) => setUsers(r.data));
-    client.get("/reports/").then((r) => {
-      const counts = {};
-      r.data.forEach((report) => {
+    client.get('/leaderboard/').then((r) => setUsers(r.data));
+    client.get('/reports/').then((r) => {
+      const counts: Record<number, number> = {};
+      r.data.forEach((report: { user: number }) => {
         counts[report.user] = (counts[report.user] || 0) + 1;
       });
       setReportCounts(counts);
@@ -30,8 +30,11 @@ export default function AdminUsers() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                {["Rank", "Name", "Points", "Reports", "Sector"].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                {['Rank', 'Name', 'Points', 'Reports', 'Sector'].map((h) => (
+                  <th
+                    key={h}
+                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                  >
                     {h}
                   </th>
                 ))}
@@ -44,7 +47,7 @@ export default function AdminUsers() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold">
-                        {(u.full_name || u.username || "U").slice(0, 2).toUpperCase()}
+                        {(u.full_name || u.username || 'U').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-medium text-gray-800">{u.full_name}</p>
@@ -59,7 +62,9 @@ export default function AdminUsers() {
               ))}
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">No users found.</td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                    No users found.
+                  </td>
                 </tr>
               )}
             </tbody>

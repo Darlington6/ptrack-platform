@@ -1,9 +1,9 @@
-import { Bell } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { Bell } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export function Navbar() {
   const { user } = useAuth();
-  const firstName = user?.full_name?.split(" ")[0] || user?.username || "User";
+  const firstName = user?.full_name?.split(' ')[0] || user?.username || 'User';
   const initials = firstName.slice(0, 2).toUpperCase();
 
   return (

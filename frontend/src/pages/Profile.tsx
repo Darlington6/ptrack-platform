@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Activity, Bell, Shield, HelpCircle, LogOut, ChevronRight } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import client from "../api/client";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Activity, Bell, Shield, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import client from '../api/client';
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -11,27 +11,27 @@ export default function Profile() {
   const [activityCount, setActivityCount] = useState(0);
 
   useEffect(() => {
-    client.get("/reports/", { params: { user: "me" } }).then((r) => setReportCount(r.data.length));
-    client.get("/recycling/").then((r) => setActivityCount(r.data.length));
+    client.get('/reports/', { params: { user: 'me' } }).then((r) => setReportCount(r.data.length));
+    client.get('/recycling/').then((r) => setActivityCount(r.data.length));
   }, []);
 
-  const initials = (user?.full_name || user?.username || "U")
-    .split(" ")
+  const initials = (user?.full_name || user?.username || 'U')
+    .split(' ')
     .map((w) => w[0])
-    .join("")
+    .join('')
     .slice(0, 2)
     .toUpperCase();
 
   function handleLogout() {
     logout();
-    navigate("/");
+    navigate('/');
   }
 
   const MENU_ITEMS = [
-    { icon: Activity, label: "My Activity", action: () => navigate("/rewards") },
-    { icon: Bell, label: "Notifications", action: () => {} },
-    { icon: Shield, label: "Privacy Settings", action: () => {} },
-    { icon: HelpCircle, label: "Help & Support", action: () => {} },
+    { icon: Activity, label: 'My Activity', action: () => navigate('/rewards') },
+    { icon: Bell, label: 'Notifications', action: () => {} },
+    { icon: Shield, label: 'Privacy Settings', action: () => {} },
+    { icon: HelpCircle, label: 'Help & Support', action: () => {} },
   ];
 
   return (
@@ -48,9 +48,9 @@ export default function Profile() {
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: "Reports", value: reportCount },
-          { label: "Recycling Logs", value: activityCount },
-          { label: "Points", value: user?.points ?? 0 },
+          { label: 'Reports', value: reportCount },
+          { label: 'Recycling Logs', value: activityCount },
+          { label: 'Points', value: user?.points ?? 0 },
         ].map(({ label, value }) => (
           <div key={label} className="bg-white rounded-lg border border-gray-200 p-3 text-center">
             <p className="text-2xl font-bold text-green-600">{value}</p>
@@ -87,7 +87,9 @@ export default function Profile() {
 
       {/* Version footer — matches Figma */}
       <p className="text-center text-xs text-gray-400 mt-6">
-        pTrack v1.0.0<br />Built for Kigali. For Africa.
+        pTrack v1.0.0
+        <br />
+        Built for Kigali. For Africa.
       </p>
     </div>
   );

@@ -1,7 +1,9 @@
 import random
-from django.core.management.base import BaseCommand
+
 from django.contrib.auth import get_user_model
-from reports.models import WasteReport, Reward, RecyclingActivity
+from django.core.management.base import BaseCommand
+
+from reports.models import RecyclingActivity, Reward, WasteReport
 
 User = get_user_model()
 
@@ -70,7 +72,7 @@ class Command(BaseCommand):
         # Waste reports
         statuses = ["pending", "pending", "pending", "verified", "resolved"]
         report_count = 0
-        for i in range(15):
+        for _i in range(15):
             user = random.choice(citizens)
             lat = KIMIRONKO_LAT + random.uniform(-0.005, 0.005)
             lng = KIMIRONKO_LNG + random.uniform(-0.005, 0.005)
@@ -80,13 +82,15 @@ class Command(BaseCommand):
                 longitude=round(lng, 6),
                 defaults={
                     "waste_type": random.choice(WASTE_TYPES),
-                    "description": random.choice([
-                        "Found plastic bottles near the market.",
-                        "Bags dumped by the roadside.",
-                        "Mixed plastic near drainage channel.",
-                        "Abandoned plastic near school gate.",
-                        "",
-                    ]),
+                    "description": random.choice(
+                        [
+                            "Found plastic bottles near the market.",
+                            "Bags dumped by the roadside.",
+                            "Mixed plastic near drainage channel.",
+                            "Abandoned plastic near school gate.",
+                            "",
+                        ]
+                    ),
                     "status": random.choice(statuses),
                 },
             )
@@ -97,9 +101,9 @@ class Command(BaseCommand):
 
         # Recycling activities
         activity_count = 0
-        for i in range(10):
+        for _i in range(10):
             user = random.choice(citizens)
-            activity = RecyclingActivity.objects.create(
+            RecyclingActivity.objects.create(
                 user=user,
                 activity_type=random.choice(ACTIVITY_TYPES),
                 points_awarded=15,

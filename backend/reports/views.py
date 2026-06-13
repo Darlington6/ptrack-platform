@@ -8,34 +8,39 @@ Point economy:
   Report verified    → +5  pts (citizen who filed the report)
 """
 
+from django.contrib.auth import get_user_model
+from django.db.models import Sum
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum
-from django.contrib.auth import get_user_model
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 
-from .models import WasteReport, Reward, RecyclingActivity
-from .serializers import (
-    WasteReportSerializer,
-    RewardSerializer,
-    RecyclingActivitySerializer,
-    LeaderboardEntrySerializer,
-)
+from .models import RecyclingActivity, Reward, WasteReport
 from .permissions import IsAdminRole
+from .serializers import (
+    LeaderboardEntrySerializer,
+    RecyclingActivitySerializer,
+    RewardSerializer,
+    WasteReportSerializer,
+)
 
 User = get_user_model()
 
 
 # ── Reports ────────────────────────────────────────────────────────────────────
 
+
 @extend_schema(
     tags=["reports"],
     parameters=[
-        OpenApiParameter("status", str, description="Filter by status: pending | verified | resolved"),
-        OpenApiParameter("user", str, description="Pass 'me' to return only the current user's reports"),
+        OpenApiParameter(
+            "status", str, description="Filter by status: pending | verified | resolved"
+        ),
+        OpenApiParameter(
+            "user", str, description="Pass 'me' to return only the current user's reports"
+        ),
     ],
     responses={200: WasteReportSerializer(many=True)},
     summary="List waste reports",
@@ -82,7 +87,9 @@ def reports_list_create(request):
     )
 
 
-@extend_schema(tags=["reports"], responses={200: WasteReportSerializer}, summary="Retrieve a single report")
+@extend_schema(
+    tags=["reports"], responses={200: WasteReportSerializer}, summary="Retrieve a single report"
+)
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def report_detail(request, pk):
@@ -123,6 +130,7 @@ def report_verify(request, pk):
 
 
 # ── Recycling ──────────────────────────────────────────────────────────────────
+
 
 @extend_schema(
     tags=["recycling"],
@@ -166,6 +174,7 @@ def recycling_list_create(request):
 
 # ── Leaderboard ────────────────────────────────────────────────────────────────
 
+
 @extend_schema(
     tags=["leaderboard"],
     responses={200: LeaderboardEntrySerializer(many=True)},
@@ -192,6 +201,7 @@ def leaderboard(request):
 
 # ── Rewards ────────────────────────────────────────────────────────────────────
 
+
 @extend_schema(
     tags=["rewards"],
     responses={200: OpenApiResponse(description="total_points + rewards list")},
@@ -203,7 +213,9 @@ def my_rewards(request):
     """Return all rewards earned by the current user and their running points total."""
     rewards = Reward.objects.filter(user=request.user)
     rewards.aggregate(total=Sum("points_earned"))  # kept for future analytics use
-    return Response({
-        "total_points": request.user.points,
-        "rewards": RewardSerializer(rewards, many=True).data,
-    })
+    return Response(
+        {
+            "total_points": request.user.points,
+            "rewards": RewardSerializer(rewards, many=True).data,
+        }
+    )

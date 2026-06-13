@@ -1,0 +1,70 @@
+repos:
+  # ── General checks ─────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # ── Backend: Black ─────────────────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        args: [--line-length=100]
+        files: ^backend/
+        exclude: ^backend/venv/
+
+  # ── Backend: Ruff (lint + isort) ───────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.13
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/
+        exclude: ^backend/venv/
+
+  # ── Frontend: Prettier ─────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: prettier-frontend
+        name: prettier (frontend format check)
+        language: system
+        entry: bash -c 'cd frontend && npx prettier --check "src/**/*.{ts,tsx,css}"'
+        pass_filenames: false
+        files: ^frontend/src/.*\.(ts|tsx|css)$
+
+  # ── Frontend: ESLint ───────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: eslint (frontend)
+        language: system
+        entry: bash -c 'cd frontend && npx eslint src'
+        pass_filenames: false
+        files: ^frontend/src/.*\.(ts|tsx)$
+
+  # ── Frontend: TypeScript ───────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: tsc-frontend
+        name: tsc (frontend typecheck)
+        language: system
+        entry: bash -c 'cd frontend && npx tsc --noEmit'
+        pass_filenames: false
+        files: ^frontend/src/.*\.(ts|tsx)$
+
+  # ── Backend: mypy ──────────────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: mypy-backend
+        name: mypy (backend)
+        language: system
+        entry: bash -c 'cd backend && source venv/bin/activate && mypy . --exclude venv'
+        pass_filenames: false
+        files: ^backend/.*\.py$
+        exclude: ^backend/venv/

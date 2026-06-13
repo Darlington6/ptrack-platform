@@ -1,53 +1,55 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { Button } from "../components/ui/Button";
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/Button';
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    full_name: "",
-    email: "",
-    phone_number: "",
-    password: "",
-    confirm_password: "",
-    sector: "Kimironko",
+    full_name: '',
+    email: '',
+    phone_number: '',
+    password: '',
+    confirm_password: '',
+    sector: 'Kimironko',
     agreed: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleChange(e) {
-    const { name, value, type, checked } = e.target;
-    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
+  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const target = e.target as HTMLInputElement;
+    const { name, value, type, checked } = target;
+    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }) as typeof form);
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
+    setError('');
     if (form.password !== form.confirm_password) {
-      setError("Passwords do not match.");
+      setError('Passwords do not match.');
       return;
     }
     if (!form.agreed) {
-      setError("Please agree to the Terms & Privacy Policy.");
+      setError('Please agree to the Terms & Privacy Policy.');
       return;
     }
     setLoading(true);
     try {
-      const username = form.email.split("@")[0];
+      const username = form.email.split('@')[0];
       await register({ ...form, username, confirm_password: form.confirm_password });
-      navigate("/dashboard");
+      navigate('/dashboard');
     } catch (err) {
-      const data = err.response?.data;
-      if (data && typeof data === "object") {
-        setError(Object.values(data).flat().join(" "));
+      const axiosErr = err as { response?: { data?: unknown } };
+      const data = axiosErr.response?.data;
+      if (data && typeof data === 'object') {
+        setError((Object.values(data) as string[][]).flat().join(' '));
       } else {
-        setError("Registration failed. Please try again.");
+        setError('Registration failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -97,7 +99,9 @@ export default function Register() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               />
-              <p className="text-xs text-gray-400">We'll send a confirmation link/code to this address/phone number.</p>
+              <p className="text-xs text-gray-400">
+                We'll send a confirmation link/code to this address/phone number.
+              </p>
             </div>
 
             {/* Password */}
@@ -105,7 +109,7 @@ export default function Register() {
               <label className="text-sm font-medium text-gray-700">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={form.password}
                   onChange={handleChange}
@@ -129,7 +133,7 @@ export default function Register() {
               <label className="text-sm font-medium text-gray-700">Confirm Password</label>
               <div className="relative">
                 <input
-                  type={showConfirm ? "text" : "password"}
+                  type={showConfirm ? 'text' : 'password'}
                   name="confirm_password"
                   value={form.confirm_password}
                   onChange={handleChange}
@@ -170,21 +174,18 @@ export default function Register() {
                 className="mt-0.5 accent-green-600"
               />
               <span>
-                I agree to the{" "}
-                <span className="text-green-600 font-medium">Terms</span>
-                {" "}&amp;{" "}
-                <span className="text-green-600 font-medium">Privacy</span>
-                {" "}Policy
+                I agree to the <span className="text-green-600 font-medium">Terms</span> &amp;{' '}
+                <span className="text-green-600 font-medium">Privacy</span> Policy
               </span>
             </label>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating account…" : "Create Account"}
+              {loading ? 'Creating account…' : 'Create Account'}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{" "}
+            Already have an account?{' '}
             <Link to="/login" className="text-green-600 font-medium hover:underline">
               Login
             </Link>

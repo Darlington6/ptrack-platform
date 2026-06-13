@@ -1,22 +1,22 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { Navbar } from "./components/Navbar";
-import { BottomNav } from "./components/BottomNav";
-import { Sidebar } from "./components/Sidebar";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Navbar } from './components/Navbar';
+import { BottomNav } from './components/BottomNav';
+import { Sidebar } from './components/Sidebar';
 
-import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
-import ReportWaste from "./pages/ReportWaste";
-import MapView from "./pages/MapView";
-import Rewards from "./pages/Rewards";
-import Leaderboard from "./pages/Leaderboard";
-import Profile from "./pages/Profile";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminReports from "./pages/admin/AdminReports";
-import AdminUsers from "./pages/admin/AdminUsers";
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import ReportWaste from './pages/ReportWaste';
+import MapView from './pages/MapView';
+import Rewards from './pages/Rewards';
+import Leaderboard from './pages/Leaderboard';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminReports from './pages/admin/AdminReports';
+import AdminUsers from './pages/admin/AdminUsers';
 
 function CitizenLayout() {
   return (

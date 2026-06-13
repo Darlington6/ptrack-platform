@@ -1,5 +1,5 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 
 class WasteReport(models.Model):
@@ -15,7 +15,9 @@ class WasteReport(models.Model):
         ("resolved", "Resolved"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reports")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reports"
+    )
     latitude = models.FloatField()
     longitude = models.FloatField()
     image = models.ImageField(upload_to="reports/", null=True, blank=True)
@@ -38,7 +40,9 @@ class Reward(models.Model):
         ("verification_bonus", "Verification Bonus"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rewards")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="rewards"
+    )
     points_earned = models.IntegerField()
     reward_type = models.CharField(max_length=30, choices=REWARD_TYPE_CHOICES)
     date_earned = models.DateTimeField(auto_now_add=True)
@@ -58,8 +62,12 @@ class RecyclingActivity(models.Model):
         ("other", "Other"),
     ]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recycling_activities")
-    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPE_CHOICES, default="drop_off")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="recycling_activities"
+    )
+    activity_type = models.CharField(
+        max_length=20, choices=ACTIVITY_TYPE_CHOICES, default="drop_off"
+    )
     points_awarded = models.IntegerField(default=15)
     date = models.DateTimeField(auto_now_add=True)
 

@@ -1,29 +1,23 @@
-import { useEffect, useState } from "react";
-import { MapPin } from "lucide-react";
-import client from "../api/client";
-import type { WasteReportDetail } from "../types";
-
-const STATUS_COLORS = {
-  pending: "bg-yellow-400",
-  verified: "bg-green-500",
-  resolved: "bg-blue-500",
-};
+import { useEffect, useState } from 'react';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
+import client from '../api/client';
+import type { WasteReportDetail } from '../types';
 
 const STATUS_BADGE = {
-  pending: "bg-yellow-100 text-yellow-800",
-  verified: "bg-green-100 text-green-800",
-  resolved: "bg-blue-100 text-blue-800",
+  pending: 'bg-yellow-100 text-yellow-800',
+  verified: 'bg-green-100 text-green-800',
+  resolved: 'bg-blue-100 text-blue-800',
 };
 
-const FILTERS = ["All", "pending", "verified", "resolved"];
+const FILTERS = ['All', 'pending', 'verified', 'resolved'];
 
 export default function MapView() {
   const [reports, setReports] = useState<WasteReportDetail[]>([]);
-  const [filter, setFilter] = useState("All");
+  const [filter, setFilter] = useState('All');
 
   useEffect(() => {
-    const params = filter !== "All" ? { status: filter } : {};
-    client.get("/reports/", { params }).then((r) => setReports(r.data));
+    const params = filter !== 'All' ? { status: filter } : {};
+    client.get('/reports/', { params }).then((r) => setReports(r.data));
   }, [filter]);
 
   return (
@@ -33,24 +27,30 @@ export default function MapView() {
       </div>
 
       {/* Placeholder map */}
-      <div className="relative mx-4 mt-4 h-64 rounded-lg overflow-hidden bg-gray-200 border border-gray-300">
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-          <MapPin size={36} className="text-green-600 mb-2" />
-          <p className="text-sm font-medium">Map — Kimironko, Kigali</p>
-          <p className="text-xs text-gray-400">Google Maps / Leaflet integration goes here</p>
-        </div>
-        {/* Simulated pins */}
-        {reports.slice(0, 6).map((r, i) => (
-          <div
-            key={r.id}
-            className={`absolute w-4 h-4 rounded-full border-2 border-white ${STATUS_COLORS[r.status]}`}
-            style={{
-              top: `${20 + (i * 37) % 70}%`,
-              left: `${15 + (i * 43) % 70}%`,
+      <div className="mx-4 mt-4">
+        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
+          <GoogleMap
+            mapContainerStyle={{
+              width: '100%',
+              height: '400px',
             }}
-            title={r.waste_type}
-          />
-        ))}
+            center={{
+              lat: -1.9441,
+              lng: 30.0619,
+            }}
+            zoom={13}
+          >
+            {reports.map((report) => (
+              <Marker
+                key={report.id}
+                position={{
+                  lat: report.latitude,
+                  lng: report.longitude,
+                }}
+              />
+            ))}
+          </GoogleMap>
+        </LoadScript>
       </div>
 
       {/* Filters */}
@@ -61,11 +61,11 @@ export default function MapView() {
             onClick={() => setFilter(f)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               filter === f
-                ? "bg-green-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {f === "All" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === 'All' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
       </div>
@@ -78,14 +78,19 @@ export default function MapView() {
         {reports.map((r) => (
           <div key={r.id} className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-800 capitalize">{r.waste_type.replace("_", " ")}</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status]}`}>
+              <span className="text-sm font-medium text-gray-800 capitalize">
+                {r.waste_type.replace('_', ' ')}
+              </span>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status]}`}
+              >
                 {r.status}
               </span>
             </div>
             {r.description && <p className="text-xs text-gray-500 mb-1">{r.description}</p>}
             <p className="text-xs text-gray-400">
-              {new Date(r.created_at).toLocaleDateString()} — {r.user_detail?.full_name || "Citizen"}
+              {new Date(r.created_at).toLocaleDateString()} —{' '}
+              {r.user_detail?.full_name || 'Citizen'}
             </p>
           </div>
         ))}

@@ -195,9 +195,109 @@ DATABASE_URL=postgres://USER:PASSWORD@HOST:PORT/DBNAME
 - Railway built-in logs (real-time via dashboard or `railway logs`).
 - Add Sentry for error tracking in a later sprint.
 
-### CI/CD (future)
+### CI/CD
 
-Add `.github/workflows/deploy.yml` to auto-deploy on push to `main`.
+See [Development Workflow](#development-workflow) below for details.
+
+---
+
+## Development Workflow
+
+### Branch Naming
+
+```
+feat/   — new features
+fix/    — bug fixes
+chore/  — maintenance / deps
+docs/   — documentation only
+ci/     — CI/CD changes
+```
+
+### Commit Convention
+
+pTrack uses [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat(reports): add image upload to waste report form
+fix(auth): redirect admin to /admin on login
+chore(deps): upgrade axios to 1.7.x
+```
+
+### Pre-commit Hooks (optional but recommended)
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+The hooks run Prettier, ESLint, tsc, Black, Ruff, and mypy on staged files.
+
+---
+
+## Code Quality
+
+### Frontend
+
+```bash
+cd frontend
+npm run typecheck      # tsc --noEmit
+npm run lint           # ESLint
+npm run lint:fix       # ESLint with auto-fix
+npm run format         # Prettier (write)
+npm run format:check   # Prettier (check only)
+npm run build          # Production build
+```
+
+**Tools:**
+- **ESLint** — typescript-eslint, react, react-hooks, jsx-a11y, import plugins
+- **Prettier** — single quotes, 2-space indent, trailing commas es5, 100-char line
+- **TypeScript** — strict mode (`strict`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `exactOptionalPropertyTypes`)
+
+### Backend
+
+```bash
+cd backend
+source venv/bin/activate
+
+ruff check .           # lint (replaces flake8 + isort)
+ruff check . --fix     # auto-fix
+black .                # format
+black --check .        # format check only
+mypy . --exclude venv  # type checking
+pytest                 # run tests with coverage
+```
+
+**Tools:**
+- **Ruff** — linting + import sorting (replaces flake8 + isort)
+- **Black** — opinionated formatter, line-length 100
+- **mypy** — static type checking with django-stubs and djangorestframework-stubs
+
+All tool configuration lives in [`backend/pyproject.toml`](backend/pyproject.toml).
+
+---
+
+## CI/CD
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| [`ci.yml`](.github/workflows/ci.yml) | Push / PR to `main`, `develop` | Typecheck, lint, format-check, build, tests, secrets scan |
+| [`codeql.yml`](.github/workflows/codeql.yml) | Weekly + PR to `main` | GitHub CodeQL security analysis |
+| [`deploy.yml`](.github/workflows/deploy.yml) | Push to `main` | Deploy backend (Railway) + frontend (Vercel) |
+| [`lighthouse.yml`](.github/workflows/lighthouse.yml) | PR to `main` | Lighthouse perf / a11y audit on Vercel preview |
+
+### Required Secrets
+
+Set these in **GitHub → Settings → Secrets and Variables → Actions**:
+
+| Secret | Used by |
+|--------|---------|
+| `RAILWAY_TOKEN` | `deploy.yml` — Railway CLI deploy |
+| `VERCEL_TOKEN` | `deploy.yml` — Vercel deploy |
+| `VERCEL_ORG_ID` | `deploy.yml` — Vercel org |
+| `VERCEL_PROJECT_ID` | `deploy.yml` — Vercel project |
+| `NOTIFY_WEBHOOK_URL` | `deploy.yml` — Slack/Discord webhook (optional) |
+
+Deploy jobs are skipped gracefully if secrets are not set.
 
 ---
 

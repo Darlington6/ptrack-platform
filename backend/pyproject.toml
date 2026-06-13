@@ -1,0 +1,48 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "W"]
+ignore = ["B008", "B904", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["accounts", "reports", "utils"]
+
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
+warn_return_any = false
+exclude = [
+    "venv/",
+    "migrations/",
+]
+
+[[tool.mypy.overrides]]
+module = ["accounts.models", "reports.models"]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "ptrack.settings"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["accounts", "reports", "utils"]
+addopts = "--cov=. --cov-report=xml --cov-report=term-missing --cov-config=pyproject.toml"
+
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "venv/*",
+    "*/migrations/*",
+    "*/tests/*",
+    "manage.py",
+    "ptrack/asgi.py",
+    "ptrack/wsgi.py",
+]

@@ -1,25 +1,34 @@
 import re
+
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import User
 
 
 def _is_phone(value: str) -> bool:
     """Return True if the value looks like a phone number rather than an email."""
-    return bool(re.match(r'^\+?[\d\s\-().]{7,}$', value.strip()))
+    return bool(re.match(r"^\+?[\d\s\-().]{7,}$", value.strip()))
 
 
 def _clean_phone(phone: str) -> str:
     """Strip non-digit characters — used to build a placeholder email."""
-    return re.sub(r'\D', '', phone)
+    return re.sub(r"\D", "", phone)
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username", "email", "full_name", "phone_number",
-            "sector", "points", "role", "created_at",
+            "id",
+            "username",
+            "email",
+            "full_name",
+            "phone_number",
+            "sector",
+            "points",
+            "role",
+            "created_at",
         ]
         read_only_fields = ["id", "points", "created_at"]
 
@@ -35,8 +44,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "username", "email", "full_name", "phone_number",
-            "sector", "password", "confirm_password",
+            "username",
+            "email",
+            "full_name",
+            "phone_number",
+            "sector",
+            "password",
+            "confirm_password",
         ]
 
     def validate(self, data):

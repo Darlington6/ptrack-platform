@@ -6,7 +6,7 @@ export interface User {
   phone_number?: string;
   sector: string;
   points: number;
-  role: "citizen" | "admin";
+  role: 'citizen' | 'admin';
   created_at: string;
 }
 
@@ -17,13 +17,13 @@ export interface WasteReport {
   longitude: number;
   image?: string | null;
   description?: string;
-  waste_type: "bottles" | "bags" | "mixed" | "other";
-  status: "pending" | "verified" | "resolved";
+  waste_type: 'bottles' | 'bags' | 'mixed' | 'other';
+  status: 'pending' | 'verified' | 'resolved';
   created_at: string;
 }
 
 export interface WasteReportDetail extends WasteReport {
-  user_detail?: Pick<User, "id" | "username" | "email" | "full_name">;
+  user_detail?: Pick<User, 'id' | 'username' | 'email' | 'full_name'>;
 }
 
 export interface Reward {
@@ -37,7 +37,7 @@ export interface Reward {
 export interface RecyclingActivity {
   id: number;
   user: number;
-  activity_type: "drop_off" | "pickup" | "exchange" | "other";
+  activity_type: 'drop_off' | 'pickup' | 'exchange' | 'other';
   points_awarded: number;
   date: string;
 }

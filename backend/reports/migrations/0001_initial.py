@@ -15,46 +15,127 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='RecyclingActivity',
+            name="RecyclingActivity",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('activity_type', models.CharField(choices=[('drop_off', 'Drop Off'), ('pickup', 'Pickup'), ('exchange', 'Exchange'), ('other', 'Other')], default='drop_off', max_length=20)),
-                ('points_awarded', models.IntegerField(default=15)),
-                ('date', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='recycling_activities', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "activity_type",
+                    models.CharField(
+                        choices=[
+                            ("drop_off", "Drop Off"),
+                            ("pickup", "Pickup"),
+                            ("exchange", "Exchange"),
+                            ("other", "Other"),
+                        ],
+                        default="drop_off",
+                        max_length=20,
+                    ),
+                ),
+                ("points_awarded", models.IntegerField(default=15)),
+                ("date", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="recycling_activities",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-date'],
+                "ordering": ["-date"],
             },
         ),
         migrations.CreateModel(
-            name='Reward',
+            name="Reward",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('points_earned', models.IntegerField()),
-                ('reward_type', models.CharField(choices=[('report_submitted', 'Report Submitted'), ('recycling_logged', 'Recycling Logged'), ('verification_bonus', 'Verification Bonus')], max_length=30)),
-                ('date_earned', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rewards', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("points_earned", models.IntegerField()),
+                (
+                    "reward_type",
+                    models.CharField(
+                        choices=[
+                            ("report_submitted", "Report Submitted"),
+                            ("recycling_logged", "Recycling Logged"),
+                            ("verification_bonus", "Verification Bonus"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
+                ("date_earned", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="rewards",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-date_earned'],
+                "ordering": ["-date_earned"],
             },
         ),
         migrations.CreateModel(
-            name='WasteReport',
+            name="WasteReport",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='reports/')),
-                ('description', models.TextField(blank=True)),
-                ('waste_type', models.CharField(choices=[('bottles', 'Plastic Bottles'), ('bags', 'Plastic Bags'), ('mixed', 'Mixed Plastic'), ('other', 'Other')], default='bottles', max_length=20)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('verified', 'Verified'), ('resolved', 'Resolved')], default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reports', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("image", models.ImageField(blank=True, null=True, upload_to="reports/")),
+                ("description", models.TextField(blank=True)),
+                (
+                    "waste_type",
+                    models.CharField(
+                        choices=[
+                            ("bottles", "Plastic Bottles"),
+                            ("bags", "Plastic Bags"),
+                            ("mixed", "Mixed Plastic"),
+                            ("other", "Other"),
+                        ],
+                        default="bottles",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("verified", "Verified"),
+                            ("resolved", "Resolved"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="reports",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
+                "ordering": ["-created_at"],
             },
         ),
     ]

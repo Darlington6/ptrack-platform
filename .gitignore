@@ -71,7 +71,17 @@ coverage.xml
 .pytest_cache/
 .tox/
 
+# ── Python tooling ────────────────────────────────────────────────────────────
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
 # ── Misc ──────────────────────────────────────────────────────────────────────
 *.bak
 *.tmp
 .cache/
+*.log
+
+# ── Deployment tooling ────────────────────────────────────────────────────────
+.vercel/
+.turbo/
