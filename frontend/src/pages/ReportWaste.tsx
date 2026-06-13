@@ -1,54 +1,83 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Camera } from "lucide-react";
-import client from "../api/client";
-import { Button } from "../components/ui/Button";
-import { useAuth } from "../context/AuthContext";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, MapPin, Camera } from 'lucide-react';
+import client from '../api/client';
+import { Button } from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 const WASTE_TYPES = [
-  { value: "bottles", label: "Plastic bottles" },
-  { value: "bags", label: "Plastic bags" },
-  { value: "mixed", label: "Mixed plastic" },
-  { value: "other", label: "Other" },
+  { value: 'bottles', label: 'Plastic bottles' },
+  { value: 'bags', label: 'Plastic bags' },
+  { value: 'mixed', label: 'Mixed plastic' },
+  { value: 'other', label: 'Other' },
 ];
 
 export default function ReportWaste() {
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
-  const [form, setForm] = useState({
-    waste_type: "bottles",
-    description: "",
+  const [form, setForm] = useState<{
+    waste_type: string;
+    description: string;
+    image: File | null;
+  }>({
+    waste_type: 'bottles',
+    description: '',
     image: null,
   });
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState('');
 
-  function handleChange(e) {
-    const { name, value, files } = e.target;
-    setForm({ ...form, [name]: files ? files[0] : value });
+  const [location, setLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error(error);
+      }
+    );
+  }, []);
+
+  function handleChange(
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) {
+    const target = e.target as HTMLInputElement;
+    const { name, value } = target;
+    const files = target.files;
+    setForm((prev) => ({ ...prev, [name]: files ? files[0] : value }) as typeof form);
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     try {
       const data = new FormData();
-      // Kimironko centre coordinates — will be replaced by real geolocation in production
-      data.append("latitude", String(-1.9358));
-      data.append("longitude", String(30.1284));
-      data.append("waste_type", form.waste_type);
-      data.append("description", form.description);
-      if (form.image) data.append("image", form.image);
+      // Kimironko centre coordinates
+      if (location) {
+        data.append('latitude', String(location.latitude));
+        data.append('longitude', String(location.longitude));
+      }
+      data.append('waste_type', form.waste_type);
+      data.append('description', form.description);
+      if (form.image) data.append('image', form.image);
 
-      const res = await client.post("/reports/", data, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await client.post('/reports/', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       await refreshUser();
       setToast(`Report submitted! +10 points earned. Balance: ${res.data.new_points_balance} pts`);
-      setTimeout(() => navigate("/dashboard"), 2000);
+      setTimeout(() => navigate('/dashboard'), 2000);
     } catch {
-      setToast("Failed to submit report. Please try again.");
+      setToast('Failed to submit report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +109,9 @@ export default function ReportWaste() {
               <MapPin size={14} className="text-green-600" />
               <span>Location auto-detected — Kimironko, Kigali</span>
             </div>
-            <button type="button" className="text-sm text-green-600 font-medium">Change</button>
+            <button type="button" className="text-sm text-green-600 font-medium">
+              Change
+            </button>
           </div>
         </div>
 
@@ -89,7 +120,9 @@ export default function ReportWaste() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
             {form.image ? (
-              <p className="text-sm text-green-700 font-medium px-4 text-center">{form.image.name}</p>
+              <p className="text-sm text-green-700 font-medium px-4 text-center">
+                {form.image.name}
+              </p>
             ) : (
               <>
                 <Camera size={28} className="text-gray-400 mb-1" />
@@ -97,13 +130,21 @@ export default function ReportWaste() {
                 <p className="text-xs text-gray-400">Help us verify the waste</p>
               </>
             )}
-            <input type="file" name="image" accept="image/*" onChange={handleChange} className="sr-only" />
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={handleChange}
+              className="sr-only"
+            />
           </label>
         </div>
 
         {/* Description */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Describe what you found (optional)</label>
+          <label className="text-sm font-medium text-gray-700">
+            Describe what you found (optional)
+          </label>
           <textarea
             name="description"
             value={form.description}
@@ -124,18 +165,21 @@ export default function ReportWaste() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
           >
             {WASTE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
             ))}
           </select>
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Submitting…" : "Submit Report"}
+          {loading ? 'Submitting…' : 'Submit Report'}
         </Button>
 
         {/* Points reminder */}
         <p className="text-center text-sm text-gray-500">
-          You'll earn <span className="font-semibold text-green-600">+10 points</span> for this report
+          You'll earn <span className="font-semibold text-green-600">+10 points</span> for this
+          report
         </p>
       </form>
     </div>

@@ -8,18 +8,18 @@ Endpoints:
 """
 
 from django.contrib.auth import authenticate
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import User
 from .serializers import (
-    RegisterSerializer,
-    LoginSerializer,
-    UserSerializer,
     AuthResponseSerializer,
+    LoginSerializer,
+    RegisterSerializer,
+    UserSerializer,
     _is_phone,
 )
 

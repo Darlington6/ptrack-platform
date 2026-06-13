@@ -1,0 +1,44 @@
+name: Lighthouse CI
+
+"on":
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get Vercel preview URL
+        id: preview
+        run: |
+          URL=$(gh pr view ${{ github.event.pull_request.number }} \
+            --json comments \
+            --jq '.comments[].body' 2>/dev/null \
+            | grep -oE 'https://[a-zA-Z0-9._-]+-[a-zA-Z0-9-]+-[a-z0-9-]+\.vercel\.app' \
+            | head -1 || echo "")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Lighthouse CI
+        if: steps.preview.outputs.url != ''
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ steps.preview.outputs.url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 1
+          configPath: ".github/lighthouserc.json"
+
+      - name: Skip (no preview URL found)
+        if: steps.preview.outputs.url == ''
+        run: echo "No Vercel preview URL found in PR comments — skipping Lighthouse audit."

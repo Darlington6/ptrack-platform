@@ -1,0 +1,71 @@
+name: Deploy
+
+"on":
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend (Railway)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        if: env.RAILWAY_TOKEN != ''
+        run: npm install -g @railway/cli@latest --silent
+
+      - name: Deploy to Railway
+        if: env.RAILWAY_TOKEN != ''
+        run: railway up --service backend --detach
+        env:
+          RAILWAY_TOKEN: ${{ env.RAILWAY_TOKEN }}
+
+  deploy-frontend:
+    name: Deploy Frontend (Vercel)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        if: env.VERCEL_TOKEN != ''
+        uses: amondnet/vercel-action@v25.2.0
+        with:
+          vercel-token: ${{ env.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: frontend
+          vercel-args: --prod
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+    env:
+      NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+
+    steps:
+      - name: Send deploy notification
+        if: env.NOTIFY_WEBHOOK_URL != ''
+        run: |
+          STATUS="success"
+          if [[ "${{ needs.deploy-backend.result }}" == "failure" || "${{ needs.deploy-frontend.result }}" == "failure" ]]; then
+            STATUS="failure"
+          fi
+          curl -s -X POST "$NOTIFY_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": \"Deploy $STATUS on \`${{ github.ref_name }}\` by ${{ github.actor }}\"}" \
+            || true

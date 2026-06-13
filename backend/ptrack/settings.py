@@ -7,15 +7,33 @@ connection string to switch to PostgreSQL for production.
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
+
+import sentry_sdk
 from dotenv import load_dotenv
+from sentry_sdk.integrations.django import DjangoIntegration
 
 load_dotenv()
+
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+    release=os.getenv("APP_VERSION"),
+    environment="development" if os.getenv("DEBUG") == "True" else "production",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-dev-key-change-me")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
+USE_CLOUDINARY = os.getenv("USE_CLOUDINARY", "False") == "True"
 DEBUG = os.getenv("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -30,8 +48,10 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
-    "drf_spectacular",   # OpenAPI schema + Swagger/Redoc UI
+    "drf_spectacular",  # OpenAPI schema + Swagger/Redoc UI
     # local apps
+    "cloudinary_storage",
+    "cloudinary",
     "accounts",
     "reports",
 ]
@@ -76,6 +96,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
 
 if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
     import urllib.parse
+
     url = urllib.parse.urlparse(DATABASE_URL)
     DATABASES = {
         "default": {
@@ -91,7 +112,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": str(BASE_DIR / "db.sqlite3"),
         }
     }
 
@@ -122,9 +143,7 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     # Use drf-spectacular for OpenAPI schema generation
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -167,3 +186,23 @@ CORS_ALLOWED_ORIGINS = os.getenv(
     "http://localhost:5173,http://localhost:3000",
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
+
+# ──  Media storage ─────────────────────────────────────────────────────
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+if USE_CLOUDINARY:
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+    CLOUDINARY_STORAGE = {
+        "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+        "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+        "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+    }

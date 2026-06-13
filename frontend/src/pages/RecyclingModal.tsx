@@ -1,29 +1,34 @@
-import { useState } from "react";
-import { X } from "lucide-react";
-import client from "../api/client";
-import { Button } from "../components/ui/Button";
+import { useState, type FormEvent } from 'react';
+import { X } from 'lucide-react';
+import client from '../api/client';
+import { Button } from '../components/ui/Button';
 
 const ACTIVITY_TYPES = [
-  { value: "drop_off", label: "Drop Off" },
-  { value: "pickup", label: "Pickup" },
-  { value: "exchange", label: "Exchange" },
-  { value: "other", label: "Other" },
+  { value: 'drop_off', label: 'Drop Off' },
+  { value: 'pickup', label: 'Pickup' },
+  { value: 'exchange', label: 'Exchange' },
+  { value: 'other', label: 'Other' },
 ];
 
-export default function RecyclingModal({ onClose, onSuccess }) {
-  const [activityType, setActivityType] = useState("drop_off");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+interface RecyclingModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
 
-  async function handleSubmit(e) {
+export default function RecyclingModal({ onClose, onSuccess }: RecyclingModalProps) {
+  const [activityType, setActivityType] = useState('drop_off');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
     try {
-      await client.post("/recycling/", { activity_type: activityType });
+      await client.post('/recycling/', { activity_type: activityType });
       onSuccess();
     } catch {
-      setError("Failed to log activity.");
+      setError('Failed to log activity.');
     } finally {
       setLoading(false);
     }
@@ -50,13 +55,18 @@ export default function RecyclingModal({ onClose, onSuccess }) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               {ACTIVITY_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
               ))}
             </select>
           </div>
-          <p className="text-sm text-gray-500">You will earn <span className="font-semibold text-green-600">+15 points</span> for this activity.</p>
+          <p className="text-sm text-gray-500">
+            You will earn <span className="font-semibold text-green-600">+15 points</span> for this
+            activity.
+          </p>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Logging…" : "Log Activity"}
+            {loading ? 'Logging…' : 'Log Activity'}
           </Button>
         </form>
       </div>

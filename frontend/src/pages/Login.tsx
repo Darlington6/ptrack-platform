@@ -1,31 +1,32 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { Input } from "../components/ui/Input";
-import { Button } from "../components/ui/Button";
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Input } from '../components/ui/Input';
+import { Button } from '../components/ui/Button';
 
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      navigate(user.role === "admin" ? "/admin" : "/dashboard");
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
-      setError(err.response?.data?.detail || "Login failed. Check your credentials.");
+      const axiosErr = err as { response?: { data?: { detail?: string } } };
+      setError(axiosErr.response?.data?.detail || 'Login failed. Check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +64,7 @@ export default function Login() {
               <label className="text-sm font-medium text-gray-700">Password</label>
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={form.password}
                   onChange={handleChange}
@@ -87,12 +88,12 @@ export default function Login() {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in…" : "Login"}
+              {loading ? 'Logging in…' : 'Login'}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            New here?{" "}
+            New here?{' '}
             <Link to="/register" className="text-green-600 font-medium hover:underline">
               Create account
             </Link>

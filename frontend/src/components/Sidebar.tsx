@@ -1,14 +1,13 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, FileText, Users, BarChart2, Settings, LogOut } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, FileText, Users, BarChart2, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
-  { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
-  { to: "/admin/reports", icon: FileText, label: "Reports" },
-  { to: "/admin/users", icon: Users, label: "Users" },
-  { to: "#", icon: BarChart2, label: "Analytics" },
-  { to: "#", icon: Settings, label: "Settings" },
+  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/admin/reports', icon: FileText, label: 'Reports', end: false },
+  { to: '/admin/users', icon: Users, label: 'Users', end: false },
+  { to: '#', icon: BarChart2, label: 'Analytics', end: false },
+  { to: '#', icon: Settings, label: 'Settings', end: false },
 ];
 
 export function Sidebar() {
@@ -17,7 +16,7 @@ export function Sidebar() {
 
   function handleLogout() {
     logout();
-    navigate("/");
+    navigate('/');
   }
 
   return (
@@ -35,9 +34,7 @@ export function Sidebar() {
             end={end}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-green-50 text-green-700"
-                  : "text-gray-600 hover:bg-gray-100"
+                isActive ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-100'
               }`
             }
           >

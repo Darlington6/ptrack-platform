@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import { Leaf } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { Leaf } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -11,13 +11,11 @@ export default function Landing() {
 
         <h1 className="text-6xl font-bold text-green-600 mb-3 tracking-tight">pTrack</h1>
 
-        <p className="text-2xl font-bold text-gray-900 mb-4">
-          Report. Recycle. Reward.
-        </p>
+        <p className="text-2xl font-bold text-gray-900 mb-4">Report. Recycle. Reward.</p>
 
         <p className="text-gray-500 max-w-sm mb-10 text-base leading-relaxed">
-          Help keep cities clean. Earn points for every action - report plastic
-          waste, log recycling activities, and climb the leaderboard.
+          Help keep cities clean. Earn points for every action - report plastic waste, log recycling
+          activities, and climb the leaderboard.
         </p>
 
         {/* Stacked full-width CTAs */}

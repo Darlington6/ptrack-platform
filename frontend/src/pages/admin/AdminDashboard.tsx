@@ -1,33 +1,31 @@
-import { useEffect, useState } from "react";
-import { FileText, Users, Clock, Star } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { AdminAvatar } from "../../components/AdminAvatar";
-import client from "../../api/client";
-import type { LeaderboardEntry, WasteReportDetail } from "../../types";
+import { useEffect, useState } from 'react';
+import { FileText, Users, Clock, Star } from 'lucide-react';
+import { AdminAvatar } from '../../components/AdminAvatar';
+import client from '../../api/client';
+import type { LeaderboardEntry, WasteReportDetail } from '../../types';
 
 const STATUS_BADGE = {
-  pending: "bg-yellow-100 text-yellow-800",
-  verified: "bg-green-100 text-green-800",
-  resolved: "bg-gray-100 text-gray-600",
+  pending: 'bg-yellow-100 text-yellow-800',
+  verified: 'bg-green-100 text-green-800',
+  resolved: 'bg-gray-100 text-gray-600',
 };
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
   const [reports, setReports] = useState<WasteReportDetail[]>([]);
   const [users, setUsers] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
-    client.get("/reports/").then((r) => setReports(r.data));
-    client.get("/leaderboard/").then((r) => setUsers(r.data));
+    client.get('/reports/').then((r) => setReports(r.data));
+    client.get('/leaderboard/').then((r) => setUsers(r.data));
   }, []);
 
-  const pending = reports.filter((r) => r.status === "pending").length;
+  const pending = reports.filter((r) => r.status === 'pending').length;
   const activeUsers = new Set(reports.map((r) => r.user)).size;
   const totalPoints = users.reduce((s, u) => s + u.points, 0);
 
-  async function handleVerify(id) {
+  async function handleVerify(id: number) {
     await client.patch(`/reports/${id}/verify/`);
-    const res = await client.get("/reports/");
+    const res = await client.get('/reports/');
     setReports(res.data);
   }
 
@@ -42,13 +40,35 @@ export default function AdminDashboard() {
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: FileText, label: "Total Reports", value: reports.length, color: "text-blue-600 bg-blue-50" },
-            { icon: Users, label: "Active Users", value: activeUsers, color: "text-green-600 bg-green-50" },
-            { icon: Clock, label: "Pending Verification", value: pending, color: "text-amber-600 bg-amber-50" },
-            { icon: Star, label: "Points Awarded", value: totalPoints.toLocaleString(), color: "text-purple-600 bg-purple-50" },
+            {
+              icon: FileText,
+              label: 'Total Reports',
+              value: reports.length,
+              color: 'text-blue-600 bg-blue-50',
+            },
+            {
+              icon: Users,
+              label: 'Active Users',
+              value: activeUsers,
+              color: 'text-green-600 bg-green-50',
+            },
+            {
+              icon: Clock,
+              label: 'Pending Verification',
+              value: pending,
+              color: 'text-amber-600 bg-amber-50',
+            },
+            {
+              icon: Star,
+              label: 'Points Awarded',
+              value: totalPoints.toLocaleString(),
+              color: 'text-purple-600 bg-purple-50',
+            },
           ].map(({ icon: Icon, label, value, color }) => (
             <div key={label} className="bg-white rounded-lg border border-gray-200 p-5">
-              <div className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center mb-3`}>
+              <div
+                className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center mb-3`}
+              >
                 <Icon size={20} />
               </div>
               <p className="text-2xl font-bold text-gray-900">{value}</p>
@@ -77,8 +97,11 @@ export default function AdminDashboard() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  {["ID", "User", "Location", "Type", "Status", "Date", "Actions"].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {['ID', 'User', 'Location', 'Type', 'Status', 'Date', 'Actions'].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    >
                       {h}
                     </th>
                   ))}
@@ -89,15 +112,21 @@ export default function AdminDashboard() {
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">R-{r.id}</td>
                     <td className="px-4 py-3 font-medium text-gray-800">
-                      {r.user_detail?.full_name?.split(" ")[0] || "—"}{" "}
-                      {r.user_detail?.full_name?.split(" ")[1]?.[0] ? r.user_detail.full_name.split(" ")[1][0] + "." : ""}
+                      {r.user_detail?.full_name?.split(' ')[0] || '—'}{' '}
+                      {r.user_detail?.full_name?.split(' ')[1]?.[0]
+                        ? r.user_detail.full_name.split(' ')[1][0] + '.'
+                        : ''}
                     </td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">
                       {r.latitude?.toFixed(3)}, {r.longitude?.toFixed(3)}
                     </td>
-                    <td className="px-4 py-3 capitalize text-gray-700">{r.waste_type.replace("_", " ")}</td>
+                    <td className="px-4 py-3 capitalize text-gray-700">
+                      {r.waste_type.replace('_', ' ')}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status]}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status]}`}
+                      >
                         {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                       </span>
                     </td>
@@ -106,7 +135,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        {r.status === "pending" && (
+                        {r.status === 'pending' && (
                           <>
                             <button
                               onClick={() => handleVerify(r.id)}
@@ -115,10 +144,7 @@ export default function AdminDashboard() {
                             >
                               ✓
                             </button>
-                            <button
-                              className="text-red-400 hover:text-red-600"
-                              title="Reject"
-                            >
+                            <button className="text-red-400 hover:text-red-600" title="Reject">
                               ✕
                             </button>
                           </>

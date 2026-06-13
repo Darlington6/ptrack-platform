@@ -1,23 +1,23 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { MapPin, Recycle, Trophy, Star } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
-import { Card } from "../components/ui/Card";
-import client from "../api/client";
-import RecyclingModal from "./RecyclingModal";
-import type { Reward } from "../types";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Recycle, Trophy, Star } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Card } from '../components/ui/Card';
+import client from '../api/client';
+import RecyclingModal from './RecyclingModal';
+import type { Reward } from '../types';
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr: string): string {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const REWARD_LABELS = {
-  report_submitted: "Waste Report",
-  recycling_logged: "Recycling Activity",
-  verification_bonus: "Verification Bonus",
+const REWARD_LABELS: Record<string, string> = {
+  report_submitted: 'Waste Report',
+  recycling_logged: 'Recycling Activity',
+  verification_bonus: 'Verification Bonus',
 };
 
 export default function Dashboard() {
@@ -28,14 +28,12 @@ export default function Dashboard() {
   const [showRecycling, setShowRecycling] = useState(false);
 
   useEffect(() => {
-    client.get("/rewards/me/").then((r) => setRewards(r.data.rewards || []));
-    client.get("/leaderboard/").then((r) => {
-      const entry = r.data.find((u) => u.id === user?.id);
+    client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
+    client.get('/leaderboard/').then((r) => {
+      const entry = r.data.find((u: { id: number; rank: number }) => u.id === user?.id);
       if (entry) setRank(entry.rank);
     });
   }, [user?.id]);
-
-  const firstName = user?.full_name?.split(" ")[0] || user?.username || "User";
 
   return (
     <div className="pb-24">
@@ -43,17 +41,13 @@ export default function Dashboard() {
       <div className="bg-gradient-to-br from-green-600 to-green-800 text-white px-6 py-8 mx-4 mt-4 rounded-lg">
         <p className="text-green-100 text-sm font-medium">Your Points</p>
         <p className="text-5xl font-bold mt-1">{user?.points ?? 0}</p>
-        {rank && (
-          <p className="text-green-200 text-sm mt-2">
-            Rank #{rank} in Kimironko
-          </p>
-        )}
+        {rank && <p className="text-green-200 text-sm mt-2">Rank #{rank} in Kimironko</p>}
       </div>
 
       {/* Quick actions */}
       <div className="grid grid-cols-3 gap-3 px-4 mt-4">
         <button
-          onClick={() => navigate("/report")}
+          onClick={() => navigate('/report')}
           className="flex flex-col items-center gap-2 bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow text-sm font-medium text-gray-700"
         >
           <MapPin size={24} className="text-green-600" />
@@ -67,7 +61,7 @@ export default function Dashboard() {
           Log Recycling
         </button>
         <button
-          onClick={() => navigate("/leaderboard")}
+          onClick={() => navigate('/leaderboard')}
           className="flex flex-col items-center gap-2 bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow text-sm font-medium text-gray-700"
         >
           <Trophy size={24} className="text-amber-500" />
@@ -104,13 +98,23 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* # Uncomment the button below to test Sentry error tracking by throwing a test error when clicked. Make sure to have your Sentry DSN configured in the .env file for this to work. */}
+      {/* <button
+        onClick={() => {
+          throw new Error("This is my first Sentry error!");
+        }}
+        className="bg-red-600 text-white px-4 py-2 rounded"
+      >
+        Test Sentry
+    </button> */}
+
       {showRecycling && (
         <RecyclingModal
           onClose={() => setShowRecycling(false)}
           onSuccess={() => {
             setShowRecycling(false);
             refreshUser();
-            client.get("/rewards/me/").then((r) => setRewards(r.data.rewards || []));
+            client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
           }}
         />
       )}
