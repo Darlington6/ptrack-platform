@@ -36,6 +36,6 @@ djangorestframework-stubs[compatible-mypy]==3.16.0
 types-requests==2.32.0.20250515
 
 # ── Testing ───────────────────────────────────────────────────────────────────
-pytest==8.3.5
+pytest==9.0.3
 pytest-django==4.11.1
 pytest-cov==6.2.1
