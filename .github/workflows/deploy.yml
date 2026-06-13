@@ -9,25 +9,22 @@ permissions:
 
 jobs:
   deploy-backend:
-    name: Deploy Backend (Railway)
+    name: Deploy Backend (Render)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Railway CLI
-        if: env.RAILWAY_TOKEN != ''
-        run: npm install -g @railway/cli@latest --silent
-
-      - name: Deploy to Railway
-        if: env.RAILWAY_TOKEN != ''
-        continue-on-error: true
-        run: railway up --service backend --detach
-        env:
-          RAILWAY_TOKEN: ${{ env.RAILWAY_TOKEN }}
+      - name: Trigger Render deploy
+        if: env.RENDER_API_KEY != '' && env.RENDER_SERVICE_ID != ''
+        run: |
+          curl -s -f -X POST \
+            "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}'
 
   deploy-frontend:
     name: Deploy Frontend (Vercel)
