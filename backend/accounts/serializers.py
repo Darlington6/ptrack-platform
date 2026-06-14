@@ -29,8 +29,37 @@ class UserSerializer(serializers.ModelSerializer):
             "points",
             "role",
             "created_at",
+            "updated_at",
+            # Profile
+            "profile_picture",
+            "bio",
+            "preferred_language",
+            "theme_preference",
+            # Engagement
+            "weekly_goal",
+            "current_streak",
+            "longest_streak",
+            "last_activity_date",
+            # Verification
+            "email_verified",
+            "phone_verified",
+            # Privacy
+            "show_on_leaderboard",
+            "allow_public_reports",
+            # Preferences
+            "notification_preferences",
         ]
-        read_only_fields = ["id", "points", "created_at"]
+        read_only_fields = [
+            "id",
+            "points",
+            "created_at",
+            "updated_at",
+            "current_streak",
+            "longest_streak",
+            "last_activity_date",
+            "email_verified",
+            "phone_verified",
+        ]
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -60,8 +89,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         identifier = data.get("email", "")
 
         if _is_phone(identifier):
-            # Phone registration — store the phone number and generate a
-            # placeholder email so Django's auth backend is satisfied.
             phone = identifier.strip()
             if User.objects.filter(phone_number=phone).exists():
                 raise serializers.ValidationError(
@@ -70,7 +97,6 @@ class RegisterSerializer(serializers.ModelSerializer):
             data["phone_number"] = phone
             data["email"] = f"phone_{_clean_phone(phone)}@ptrack.local"
         else:
-            # Standard email registration — validate email format
             try:
                 serializers.EmailField().run_validation(identifier)
             except serializers.ValidationError:

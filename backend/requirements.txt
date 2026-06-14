@@ -10,7 +10,7 @@ whitenoise==6.9.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
 djangorestframework==3.17.1
-djangorestframework-simplejwt==5.5.1
+djangorestframework-simplejwt[token_blacklist]==5.5.1
 drf-spectacular==0.29.0
 idna==3.18
 inflection==0.5.1
@@ -30,6 +30,23 @@ sqlparse==0.5.5
 typing_extensions==4.15.0
 uritemplate==4.2.0
 urllib3==2.7.0
+
+# ── Caching ───────────────────────────────────────────────────────────────────
+django-redis==5.4.0
+
+# ── Rate limiting / security ──────────────────────────────────────────────────
+django-axes==7.0.1
+django-ratelimit==4.1.0
+django-csp==3.8
+
+# ── Password hashing ──────────────────────────────────────────────────────────
+argon2-cffi==23.1.0
+
+# ── Config validation ─────────────────────────────────────────────────────────
+pydantic-settings==2.9.1
+
+# ── Email (future) ────────────────────────────────────────────────────────────
+django-anymail[resend]==13.0
 
 # ── Dev / code quality ────────────────────────────────────────────────────────
 black==26.5.1

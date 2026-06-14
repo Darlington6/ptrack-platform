@@ -2,15 +2,17 @@
 Authentication views for pTrack.
 
 Endpoints:
-  POST /api/auth/register/  — create a new citizen account
-  POST /api/auth/login/     — obtain JWT access + refresh tokens
-  GET  /api/auth/me/        — return the authenticated user's profile
+  POST /api/v1/auth/register/  — create a new citizen account
+  POST /api/v1/auth/login/     — obtain JWT access + refresh tokens
+  GET  /api/v1/auth/me/        — return the authenticated user's profile
+  GET  /api/v1/auth/impact/    — environmental impact summary for current user
 """
 
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -22,6 +24,9 @@ from .serializers import (
     UserSerializer,
     _is_phone,
 )
+from .throttles import AuthThrottle
+
+_ME_CACHE_TTL = 60  # seconds
 
 
 @extend_schema(
@@ -32,6 +37,7 @@ from .serializers import (
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthThrottle])
 def register(request):
     """Create a new citizen account and return JWT tokens."""
     serializer = RegisterSerializer(data=request.data)
@@ -49,6 +55,7 @@ def register(request):
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthThrottle])
 def login(request):
     """
     Authenticate with email OR phone number + password.
@@ -62,7 +69,6 @@ def login(request):
     identifier = serializer.validated_data["email"]
     password = serializer.validated_data["password"]
 
-    # Resolve phone → email before calling Django's authenticate()
     if _is_phone(identifier):
         user_obj = User.objects.filter(phone_number=identifier.strip()).first()
         if user_obj is None:
@@ -89,5 +95,24 @@ def login(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def me(request):
-    """Return the profile of the currently authenticated user."""
-    return Response(UserSerializer(request.user).data)
+    """Return the profile of the currently authenticated user. Cached for 60 s."""
+    cache_key = f"user:profile:{request.user.pk}"
+    data = cache.get(cache_key)
+    if data is None:
+        data = UserSerializer(request.user).data
+        cache.set(cache_key, data, timeout=_ME_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Environmental impact summary")},
+    summary="Environmental impact summary for the current user",
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def impact(request):
+    """Return estimated plastic diverted, bottles equivalent, and CO₂ saved."""
+    from .services import compute_impact
+
+    return Response(compute_impact(request.user))

@@ -1,5 +1,8 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
+
+from accounts.managers import AllObjectsManager, SoftDeleteManager
 
 
 class WasteReport(models.Model):
@@ -26,8 +29,23 @@ class WasteReport(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # ── Soft delete ───────────────────────────────────────────────────────────
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = SoftDeleteManager()
+    all_objects = AllObjectsManager()
+
     class Meta:
         ordering = ["-created_at"]
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["is_deleted", "deleted_at"])
+
+    def hard_delete(self, using=None, keep_parents=False):
+        super().delete(using=using, keep_parents=keep_parents)
 
     def __str__(self):
         return f"Report #{self.pk} — {self.waste_type} by {self.user.email}"
@@ -47,8 +65,23 @@ class Reward(models.Model):
     reward_type = models.CharField(max_length=30, choices=REWARD_TYPE_CHOICES)
     date_earned = models.DateTimeField(auto_now_add=True)
 
+    # ── Soft delete ───────────────────────────────────────────────────────────
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = SoftDeleteManager()
+    all_objects = AllObjectsManager()
+
     class Meta:
         ordering = ["-date_earned"]
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["is_deleted", "deleted_at"])
+
+    def hard_delete(self, using=None, keep_parents=False):
+        super().delete(using=using, keep_parents=keep_parents)
 
     def __str__(self):
         return f"+{self.points_earned} pts for {self.user.email} ({self.reward_type})"
@@ -71,8 +104,23 @@ class RecyclingActivity(models.Model):
     points_awarded = models.IntegerField(default=15)
     date = models.DateTimeField(auto_now_add=True)
 
+    # ── Soft delete ───────────────────────────────────────────────────────────
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = SoftDeleteManager()
+    all_objects = AllObjectsManager()
+
     class Meta:
         ordering = ["-date"]
+
+    def delete(self, using=None, keep_parents=False):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save(update_fields=["is_deleted", "deleted_at"])
+
+    def hard_delete(self, using=None, keep_parents=False):
+        super().delete(using=using, keep_parents=keep_parents)
 
     def __str__(self):
         return f"Recycling by {self.user.email} — {self.activity_type}"
