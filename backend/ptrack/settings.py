@@ -59,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",  # must be first
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -129,6 +130,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -187,20 +189,19 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 ).split(",")
 CORS_ALLOW_CREDENTIALS = True
 
-# ──  Media storage ─────────────────────────────────────────────────────
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+}
 
 if USE_CLOUDINARY:
-    STORAGES = {
-        "default": {
-            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        },
-        "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-        },
+    STORAGES["default"] = {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     }
-
     CLOUDINARY_STORAGE = {
         "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
         "API_KEY": os.getenv("CLOUDINARY_API_KEY"),

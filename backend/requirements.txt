@@ -6,6 +6,7 @@ cloudinary==1.44.2
 django-cloudinary-storage==0.3.0
 Django==5.1.15
 gunicorn==23.0.0
+whitenoise==6.9.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
 djangorestframework==3.17.1

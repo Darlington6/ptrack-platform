@@ -14,10 +14,12 @@ Built as a BSc Software Engineering capstone project at African Leadership Unive
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, TypeScript, Vite, Tailwind CSS v3, React Router v6, Axios, Lucide React |
-| Backend | Django 5, Django REST Framework, Simple JWT, django-cors-headers |
-| Database | SQLite (local dev) / PostgreSQL (production) |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS v4, React Router v7, Axios, Lucide React |
+| Backend | Django 5, Django REST Framework, Simple JWT, django-cors-headers, Whitenoise |
+| Database | SQLite (local fallback) / PostgreSQL via Neon (production) |
+| Cache / Queue | Redis (Docker dev) |
 | Auth | JWT (access + refresh tokens) |
+| Infra | Docker + Docker Compose, Render (backend), Vercel (frontend) |
 | Language | TypeScript (frontend), Python 3.13 (backend) |
 
 ---
@@ -56,14 +58,65 @@ No PostgreSQL setup is required for local development — SQLite is the default.
 
 ## Setup Instructions
 
-### 1. Clone
+### Prerequisites
+
+- **Docker Desktop** (recommended) — no Python or Node required locally
+- Or: **Python 3.11+**, **Node.js 20+**, and **npm** for the manual path
+
+---
+
+### Quick Start with Docker
+
+```bash
+git clone https://github.com/Darlington6/ptrack-platform.git
+cd ptrack-platform
+
+# Copy the backend env file and fill in any values you need
+cp backend/.env.example backend/.env
+
+# Build and start all services (Postgres, Redis, Django, Vite)
+make up
+
+# Run migrations and seed demo data
+make migrate
+make seed
+```
+
+| Service | URL |
+|---|---|
+| Frontend (Vite) | http://localhost:5173 |
+| Backend (Django) | http://localhost:8000 |
+| API docs (Swagger) | http://localhost:8000/api/docs/ |
+| Django admin | http://localhost:8000/django-admin/ |
+
+Common commands:
+
+```bash
+make logs        # tail all service logs
+make shell-be    # Django management shell
+make shell-db    # psql inside Postgres
+make test-be     # run pytest
+make test-fe     # run vitest
+make down        # stop all services
+make rebuild     # rebuild images from scratch
+make clean       # stop + remove volumes, node_modules, __pycache__
+```
+
+---
+
+### Alternative: Local Setup Without Docker
+
+<details>
+<summary>Expand manual setup instructions</summary>
+
+#### 1. Clone
 
 ```bash
 git clone https://github.com/Darlington6/ptrack-platform.git
 cd ptrack-platform
 ```
 
-### 2. Backend
+#### 2. Backend
 
 ```bash
 cd backend
@@ -90,14 +143,13 @@ python manage.py runserver
 
 Backend runs at **http://localhost:8000**
 
-### 3. Frontend
+#### 3. Frontend
 
 ```bash
 cd frontend
 
 # Install dependencies
 npm install
-npm install --save-dev typescript @types/react @types/react-dom @types/node
 
 # Start the dev server
 npm run dev
@@ -105,9 +157,9 @@ npm run dev
 
 Frontend runs at **http://localhost:5173**
 
-> The Vite dev server proxies `/api` → `http://localhost:8000`, so no CORS config is needed during development.
+> Set `VITE_API_BASE_URL=http://localhost:8000` in `frontend/.env` so the Axios client points at Django.
 
-> The frontend was migrated from JavaScript to TypeScript. Entry points now use `src/main.tsx`, `src/App.tsx`, and `vite.config.ts`.
+</details>
 
 ---
 
