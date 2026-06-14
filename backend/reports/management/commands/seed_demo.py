@@ -35,8 +35,13 @@ KIGALI_CENTRES = [
         "longitude": 30.1284,
         "accepted_materials": ["PET", "HDPE", "PP"],
         "operating_hours": {
-            "Mon": "08:00-17:00", "Tue": "08:00-17:00", "Wed": "08:00-17:00",
-            "Thu": "08:00-17:00", "Fri": "08:00-17:00", "Sat": "09:00-13:00", "Sun": "closed",
+            "Mon": "08:00-17:00",
+            "Tue": "08:00-17:00",
+            "Wed": "08:00-17:00",
+            "Thu": "08:00-17:00",
+            "Fri": "08:00-17:00",
+            "Sat": "09:00-13:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123001",
         "contact_email": "kimironko@ptrack.rw",
@@ -50,8 +55,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0619,
         "accepted_materials": ["PET", "HDPE", "cardboard", "glass"],
         "operating_hours": {
-            "Mon": "07:30-17:30", "Tue": "07:30-17:30", "Wed": "07:30-17:30",
-            "Thu": "07:30-17:30", "Fri": "07:30-17:30", "Sat": "08:00-14:00", "Sun": "closed",
+            "Mon": "07:30-17:30",
+            "Tue": "07:30-17:30",
+            "Wed": "07:30-17:30",
+            "Thu": "07:30-17:30",
+            "Fri": "07:30-17:30",
+            "Sat": "08:00-14:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123002",
         "contact_email": "kacyiru@ptrack.rw",
@@ -65,8 +75,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0747,
         "accepted_materials": ["PET", "PP", "LDPE"],
         "operating_hours": {
-            "Mon": "08:00-16:00", "Tue": "08:00-16:00", "Wed": "08:00-16:00",
-            "Thu": "08:00-16:00", "Fri": "08:00-16:00", "Sat": "09:00-12:00", "Sun": "closed",
+            "Mon": "08:00-16:00",
+            "Tue": "08:00-16:00",
+            "Wed": "08:00-16:00",
+            "Thu": "08:00-16:00",
+            "Fri": "08:00-16:00",
+            "Sat": "09:00-12:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123003",
         "contact_email": "gisozi@ptrack.rw",
@@ -80,8 +95,12 @@ KIGALI_CENTRES = [
         "longitude": 30.0499,
         "accepted_materials": ["PET", "HDPE", "mixed plastics", "cardboard"],
         "operating_hours": {
-            "Mon": "07:00-18:00", "Tue": "07:00-18:00", "Wed": "07:00-18:00",
-            "Thu": "07:00-18:00", "Fri": "07:00-18:00", "Sat": "07:00-16:00",
+            "Mon": "07:00-18:00",
+            "Tue": "07:00-18:00",
+            "Wed": "07:00-18:00",
+            "Thu": "07:00-18:00",
+            "Fri": "07:00-18:00",
+            "Sat": "07:00-16:00",
             "Sun": "08:00-13:00",
         },
         "contact_phone": "+250788123004",
@@ -96,8 +115,13 @@ KIGALI_CENTRES = [
         "longitude": 30.1122,
         "accepted_materials": ["PET", "PP", "HDPE", "EPS"],
         "operating_hours": {
-            "Mon": "08:00-17:00", "Tue": "08:00-17:00", "Wed": "08:00-17:00",
-            "Thu": "08:00-17:00", "Fri": "08:00-17:00", "Sat": "09:00-14:00", "Sun": "closed",
+            "Mon": "08:00-17:00",
+            "Tue": "08:00-17:00",
+            "Wed": "08:00-17:00",
+            "Thu": "08:00-17:00",
+            "Fri": "08:00-17:00",
+            "Sat": "09:00-14:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123005",
         "contact_email": "remera@ptrack.rw",
@@ -111,8 +135,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0601,
         "accepted_materials": ["PET", "glass", "cardboard"],
         "operating_hours": {
-            "Mon": "08:00-17:00", "Tue": "08:00-17:00", "Wed": "08:00-17:00",
-            "Thu": "08:00-17:00", "Fri": "08:00-17:00", "Sat": "closed", "Sun": "closed",
+            "Mon": "08:00-17:00",
+            "Tue": "08:00-17:00",
+            "Wed": "08:00-17:00",
+            "Thu": "08:00-17:00",
+            "Fri": "08:00-17:00",
+            "Sat": "closed",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123006",
         "contact_email": "kiyovu@ptrack.rw",
@@ -126,8 +155,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0458,
         "accepted_materials": ["PET", "HDPE", "PP", "mixed plastics"],
         "operating_hours": {
-            "Mon": "07:30-17:00", "Tue": "07:30-17:00", "Wed": "07:30-17:00",
-            "Thu": "07:30-17:00", "Fri": "07:30-17:00", "Sat": "08:00-15:00", "Sun": "closed",
+            "Mon": "07:30-17:00",
+            "Tue": "07:30-17:00",
+            "Wed": "07:30-17:00",
+            "Thu": "07:30-17:00",
+            "Fri": "07:30-17:00",
+            "Sat": "08:00-15:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123007",
         "contact_email": "nyamirambo@ptrack.rw",
@@ -141,8 +175,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0842,
         "accepted_materials": ["PET", "HDPE", "PP", "LDPE", "PS", "cardboard", "metal"],
         "operating_hours": {
-            "Mon": "06:00-18:00", "Tue": "06:00-18:00", "Wed": "06:00-18:00",
-            "Thu": "06:00-18:00", "Fri": "06:00-18:00", "Sat": "07:00-16:00", "Sun": "closed",
+            "Mon": "06:00-18:00",
+            "Tue": "06:00-18:00",
+            "Wed": "06:00-18:00",
+            "Thu": "06:00-18:00",
+            "Fri": "06:00-18:00",
+            "Sat": "07:00-16:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123008",
         "contact_email": "gikondo@ptrack.rw",
@@ -156,8 +195,13 @@ KIGALI_CENTRES = [
         "longitude": 30.0887,
         "accepted_materials": ["PET", "HDPE", "cardboard", "glass"],
         "operating_hours": {
-            "Mon": "08:00-17:00", "Tue": "08:00-17:00", "Wed": "08:00-17:00",
-            "Thu": "08:00-17:00", "Fri": "08:00-17:00", "Sat": "09:00-13:00", "Sun": "closed",
+            "Mon": "08:00-17:00",
+            "Tue": "08:00-17:00",
+            "Wed": "08:00-17:00",
+            "Thu": "08:00-17:00",
+            "Fri": "08:00-17:00",
+            "Sat": "09:00-13:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123009",
         "contact_email": "kicukiro@ptrack.rw",
@@ -171,8 +215,13 @@ KIGALI_CENTRES = [
         "longitude": 30.1389,
         "accepted_materials": ["PET", "PP", "HDPE"],
         "operating_hours": {
-            "Mon": "08:00-16:00", "Tue": "08:00-16:00", "Wed": "08:00-16:00",
-            "Thu": "08:00-16:00", "Fri": "08:00-16:00", "Sat": "09:00-12:00", "Sun": "closed",
+            "Mon": "08:00-16:00",
+            "Tue": "08:00-16:00",
+            "Wed": "08:00-16:00",
+            "Thu": "08:00-16:00",
+            "Fri": "08:00-16:00",
+            "Sat": "09:00-12:00",
+            "Sun": "closed",
         },
         "contact_phone": "+250788123010",
         "contact_email": "kanombe@ptrack.rw",
@@ -188,7 +237,11 @@ NUDGE_RULES = [
         "body_rw": "Ufite inzira ikora. Ntuzayihagarike — tanga raporo cyangwa wandike ibikorwa by'imyuzurure uyu munsi.",
         "category": "streak",
         "priority": 1,
-        "trigger_condition": {"type": "STREAK_WARNING", "min_streak": 2, "hours_since_activity": 20},
+        "trigger_condition": {
+            "type": "STREAK_WARNING",
+            "min_streak": 2,
+            "hours_since_activity": 20,
+        },
         "cooldown_hours": 20,
     },
     {
@@ -365,9 +418,7 @@ class Command(BaseCommand):
 
         # ── Rewards for existing reports ───────────────────────────────────────
         for report in WasteReport.objects.all():
-            if not Reward.objects.filter(
-                user=report.user, reward_type="report_submitted"
-            ).exists():
+            if not Reward.objects.filter(user=report.user, reward_type="report_submitted").exists():
                 Reward.objects.create(
                     user=report.user, points_earned=10, reward_type="report_submitted"
                 )
@@ -378,7 +429,7 @@ class Command(BaseCommand):
         for user in citizens:
             # Simulate activity over the last few days so streaks are populated
             fake_days = random.randint(1, 5)
-            user.last_activity_date = (timezone.localdate() - timedelta(days=1))
+            user.last_activity_date = timezone.localdate() - timedelta(days=1)
             user.current_streak = fake_days
             user.longest_streak = max(fake_days, random.randint(fake_days, fake_days + 5))
             user.save(update_fields=["last_activity_date", "current_streak", "longest_streak"])

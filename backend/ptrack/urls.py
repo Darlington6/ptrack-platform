@@ -24,14 +24,12 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("django-admin/", admin.site.urls),
     path("api-auth/", include("rest_framework.urls")),
-
     # ── v1 API ──────────────────────────────────────────────────────────────
     path("api/v1/auth/", include("accounts.urls")),
     path("api/v1/", include("reports.urls")),
     path("api/v1/", include("recycling_centres.urls")),
     path("api/v1/", include("nudges.urls")),
     path("api/v1/", include("core.urls")),
-
     # ── OpenAPI docs ─────────────────────────────────────────────────────────
     path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

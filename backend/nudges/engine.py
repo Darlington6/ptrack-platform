@@ -21,11 +21,7 @@ def get_active_nudges_for(user, limit: int = 3) -> list:
             break
 
         # Enforce cooldown: skip if the rule was shown within cooldown_hours
-        last_log = (
-            UserNudgeLog.objects.filter(user=user, rule=rule)
-            .order_by("-shown_at")
-            .first()
-        )
+        last_log = UserNudgeLog.objects.filter(user=user, rule=rule).order_by("-shown_at").first()
         if last_log:
             cooldown_cutoff = timezone.now() - timedelta(hours=rule.cooldown_hours)
             if last_log.shown_at > cooldown_cutoff:
@@ -118,6 +114,7 @@ def _badge_progress(user, rule) -> bool:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _week_start() -> date:
     today = timezone.now().date()

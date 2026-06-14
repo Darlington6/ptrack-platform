@@ -56,14 +56,14 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",           # must be first
+    "corsheaders.middleware.CorsMiddleware",  # must be first
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "axes.middleware.AxesMiddleware",                  # after AuthenticationMiddleware
+    "axes.middleware.AxesMiddleware",  # after AuthenticationMiddleware
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "csp.middleware.CSPMiddleware",
@@ -230,9 +230,7 @@ SPECTACULAR_SETTINGS = {
 }
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = [
-    o.strip() for o in cfg.CORS_ALLOWED_ORIGINS.split(",") if o.strip()
-]
+CORS_ALLOWED_ORIGINS = [o.strip() for o in cfg.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 # ── Storage ───────────────────────────────────────────────────────────────────

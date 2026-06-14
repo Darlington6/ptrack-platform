@@ -33,7 +33,7 @@ from .serializers import (
 User = get_user_model()
 
 _LEADERBOARD_CACHE_KEY = "leaderboard:top20"
-_LEADERBOARD_CACHE_TTL = 300   # 5 minutes
+_LEADERBOARD_CACHE_TTL = 300  # 5 minutes
 _COMMUNITY_STATS_CACHE_KEY = "community:stats"
 _COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
 
@@ -81,9 +81,7 @@ def reports_list_create(request):
         paginator = StandardPagination()
         page = paginator.paginate_queryset(qs, request)
         if page is not None:
-            return paginator.get_paginated_response(
-                WasteReportSerializer(page, many=True).data
-            )
+            return paginator.get_paginated_response(WasteReportSerializer(page, many=True).data)
         return Response(WasteReportSerializer(qs, many=True).data)
 
     # POST — apply submit throttle inline
