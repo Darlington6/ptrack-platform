@@ -14,7 +14,7 @@ def get_active_nudges_for(user, limit: int = 3) -> list:
     from .models import NudgeRule, UserNudgeLog
 
     rules = NudgeRule.objects.filter(is_active=True).order_by("priority")
-    active = []
+    active: list = []
 
     for rule in rules:
         if len(active) >= limit:
