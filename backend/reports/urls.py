@@ -9,4 +9,5 @@ urlpatterns = [
     path("recycling/", views.recycling_list_create, name="recycling-list-create"),
     path("leaderboard/", views.leaderboard, name="leaderboard"),
     path("rewards/me/", views.my_rewards, name="my-rewards"),
+    path("community/stats/", views.community_stats, name="community-stats"),
 ]

@@ -8,4 +8,5 @@ urlpatterns = [
     path("login/", views.login, name="auth-login"),
     path("refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("me/", views.me, name="auth-me"),
+    path("impact/", views.impact, name="auth-impact"),
 ]

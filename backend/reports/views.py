@@ -9,13 +9,17 @@ Point economy:
 """
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db.models import Sum
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes, throttle_classes
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from accounts.throttles import RecyclingLogThrottle, ReportSubmitThrottle
+from core.pagination import FeedCursorPagination, StandardPagination
 
 from .models import RecyclingActivity, Reward, WasteReport
 from .permissions import IsAdminRole
@@ -27,6 +31,11 @@ from .serializers import (
 )
 
 User = get_user_model()
+
+_LEADERBOARD_CACHE_KEY = "leaderboard:top20"
+_LEADERBOARD_CACHE_TTL = 300   # 5 minutes
+_COMMUNITY_STATS_CACHE_KEY = "community:stats"
+_COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
 
 
 # ── Reports ────────────────────────────────────────────────────────────────────
@@ -68,9 +77,23 @@ def reports_list_create(request):
             qs = qs.filter(status=status_filter)
         if request.query_params.get("user") == "me":
             qs = qs.filter(user=request.user)
+
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(qs, request)
+        if page is not None:
+            return paginator.get_paginated_response(
+                WasteReportSerializer(page, many=True).data
+            )
         return Response(WasteReportSerializer(qs, many=True).data)
 
-    # POST — create report and award 10 points
+    # POST — apply submit throttle inline
+    throttle = ReportSubmitThrottle()
+    if not throttle.allow_request(request, None):
+        return Response(
+            {"detail": "Report submission rate limit exceeded. Try again later."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
     serializer = WasteReportSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -80,6 +103,11 @@ def reports_list_create(request):
     Reward.objects.create(user=request.user, points_earned=10, reward_type="report_submitted")
     request.user.points += 10
     request.user.save(update_fields=["points"])
+
+    # Invalidate caches affected by a new report
+    cache.delete(_LEADERBOARD_CACHE_KEY)
+    cache.delete(_COMMUNITY_STATS_CACHE_KEY)
+    cache.delete(f"user:profile:{request.user.pk}")
 
     return Response(
         {**WasteReportSerializer(report).data, "new_points_balance": request.user.points},
@@ -126,6 +154,9 @@ def report_verify(request, pk):
     report.user.points += 5
     report.user.save(update_fields=["points"])
 
+    cache.delete(_LEADERBOARD_CACHE_KEY)
+    cache.delete(f"user:profile:{report.user.pk}")
+
     return Response(WasteReportSerializer(report).data)
 
 
@@ -154,7 +185,21 @@ def recycling_list_create(request):
     """
     if request.method == "GET":
         qs = RecyclingActivity.objects.filter(user=request.user)
+        paginator = FeedCursorPagination()
+        page = paginator.paginate_queryset(qs, request)
+        if page is not None:
+            return paginator.get_paginated_response(
+                RecyclingActivitySerializer(page, many=True).data
+            )
         return Response(RecyclingActivitySerializer(qs, many=True).data)
+
+    # POST — apply log throttle inline
+    throttle = RecyclingLogThrottle()
+    if not throttle.allow_request(request, None):
+        return Response(
+            {"detail": "Recycling log rate limit exceeded. Try again later."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
 
     serializer = RecyclingActivitySerializer(data=request.data)
     if not serializer.is_valid():
@@ -165,6 +210,9 @@ def recycling_list_create(request):
     Reward.objects.create(user=request.user, points_earned=15, reward_type="recycling_logged")
     request.user.points += 15
     request.user.save(update_fields=["points"])
+
+    cache.delete(_LEADERBOARD_CACHE_KEY)
+    cache.delete(f"user:profile:{request.user.pk}")
 
     return Response(
         {**RecyclingActivitySerializer(activity).data, "new_points_balance": request.user.points},
@@ -183,19 +231,22 @@ def recycling_list_create(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
-    """Return the top 20 users ordered by total points (descending)."""
-    top_users = User.objects.order_by("-points")[:20]
-    data = [
-        {
-            "rank": idx + 1,
-            "id": u.id,
-            "username": u.username,
-            "full_name": u.full_name or u.username,
-            "points": u.points,
-            "sector": u.sector,
-        }
-        for idx, u in enumerate(top_users)
-    ]
+    """Return the top 20 users ordered by total points (descending). Cached 5 min."""
+    data = cache.get(_LEADERBOARD_CACHE_KEY)
+    if data is None:
+        top_users = User.objects.filter(show_on_leaderboard=True).order_by("-points")[:20]
+        data = [
+            {
+                "rank": idx + 1,
+                "id": u.id,
+                "username": u.username,
+                "full_name": u.full_name or u.username,
+                "points": u.points,
+                "sector": u.sector,
+            }
+            for idx, u in enumerate(top_users)
+        ]
+        cache.set(_LEADERBOARD_CACHE_KEY, data, timeout=_LEADERBOARD_CACHE_TTL)
     return Response(data)
 
 
@@ -210,12 +261,47 @@ def leaderboard(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def my_rewards(request):
-    """Return all rewards earned by the current user and their running points total."""
+    """Return all rewards earned by the current user with cursor pagination."""
     rewards = Reward.objects.filter(user=request.user)
-    rewards.aggregate(total=Sum("points_earned"))  # kept for future analytics use
+
+    paginator = FeedCursorPagination()
+    page = paginator.paginate_queryset(rewards, request)
+    if page is not None:
+        return paginator.get_paginated_response(
+            {
+                "total_points": request.user.points,
+                "rewards": RewardSerializer(page, many=True).data,
+            }
+        )
+
     return Response(
         {
             "total_points": request.user.points,
             "rewards": RewardSerializer(rewards, many=True).data,
         }
     )
+
+
+# ── Community stats ────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["reports"],
+    responses={200: OpenApiResponse(description="Platform-wide community impact stats")},
+    summary="Community impact stats (cached 10 min)",
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def community_stats(request):
+    """Return platform-wide totals. Cached for 10 minutes."""
+    data = cache.get(_COMMUNITY_STATS_CACHE_KEY)
+    if data is None:
+        data = {
+            "total_reports": WasteReport.objects.count(),
+            "verified_reports": WasteReport.objects.filter(status="verified").count(),
+            "total_recycling_activities": RecyclingActivity.objects.count(),
+            "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
+            "active_citizens": User.objects.filter(points__gt=0).count(),
+        }
+        cache.set(_COMMUNITY_STATS_CACHE_KEY, data, timeout=_COMMUNITY_STATS_CACHE_TTL)
+    return Response(data)
