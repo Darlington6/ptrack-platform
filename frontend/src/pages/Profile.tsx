@@ -11,7 +11,9 @@ export default function Profile() {
   const [activityCount, setActivityCount] = useState(0);
 
   useEffect(() => {
-    client.get('/reports/', { params: { user: 'me' } }).then((r) => setReportCount(r.data.count || 0));
+    client
+      .get('/reports/', { params: { user: 'me' } })
+      .then((r) => setReportCount(r.data.count || 0));
     client.get('/recycling/').then((r) => setActivityCount(r.data.results?.length || 0));
   }, []);
 
