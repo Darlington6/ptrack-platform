@@ -15,7 +15,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
-    client.get('/reports/').then((r) => setReports(r.data));
+    client.get('/reports/').then((r) => setReports(r.data.results || []));
     client.get('/leaderboard/').then((r) => setUsers(r.data));
   }, []);
 
@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   async function handleVerify(id: number) {
     await client.patch(`/reports/${id}/verify/`);
     const res = await client.get('/reports/');
-    setReports(res.data);
+    setReports(res.data.results || []);
   }
 
   return (

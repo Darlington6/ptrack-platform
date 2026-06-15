@@ -31,8 +31,10 @@ export default function Rewards() {
   const [reportCount, setReportCount] = useState(0);
 
   useEffect(() => {
-    client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
-    client.get('/reports/', { params: { user: 'me' } }).then((r) => setReportCount(r.data.length));
+    client.get('/rewards/me/').then((r) => setRewards(r.data.results?.rewards || []));
+    client
+      .get('/reports/', { params: { user: 'me' } })
+      .then((r) => setReportCount(r.data.count || 0));
   }, []);
 
   const points = user?.points ?? 0;

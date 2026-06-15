@@ -1,0 +1,10 @@
+Hi {{ user.full_name|default:user.username }},
+
+Your pTrack streak is at risk!
+
+You have a {{ streak }}-day streak but haven't logged any activity today.
+Log a report or recycling activity before midnight to keep it going.
+
+Open pTrack now: https://ptrack.vercel.app/dashboard
+
+— The pTrack Team

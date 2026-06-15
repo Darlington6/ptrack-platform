@@ -25,7 +25,19 @@ exclude = [
 ]
 
 [[tool.mypy.overrides]]
-module = ["accounts.models", "reports.models", "core.models", "nudges.models", "recycling_centres.models"]
+module = [
+    "accounts.models",
+    "accounts.otp",
+    "reports.models",
+    "core.models",
+    "core.email",
+    "core.sms",
+    "core.notifications",
+    "core.serializers",
+    "nudges.models",
+    "nudges.serializers",
+    "recycling_centres.models",
+]
 ignore_errors = true
 
 [tool.pytest.ini_options]

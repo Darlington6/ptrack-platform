@@ -16,13 +16,13 @@ export default function AdminReports() {
 
   useEffect(() => {
     const params = statusFilter !== 'all' ? { status: statusFilter } : {};
-    client.get('/reports/', { params }).then((r) => setReports(r.data));
+    client.get('/reports/', { params }).then((r) => setReports(r.data.results || []));
   }, [statusFilter]);
 
   async function handleVerify(id: number) {
     await client.patch(`/reports/${id}/verify/`);
     const params = statusFilter !== 'all' ? { status: statusFilter } : {};
-    client.get('/reports/', { params }).then((r) => setReports(r.data));
+    client.get('/reports/', { params }).then((r) => setReports(r.data.results || []));
   }
 
   const filtered = search

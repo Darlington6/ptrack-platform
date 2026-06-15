@@ -11,7 +11,7 @@ export default function AdminUsers() {
     client.get('/leaderboard/').then((r) => setUsers(r.data));
     client.get('/reports/').then((r) => {
       const counts: Record<number, number> = {};
-      r.data.forEach((report: { user: number }) => {
+      (r.data.results || []).forEach((report: { user: number }) => {
         counts[report.user] = (counts[report.user] || 0) + 1;
       });
       setReportCounts(counts);

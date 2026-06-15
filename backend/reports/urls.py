@@ -10,4 +10,5 @@ urlpatterns = [
     path("leaderboard/", views.leaderboard, name="leaderboard"),
     path("rewards/me/", views.my_rewards, name="my-rewards"),
     path("community/stats/", views.community_stats, name="community-stats"),
+    path("community/trends/", views.community_trends, name="community-trends"),
 ]

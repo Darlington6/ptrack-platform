@@ -17,7 +17,7 @@ export default function MapView() {
 
   useEffect(() => {
     const params = filter !== 'All' ? { status: filter } : {};
-    client.get('/reports/', { params }).then((r) => setReports(r.data));
+    client.get('/reports/', { params }).then((r) => setReports(r.data.results || []));
   }, [filter]);
 
   return (
