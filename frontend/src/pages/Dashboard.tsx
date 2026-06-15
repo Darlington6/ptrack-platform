@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [showRecycling, setShowRecycling] = useState(false);
 
   useEffect(() => {
-    client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
+    client.get('/rewards/me/').then((r) => setRewards(r.data.results?.rewards || []));
     client.get('/leaderboard/').then((r) => {
       const entry = r.data.find((u: { id: number; rank: number }) => u.id === user?.id);
       if (entry) setRank(entry.rank);
@@ -114,7 +114,7 @@ export default function Dashboard() {
           onSuccess={() => {
             setShowRecycling(false);
             refreshUser();
-            client.get('/rewards/me/').then((r) => setRewards(r.data.rewards || []));
+            client.get('/rewards/me/').then((r) => setRewards(r.data.results?.rewards || []));
           }}
         />
       )}
