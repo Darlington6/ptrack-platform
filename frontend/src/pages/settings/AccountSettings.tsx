@@ -1,0 +1,124 @@
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
+import client from '../../api/client';
+import type { User } from '../../types';
+
+const schema = z.object({
+  full_name: z.string().min(2, 'Required'),
+  bio: z.string().max(200).optional(),
+});
+type FormData = z.infer<typeof schema>;
+
+const INPUT_CLS =
+  'w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500';
+
+export default function AccountSettings() {
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { full_name: user?.full_name ?? '', bio: user?.bio ?? '' },
+  });
+
+  async function onSubmit(data: FormData) {
+    try {
+      const res = await client.patch<User>('/auth/me/', data);
+      setUser(res.data);
+      toast.success('Saved');
+    } catch {
+      toast.error('Failed to save changes.');
+    }
+  }
+
+  return (
+    <div className="pb-24 px-4">
+      <div className="py-4 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Account</h1>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label
+            htmlFor="full_name"
+            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+          >
+            Full name
+          </label>
+          <input id="full_name" {...register('full_name')} className={INPUT_CLS} />
+          {errors.full_name && (
+            <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>
+          )}
+        </div>
+
+        <div>
+          <label
+            htmlFor="bio"
+            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+          >
+            Bio
+          </label>
+          <textarea
+            id="bio"
+            {...register('bio')}
+            rows={3}
+            className={`${INPUT_CLS} resize-none`}
+            placeholder="Tell your community about yourself…"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="text"
+            disabled
+            value={user?.email?.startsWith('phone_') ? '—' : (user?.email ?? '')}
+            className={`${INPUT_CLS} opacity-60 cursor-not-allowed`}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+          >
+            Phone
+          </label>
+          <input
+            id="phone"
+            type="text"
+            disabled
+            value={user?.phone_number ?? '—'}
+            className={`${INPUT_CLS} opacity-60 cursor-not-allowed`}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
+        >
+          {isSubmitting ? 'Saving…' : 'Save changes'}
+        </button>
+      </form>
+    </div>
+  );
+}

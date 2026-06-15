@@ -1,5 +1,5 @@
 import client from '../client';
-import type { User, AuthTokens, RegisterRequest } from '../types';
+import type { User, AuthTokens, RegisterRequest } from '../../types';
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -9,20 +9,7 @@ export const authApi = {
 
   me: () => client.get<User>('/auth/me/'),
 
-  updateMe: (
-    data: Partial<
-      Pick<
-        User,
-        | 'bio'
-        | 'preferred_language'
-        | 'theme_preference'
-        | 'weekly_goal'
-        | 'show_on_leaderboard'
-        | 'allow_public_reports'
-        | 'notification_preferences'
-      >
-    >
-  ) => client.patch<User>('/auth/me/', data),
+  updateMe: (data: Partial<User>) => client.patch<User>('/auth/me/', data),
 
   changePassword: (current_password: string, new_password: string) =>
     client.post('/auth/me/password/', { current_password, new_password }),
@@ -33,10 +20,21 @@ export const authApi = {
   confirmVerification: (channel: 'email' | 'phone', code: string, purpose?: string) =>
     client.post('/auth/verify/confirm/', { channel, code, purpose: purpose ?? 'register_verify' }),
 
-  exportData: () => client.get('/auth/me/export/'),
+  uploadAvatar: (formData: FormData) =>
+    client.post<{ profile_picture: string }>('/auth/me/avatar/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  deleteAvatar: () => client.delete<User>('/auth/me/avatar/'),
+
+  impact: () => client.get('/auth/me/impact/'),
 
   deleteAccount: (password: string) =>
     client.post('/auth/me/delete/', { password, confirmation: 'DELETE MY ACCOUNT' }),
 
-  impact: () => client.get('/auth/me/impact/'),
+  resetPasswordRequest: (identifier: string) =>
+    client.post('/auth/password/reset/request/', { identifier }),
+
+  resetPasswordConfirm: (identifier: string, code: string, new_password: string) =>
+    client.post('/auth/password/reset/confirm/', { identifier, code, new_password }),
 };

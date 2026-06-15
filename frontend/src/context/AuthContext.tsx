@@ -20,10 +20,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   useEffect(() => {
-    // Prefer token from authStore (persisted), fall back to localStorage for backward compat
     const token = useAuthStore.getState().accessToken ?? localStorage.getItem('access_token');
     if (token) {
-      // Ensure authStore has the token if it came from localStorage
       if (!useAuthStore.getState().accessToken) {
         const refresh = localStorage.getItem('refresh_token') ?? '';
         useAuthStore.getState().setTokens(token, refresh);
@@ -120,6 +118,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     register,
     logout,
     refreshUser,
+    setUser: (u) => setUser(u),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

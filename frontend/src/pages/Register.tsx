@@ -1,220 +1,308 @@
-import React, { useState, type ChangeEvent } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Eye, EyeOff, Mail, Phone } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/Button';
 
-function extractApiError(data: unknown): string {
-  if (!data) return 'Registration failed. Please try again.';
-  if (typeof data === 'string') return data;
-  if (Array.isArray(data)) return data.map(extractApiError).filter(Boolean).join(' ');
-  if (typeof data === 'object') {
-    return Object.values(data as Record<string, unknown>)
-      .map(extractApiError)
-      .filter(Boolean)
-      .join(' ');
-  }
-  return 'Registration failed. Please try again.';
+// ── Password strength ─────────────────────────────────────────────────────────
+
+function getStrength(pwd: string): { score: number; label: string; color: string } {
+  if (pwd.length === 0) return { score: 0, label: '', color: '' };
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const map = [
+    { score: 0, label: '', color: '' },
+    { score: 1, label: 'Weak', color: 'bg-red-500' },
+    { score: 2, label: 'Fair', color: 'bg-amber-500' },
+    { score: 3, label: 'Good', color: 'bg-blue-500' },
+    { score: 4, label: 'Strong', color: 'bg-green-500' },
+  ];
+  return map[Math.min(score, 4)]!;
 }
 
-export default function Register() {
-  const { register } = useAuth();
-  const navigate = useNavigate();
-  const [form, setForm] = useState({
-    full_name: '',
-    email: '',
-    phone_number: '',
-    password: '',
-    confirm_password: '',
-    sector: 'Kimironko',
-    agreed: false,
+// ── Schema ────────────────────────────────────────────────────────────────────
+
+const schema = z
+  .object({
+    full_name: z.string().min(2, 'Full name required'),
+    email: z.string().optional(),
+    phone_number: z.string().optional(),
+    password: z.string().min(8, 'Minimum 8 characters'),
+    confirm_password: z.string(),
+    sector: z.string(),
+    agreed: z.boolean().refine((v) => v, 'Please agree to the terms'),
+  })
+  .refine((d) => d.password === d.confirm_password, {
+    message: 'Passwords do not match',
+    path: ['confirm_password'],
   });
+
+type FormData = z.infer<typeof schema>;
+
+// ── Styles ────────────────────────────────────────────────────────────────────
+
+const INPUT_CLS =
+  'w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500 placeholder:text-gray-400';
+
+const LABEL_CLS = 'block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1';
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
+export default function Register() {
+  const { register: authRegister } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useTranslation('auth');
+
+  const [contactTab, setContactTab] = useState<'email' | 'phone'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [passwordValue, setPasswordValue] = useState('');
 
-  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type, checked } = target;
-    setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }) as typeof form);
-  }
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: { sector: 'Kimironko', agreed: false },
+  });
 
-  async function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError('');
-    if (form.password !== form.confirm_password) {
-      setError('Passwords do not match.');
+  const strength = getStrength(passwordValue);
+
+  async function onSubmit(data: FormData) {
+    const contact = contactTab === 'email' ? data.email : data.phone_number;
+    if (!contact) {
+      toast.error(contactTab === 'email' ? 'Email is required.' : 'Phone number is required.');
       return;
     }
-    if (!form.agreed) {
-      setError('Please agree to the Terms & Privacy Policy.');
-      return;
-    }
-    setLoading(true);
+
     try {
-      const username = form.email.split('@')[0] ?? form.email;
-      await register({ ...form, username, confirm_password: form.confirm_password });
-      navigate('/dashboard');
+      const emailField = contactTab === 'email' ? (data.email ?? '') : '';
+      const phoneField = contactTab === 'phone' ? (data.phone_number ?? '') : '';
+      const identifier = contactTab === 'email' ? emailField : phoneField;
+      const username = emailField ? emailField.split('@')[0] : `user_${Date.now()}`;
+
+      await authRegister({
+        full_name: data.full_name,
+        email: identifier,
+        phone_number: phoneField,
+        password: data.password,
+        sector: data.sector,
+        username,
+        confirm_password: data.confirm_password,
+      });
+
+      navigate('/verify', { state: { channel: contactTab, identifier } });
     } catch (err) {
       const axiosErr = err as { response?: { data?: unknown } };
-      const data = axiosErr.response?.data;
-      setError(extractApiError(data));
-    } finally {
-      setLoading(false);
+      const apiData = axiosErr.response?.data;
+      if (apiData && typeof apiData === 'object') {
+        const msgs = Object.values(apiData as Record<string, string[]>)
+          .flat()
+          .join(' ');
+        toast.error(msgs || t('registration_failed'));
+      } else {
+        toast.error(t('registration_failed'));
+      }
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-6">
-            <span className="text-2xl font-bold text-green-600">pTrack</span>
-            <h1 className="text-xl font-bold text-gray-900 mt-1">Create your account</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4 py-8">
+      <p className="text-2xl font-bold text-green-600 text-center mb-1">pTrack</p>
+      <p className="text-gray-500 dark:text-slate-400 text-sm text-center mb-6">
+        {t('create_account')}
+      </p>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-8 w-full max-w-md">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+          {/* Full name */}
+          <div>
+            <label className={LABEL_CLS}>{t('full_name')}</label>
+            <input
+              type="text"
+              autoComplete="name"
+              placeholder="e.g. Yvette Habimana"
+              {...register('full_name')}
+              className={INPUT_CLS}
+            />
+            {errors.full_name && (
+              <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>
+            )}
+            <p className="text-xs text-gray-400 mt-1">{t('legal_name_hint')}</p>
           </div>
 
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Full name */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reg-full-name" className="text-sm font-medium text-gray-700">
-                Full name
-              </label>
-              <input
-                id="reg-full-name"
-                name="full_name"
-                value={form.full_name}
-                onChange={handleChange}
-                placeholder="e.g. Yvette Habimana"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <p className="text-xs text-gray-400">Use your legal name as it appears on your ID.</p>
-            </div>
-
-            {/* Email / phone — type="text" allows both formats without browser rejection */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reg-email" className="text-sm font-medium text-gray-700">
-                Email or phone number
-              </label>
-              <input
-                id="reg-email"
-                type="text"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="youremail@example.com or +250 798 888 888"
-                autoComplete="username"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-              <p className="text-xs text-gray-400">
-                We'll send a confirmation link/code to this address/phone number.
-              </p>
-            </div>
-
-            {/* Password */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reg-password" className="text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="reg-password"
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              <p className="text-xs text-gray-400">Min. 6 characters.</p>
-            </div>
-
-            {/* Confirm password */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reg-confirm-password" className="text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  id="reg-confirm-password"
-                  type={showConfirm ? 'text' : 'password'}
-                  name="confirm_password"
-                  value={form.confirm_password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Location / Sector */}
-            <div className="flex flex-col gap-1">
-              <label htmlFor="reg-sector" className="text-sm font-medium text-gray-700">
-                Location / Sector
-              </label>
-              <select
-                id="reg-sector"
-                name="sector"
-                value={form.sector}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+          {/* Contact tab toggle */}
+          <div>
+            <div className="flex mb-2">
+              <button
+                type="button"
+                onClick={() => setContactTab('email')}
+                className={
+                  contactTab === 'email'
+                    ? 'flex-1 py-2 text-sm font-semibold rounded-l-xl bg-green-600 text-white flex items-center justify-center gap-1.5'
+                    : 'flex-1 py-2 text-sm font-semibold rounded-l-xl border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 flex items-center justify-center gap-1.5'
+                }
               >
-                <option value="Kimironko">Kimironko</option>
-              </select>
+                <Mail size={14} /> Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setContactTab('phone')}
+                className={
+                  contactTab === 'phone'
+                    ? 'flex-1 py-2 text-sm font-semibold rounded-r-xl bg-green-600 text-white flex items-center justify-center gap-1.5'
+                    : 'flex-1 py-2 text-sm font-semibold rounded-r-xl border border-l-0 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 flex items-center justify-center gap-1.5'
+                }
+              >
+                <Phone size={14} /> Phone
+              </button>
             </div>
 
-            {/* Terms */}
-            <label className="flex items-start gap-2 text-sm text-gray-600 cursor-pointer">
+            {contactTab === 'email' ? (
               <input
-                type="checkbox"
-                name="agreed"
-                checked={form.agreed}
-                onChange={handleChange}
-                className="mt-0.5 accent-green-600"
+                type="email"
+                autoComplete="email"
+                placeholder="youremail@example.com"
+                {...register('email')}
+                className={INPUT_CLS}
               />
-              <span>
-                I agree to the <span className="text-green-600 font-medium">Terms</span> &amp;{' '}
-                <span className="text-green-600 font-medium">Privacy</span> Policy
-              </span>
-            </label>
+            ) : (
+              <input
+                type="tel"
+                autoComplete="tel"
+                placeholder="+250 7XX XXX XXX"
+                {...register('phone_number')}
+                className={INPUT_CLS}
+              />
+            )}
+            <p className="text-xs text-gray-400 mt-1">
+              {contactTab === 'email'
+                ? "We'll send a confirmation code to this email address."
+                : "We'll send a confirmation code to this phone number."}
+            </p>
+          </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating account…' : 'Create Account'}
-            </Button>
-          </form>
+          {/* Password */}
+          <div>
+            <label className={LABEL_CLS}>{t('password')}</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                {...register('password', {
+                  onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPasswordValue(e.target.value),
+                })}
+                className={`${INPUT_CLS} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((p) => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+            )}
+            {/* Strength bar */}
+            {passwordValue.length > 0 && (
+              <>
+                <div className="flex gap-1 mt-1.5">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${
+                        i <= strength.score ? strength.color : 'bg-gray-200 dark:bg-slate-600'
+                      }`}
+                    />
+                  ))}
+                </div>
+                {strength.label && (
+                  <p className="text-xs mt-1 font-medium text-gray-600 dark:text-slate-400">
+                    {strength.label}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account?{' '}
-            <Link to="/login" className="text-green-600 font-medium hover:underline">
-              Login
-            </Link>
-          </p>
-        </div>
+          {/* Confirm password */}
+          <div>
+            <label className={LABEL_CLS}>{t('confirm_password')}</label>
+            <div className="relative">
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                autoComplete="new-password"
+                placeholder="••••••••"
+                {...register('confirm_password')}
+                className={`${INPUT_CLS} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((p) => !p)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.confirm_password && (
+              <p className="text-xs text-red-500 mt-1">{errors.confirm_password.message}</p>
+            )}
+          </div>
+
+          {/* Sector */}
+          <div>
+            <label className={LABEL_CLS}>{t('location_sector')}</label>
+            <select {...register('sector')} className={`${INPUT_CLS} bg-white dark:bg-slate-700`}>
+              <option value="Kimironko">Kimironko</option>
+              <option value="Gasabo">Gasabo</option>
+              <option value="Kicukiro">Kicukiro</option>
+              <option value="Nyarugenge">Nyarugenge</option>
+            </select>
+          </div>
+
+          {/* Terms */}
+          <label className="flex items-start gap-2 text-sm text-gray-600 dark:text-slate-400 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register('agreed')}
+              onChange={(e) => setValue('agreed', e.target.checked)}
+              className="mt-0.5 accent-green-600"
+            />
+            <span>
+              {t('agree_terms')} — <span className="text-green-600 font-medium">Terms</span> &amp;{' '}
+              <span className="text-green-600 font-medium">Privacy</span>
+            </span>
+          </label>
+          {errors.agreed && <p className="text-xs text-red-500 -mt-2">{errors.agreed.message}</p>}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
+          >
+            {isSubmitting ? t('creating_account') : t('register')}
+          </button>
+        </form>
+
+        <p className="text-center text-sm text-gray-500 dark:text-slate-400 mt-6">
+          {t('have_account')}{' '}
+          <Link to="/login" className="text-green-600 font-medium hover:underline">
+            {t('login')}
+          </Link>
+        </p>
       </div>
     </div>
   );

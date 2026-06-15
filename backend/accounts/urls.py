@@ -15,4 +15,6 @@ urlpatterns = [
     path("me/delete/", views.delete_account, name="auth-delete"),
     path("verify/send/", views.verify_send, name="auth-verify-send"),
     path("verify/confirm/", views.verify_confirm, name="auth-verify-confirm"),
+    path("password/reset/request/", views.password_reset_request, name="auth-password-reset-request"),
+    path("password/reset/confirm/", views.password_reset_confirm, name="auth-password-reset-confirm"),
 ]

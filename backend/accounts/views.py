@@ -2,21 +2,26 @@
 Authentication views for pTrack.
 
 Endpoints:
-  POST /api/v1/auth/register/          — create a new citizen account
-  POST /api/v1/auth/login/             — obtain JWT access + refresh tokens
-  GET  /api/v1/auth/me/                — return the authenticated user's profile
-  PATCH /api/v1/auth/me/               — update profile fields
-  POST  /api/v1/auth/me/password/      — change password
-  POST  /api/v1/auth/me/avatar/        — upload profile picture
-  DELETE /api/v1/auth/me/avatar/       — remove profile picture
-  GET  /api/v1/auth/me/impact/         — environmental impact summary
-  GET  /api/v1/auth/me/export/         — GDPR data export
-  POST /api/v1/auth/me/delete/         — soft-delete account (GDPR)
-  POST /api/v1/auth/verify/send/       — send OTP via email or phone
-  POST /api/v1/auth/verify/confirm/    — confirm OTP and mark channel verified
+  POST /api/v1/auth/register/                — create a new citizen account
+  POST /api/v1/auth/login/                   — obtain JWT access + refresh tokens
+  GET  /api/v1/auth/me/                      — return the authenticated user's profile
+  PATCH /api/v1/auth/me/                     — update profile fields
+  POST  /api/v1/auth/me/password/            — change password
+  POST  /api/v1/auth/me/avatar/              — upload profile picture
+  DELETE /api/v1/auth/me/avatar/             — remove profile picture
+  GET  /api/v1/auth/me/impact/               — environmental impact summary
+  GET  /api/v1/auth/me/export/               — GDPR data export
+  POST /api/v1/auth/me/delete/               — soft-delete account (GDPR)
+  POST /api/v1/auth/verify/send/             — send OTP via email or phone
+  POST /api/v1/auth/verify/confirm/          — confirm OTP and mark channel verified
+  POST /api/v1/auth/password/reset/request/  — request password reset OTP
+  POST /api/v1/auth/password/reset/confirm/  — confirm OTP and set new password
 """
 
+import hashlib
 import io
+import random
+import string
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
@@ -49,7 +54,39 @@ _UPDATABLE_PROFILE_FIELDS = [
     "show_on_leaderboard",
     "allow_public_reports",
     "notification_preferences",
+    "has_completed_onboarding",
 ]
+
+
+# ── Simple in-process OTP helpers ─────────────────────────────────────────────
+
+
+def _make_otp() -> str:
+    return "".join(random.choices(string.digits, k=6))
+
+
+def _otp_cache_key(user_pk: int, purpose: str) -> str:
+    return f"otp:{user_pk}:{purpose}"
+
+
+def _store_otp(user, purpose: str, ttl_minutes: int = 10) -> str:
+    code = _make_otp()
+    key = _otp_cache_key(user.pk, purpose)
+    hashed = hashlib.sha256(code.encode()).hexdigest()
+    cache.set(key, hashed, timeout=ttl_minutes * 60)
+    return code
+
+
+def _verify_otp(user, purpose: str, code: str) -> bool:
+    key = _otp_cache_key(user.pk, purpose)
+    stored = cache.get(key)
+    if not stored:
+        return False
+    hashed = hashlib.sha256(code.encode()).hexdigest()
+    if stored != hashed:
+        return False
+    cache.delete(key)  # single-use
+    return True
 
 
 # ── Registration & login ───────────────────────────────────────────────────────
@@ -134,7 +171,7 @@ def login(request):
 @extend_schema(
     tags=["auth"],
     responses={200: UserSerializer},
-    summary="Get the currently authenticated user",
+    summary="Get or update the currently authenticated user",
     methods=["GET"],
 )
 @extend_schema(
@@ -162,11 +199,11 @@ def me(request):
 
     # GET — cache for 60 s
     cache_key = f"user:profile:{request.user.pk}"
-    data = cache.get(cache_key)
-    if data is None:
-        data = UserSerializer(request.user).data
-        cache.set(cache_key, data, timeout=_ME_CACHE_TTL)
-    return Response(data)
+    cached = cache.get(cache_key)
+    if cached is None:
+        cached = UserSerializer(request.user).data
+        cache.set(cache_key, cached, timeout=_ME_CACHE_TTL)
+    return Response(cached)
 
 
 @extend_schema(
@@ -242,18 +279,19 @@ def avatar(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    from PIL import Image
+    try:
+        from PIL import Image
 
-    img = Image.open(file).convert("RGB")
-    img = img.resize((512, 512), Image.LANCZOS)
+        img = Image.open(file).convert("RGB")
+        img = img.resize((512, 512), Image.LANCZOS)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        filename = f"avatars/{request.user.pk}.jpg"
+        request.user.profile_picture.save(filename, ContentFile(buf.getvalue()), save=True)
+    except Exception:
+        request.user.profile_picture.save(f"avatars/{request.user.pk}", file, save=True)
 
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=85)
-
-    filename = f"avatars/{request.user.pk}.jpg"
-    request.user.profile_picture.save(filename, ContentFile(buf.getvalue()), save=True)
     cache.delete(f"user:profile:{request.user.pk}")
-
     return Response({"profile_picture": request.user.profile_picture.url})
 
 
@@ -405,3 +443,92 @@ def verify_confirm(request):
 
     cache.delete(f"user:profile:{request.user.pk}")
     return Response({"detail": "Verified successfully."})
+
+
+# ── Password reset ─────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Reset code sent (or silently skipped)")},
+    summary="Request a password reset OTP",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    """POST /api/v1/auth/password/reset/request/
+    Accepts: {"identifier": "email_or_phone"}
+    Always returns 200 to avoid user enumeration.
+    """
+    identifier = request.data.get("identifier", "").strip()
+    if not identifier:
+        return Response({"detail": "Identifier is required."}, status=400)
+
+    user = None
+    if "@" in identifier:
+        user = User.objects.filter(email__iexact=identifier).first()
+    else:
+        user = User.objects.filter(phone_number=identifier).first()
+
+    if user:
+        code = _store_otp(user, "password_reset")
+        if "@" in identifier:
+            try:
+                from utils.email_service import send_verification_email
+
+                send_verification_email(user.email, code)
+            except Exception:
+                pass
+        else:
+            import logging
+
+            logging.getLogger(__name__).info(
+                "Password reset OTP for %s: %s", identifier, code
+            )
+
+    return Response({"detail": "If an account exists, a reset code has been sent."})
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={
+        200: OpenApiResponse(description="Password reset successfully"),
+        400: OpenApiResponse(description="Invalid code or identifier"),
+    },
+    summary="Confirm OTP and set a new password",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    """POST /api/v1/auth/password/reset/confirm/
+    Accepts: {"identifier": "...", "code": "123456", "new_password": "..."}
+    """
+    identifier = request.data.get("identifier", "").strip()
+    code = request.data.get("code", "").strip()
+    new_password = request.data.get("new_password", "")
+
+    if not all([identifier, code, new_password]):
+        return Response(
+            {"detail": "identifier, code, and new_password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = None
+    if "@" in identifier:
+        user = User.objects.filter(email__iexact=identifier).first()
+    else:
+        user = User.objects.filter(phone_number=identifier).first()
+
+    if not user:
+        return Response(
+            {"detail": "Invalid code or identifier."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not _verify_otp(user, "password_reset", code):
+        return Response(
+            {"detail": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user.set_password(new_password)
+    user.save(update_fields=["password"])
+    return Response({"detail": "Password reset successfully."})

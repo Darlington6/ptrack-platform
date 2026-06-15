@@ -37,6 +37,7 @@ class User(AbstractUser):
     theme_preference = models.CharField(max_length=10, choices=THEME_CHOICES, default="system")
 
     # ── Engagement ────────────────────────────────────────────────────────────
+    has_completed_onboarding = models.BooleanField(default=False)
     weekly_goal = models.IntegerField(default=5)
     current_streak = models.IntegerField(default=0)
     longest_streak = models.IntegerField(default=0)

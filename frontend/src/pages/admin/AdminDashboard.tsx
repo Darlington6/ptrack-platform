@@ -4,7 +4,7 @@ import { AdminAvatar } from '../../components/AdminAvatar';
 import client from '../../api/client';
 import type { LeaderboardEntry, WasteReportDetail } from '../../types';
 
-const STATUS_BADGE = {
+const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   verified: 'bg-green-100 text-green-800',
   resolved: 'bg-gray-100 text-gray-600',
