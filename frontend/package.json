@@ -17,7 +17,7 @@
   "dependencies": {
     "@react-google-maps/api": "^2.20.8",
     "@sentry/react": "^10.57.0",
-    "axios": "^1.17.0",
+    "axios": "^1.18.0",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
@@ -38,7 +38,7 @@
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.6.0",
     "postcss": "^8.5.15",
     "prettier": "^3.5.3",
@@ -46,6 +46,6 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^8.0.12",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.9"
   }
 }
