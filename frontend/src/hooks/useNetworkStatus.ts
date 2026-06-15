@@ -10,7 +10,6 @@ export function useNetworkStatus() {
     window.addEventListener('online', onOnline);
     window.addEventListener('offline', onOffline);
 
-    let interval: ReturnType<typeof setInterval>;
     const ping = async () => {
       if (!navigator.onLine) {
         setStatus('offline');
@@ -25,7 +24,7 @@ export function useNetworkStatus() {
         setStatus('poor');
       }
     };
-    interval = setInterval(ping, 30_000);
+    const interval = setInterval(ping, 30_000);
 
     return () => {
       window.removeEventListener('online', onOnline);

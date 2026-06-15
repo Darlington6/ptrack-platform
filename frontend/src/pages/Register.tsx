@@ -83,8 +83,9 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full name */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Full name</label>
+              <label htmlFor="reg-full-name" className="text-sm font-medium text-gray-700">Full name</label>
               <input
+                id="reg-full-name"
                 name="full_name"
                 value={form.full_name}
                 onChange={handleChange}
@@ -97,8 +98,9 @@ export default function Register() {
 
             {/* Email / phone — type="text" allows both formats without browser rejection */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Email or phone number</label>
+              <label htmlFor="reg-email" className="text-sm font-medium text-gray-700">Email or phone number</label>
               <input
+                id="reg-email"
                 type="text"
                 name="email"
                 value={form.email}
@@ -115,9 +117,10 @@ export default function Register() {
 
             {/* Password */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Password</label>
+              <label htmlFor="reg-password" className="text-sm font-medium text-gray-700">Password</label>
               <div className="relative">
                 <input
+                  id="reg-password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={form.password}
@@ -139,9 +142,10 @@ export default function Register() {
 
             {/* Confirm password */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+              <label htmlFor="reg-confirm-password" className="text-sm font-medium text-gray-700">Confirm Password</label>
               <div className="relative">
                 <input
+                  id="reg-confirm-password"
                   type={showConfirm ? 'text' : 'password'}
                   name="confirm_password"
                   value={form.confirm_password}
@@ -162,8 +166,9 @@ export default function Register() {
 
             {/* Location / Sector */}
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Location / Sector</label>
+              <label htmlFor="reg-sector" className="text-sm font-medium text-gray-700">Location / Sector</label>
               <select
+                id="reg-sector"
                 name="sector"
                 value={form.sector}
                 onChange={handleChange}

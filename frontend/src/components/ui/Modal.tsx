@@ -24,7 +24,12 @@ export function Modal({ isOpen, onClose, title, children }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <button
+          type="button"
+          className="absolute inset-0 bg-black/50 cursor-default"
+          onClick={onClose}
+          aria-label="Close"
+        />
       <div className="relative bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md shadow-xl p-6">
         {title && (
           <div className="flex items-center justify-between mb-4">
