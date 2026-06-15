@@ -88,7 +88,7 @@ export default function Register() {
       const emailField = contactTab === 'email' ? (data.email ?? '') : '';
       const phoneField = contactTab === 'phone' ? (data.phone_number ?? '') : '';
       const identifier = contactTab === 'email' ? emailField : phoneField;
-      const username = emailField ? emailField.split('@')[0] : `user_${Date.now()}`;
+      const username = emailField ? (emailField.split('@')[0] ?? emailField) : `user_${Date.now()}`;
 
       await authRegister({
         full_name: data.full_name,

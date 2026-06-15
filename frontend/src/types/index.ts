@@ -28,6 +28,31 @@ export interface User {
   points: number;
   role: 'citizen' | 'admin';
   created_at: string;
+  updated_at: string;
+  // Profile
+  profile_picture?: string | null;
+  bio?: string;
+  preferred_language: Language;
+  theme_preference: ThemePreference;
+  // Engagement
+  has_completed_onboarding: boolean;
+  weekly_goal: number;
+  current_streak: number;
+  longest_streak: number;
+  last_activity_date?: string | null;
+  // Verification
+  email_verified: boolean;
+  phone_verified: boolean;
+  // Privacy
+  show_on_leaderboard: boolean;
+  allow_public_reports: boolean;
+  // Preferences
+  notification_preferences: {
+    streak_reminders: boolean;
+    weekly_digest: boolean;
+    community_updates: boolean;
+    badge_earned: boolean;
+  };
 }
 
 export interface WasteReport {

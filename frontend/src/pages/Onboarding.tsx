@@ -56,21 +56,23 @@ export default function Onboarding() {
     }
   }
 
+  const currentSlide = SLIDES[slide] ?? SLIDES[0];
+
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center px-6 transition-colors duration-500 ${SLIDES[slide].bg}`}
+      className={`min-h-screen flex flex-col items-center justify-center px-6 transition-colors duration-500 ${currentSlide.bg}`}
     >
       {/* Icon */}
       <span className="text-6xl mb-8 select-none" aria-hidden="true">
-        {SLIDES[slide].icon}
+        {currentSlide.icon}
       </span>
 
       {/* Text */}
       <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 text-center mb-3 leading-snug">
-        {SLIDES[slide].title}
+        {currentSlide.title}
       </h1>
       <p className="text-gray-600 dark:text-slate-400 text-center text-base leading-relaxed max-w-sm">
-        {SLIDES[slide].body}
+        {currentSlide.body}
       </p>
 
       {/* Progress dots */}
