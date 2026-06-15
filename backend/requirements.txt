@@ -6,7 +6,7 @@ cloudinary==1.44.2
 django-cloudinary-storage==0.3.0
 Django==5.1.15
 gunicorn==23.0.0
-whitenoise==6.9.0
+whitenoise==6.12.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
 djangorestframework==3.17.1
@@ -43,7 +43,7 @@ django-csp==3.8
 argon2-cffi==23.1.0
 
 # ── Config validation ─────────────────────────────────────────────────────────
-pydantic-settings==2.9.1
+pydantic-settings==2.14.1
 
 # ── Email (future) ────────────────────────────────────────────────────────────
 django-anymail[resend]==13.0
@@ -60,6 +60,6 @@ djangorestframework-stubs[compatible-mypy]==3.17.0
 types-requests==2.33.0.20260518
 
 # ── Testing ───────────────────────────────────────────────────────────────────
-pytest==9.0.3
+pytest==9.1.0
 pytest-django==4.12.0
 pytest-cov==7.1.0
