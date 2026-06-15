@@ -35,7 +35,7 @@ urllib3==2.7.0
 django-redis==5.4.0
 
 # ── Rate limiting / security ──────────────────────────────────────────────────
-django-axes==7.0.1
+django-axes==8.3.1
 django-ratelimit==4.1.0
 django-csp==3.8
 
