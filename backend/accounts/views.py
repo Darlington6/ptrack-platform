@@ -2,21 +2,34 @@
 Authentication views for pTrack.
 
 Endpoints:
-  POST /api/v1/auth/register/  — create a new citizen account
-  POST /api/v1/auth/login/     — obtain JWT access + refresh tokens
-  GET  /api/v1/auth/me/        — return the authenticated user's profile
-  GET  /api/v1/auth/impact/    — environmental impact summary for current user
+  POST /api/v1/auth/register/          — create a new citizen account
+  POST /api/v1/auth/login/             — obtain JWT access + refresh tokens
+  GET  /api/v1/auth/me/                — return the authenticated user's profile
+  PATCH /api/v1/auth/me/               — update profile fields
+  POST  /api/v1/auth/me/password/      — change password
+  POST  /api/v1/auth/me/avatar/        — upload profile picture
+  DELETE /api/v1/auth/me/avatar/       — remove profile picture
+  GET  /api/v1/auth/me/impact/         — environmental impact summary
+  GET  /api/v1/auth/me/export/         — GDPR data export
+  POST /api/v1/auth/me/delete/         — soft-delete account (GDPR)
+  POST /api/v1/auth/verify/send/       — send OTP via email or phone
+  POST /api/v1/auth/verify/confirm/    — confirm OTP and mark channel verified
 """
+
+import io
 
 from django.contrib.auth import authenticate
 from django.core.cache import cache
+from django.core.files.base import ContentFile
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes, throttle_classes
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .models import User
+from .otp import create_verification_code, verify_code
 from .serializers import (
     AuthResponseSerializer,
     LoginSerializer,
@@ -27,6 +40,19 @@ from .serializers import (
 from .throttles import AuthThrottle
 
 _ME_CACHE_TTL = 60  # seconds
+
+_UPDATABLE_PROFILE_FIELDS = [
+    "bio",
+    "preferred_language",
+    "theme_preference",
+    "weekly_goal",
+    "show_on_leaderboard",
+    "allow_public_reports",
+    "notification_preferences",
+]
+
+
+# ── Registration & login ───────────────────────────────────────────────────────
 
 
 @extend_schema(
@@ -39,11 +65,26 @@ _ME_CACHE_TTL = 60  # seconds
 @permission_classes([AllowAny])
 @throttle_classes([AuthThrottle])
 def register(request):
-    """Create a new citizen account and return JWT tokens."""
+    """Create a new citizen account, send email verification if address is real."""
     serializer = RegisterSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = serializer.save()
+
+    if not user.email.startswith("phone_"):
+        try:
+            from core.email import send_email
+
+            code = create_verification_code(user, "email", "register_verify")
+            send_email(
+                user.email,
+                "Verify your pTrack email",
+                "verify_email",
+                {"user": user, "code": code},
+            )
+        except Exception:
+            pass  # email failure must not block registration
+
     return Response(AuthResponseSerializer.build(user), status=status.HTTP_201_CREATED)
 
 
@@ -87,21 +128,136 @@ def login(request):
     return Response(AuthResponseSerializer.build(user))
 
 
+# ── Current user ───────────────────────────────────────────────────────────────
+
+
 @extend_schema(
     tags=["auth"],
     responses={200: UserSerializer},
     summary="Get the currently authenticated user",
+    methods=["GET"],
 )
-@api_view(["GET"])
+@extend_schema(
+    tags=["auth"],
+    request=None,
+    responses={200: UserSerializer},
+    summary="Update profile fields (PATCH)",
+    methods=["PATCH"],
+)
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def me(request):
-    """Return the profile of the currently authenticated user. Cached for 60 s."""
+    """GET: cached profile. PATCH: update a safe subset of profile fields."""
+    if request.method == "PATCH":
+        data = {k: v for k, v in request.data.items() if k in _UPDATABLE_PROFILE_FIELDS}
+        if not data:
+            return Response(
+                {"detail": "No updatable fields provided."}, status=status.HTTP_400_BAD_REQUEST
+            )
+        for field, value in data.items():
+            setattr(request.user, field, value)
+        request.user.save(update_fields=list(data.keys()))
+        cache.delete(f"user:profile:{request.user.pk}")
+        return Response(UserSerializer(request.user).data)
+
+    # GET — cache for 60 s
     cache_key = f"user:profile:{request.user.pk}"
     data = cache.get(cache_key)
     if data is None:
         data = UserSerializer(request.user).data
         cache.set(cache_key, data, timeout=_ME_CACHE_TTL)
     return Response(data)
+
+
+@extend_schema(
+    tags=["auth"],
+    summary="Change the current user's password",
+    responses={200: OpenApiResponse(description="Success message")},
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def password_change(request):
+    """Verify current password then set the new one."""
+    current = request.data.get("current_password", "")
+    new = request.data.get("new_password", "")
+
+    if not current or not new:
+        return Response(
+            {"detail": "current_password and new_password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    if not request.user.check_password(current):
+        return Response(
+            {"detail": "Current password is incorrect."}, status=status.HTTP_400_BAD_REQUEST
+        )
+    if len(new) < 6:
+        return Response(
+            {"detail": "Password must be at least 6 characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request.user.set_password(new)
+    request.user.save(update_fields=["password"])
+    cache.delete(f"user:profile:{request.user.pk}")
+    return Response({"detail": "Password changed successfully."})
+
+
+# ── Avatar ─────────────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["auth"],
+    summary="Upload a profile picture (max 2 MB, resized to 512×512 JPEG)",
+    methods=["POST"],
+    responses={200: OpenApiResponse(description="profile_picture URL")},
+)
+@extend_schema(
+    tags=["auth"],
+    summary="Remove profile picture",
+    methods=["DELETE"],
+    responses={204: None},
+)
+@api_view(["POST", "DELETE"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def avatar(request):
+    if request.method == "DELETE":
+        if request.user.profile_picture:
+            request.user.profile_picture.delete(save=True)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    file = request.FILES.get("avatar")
+    if not file:
+        return Response({"detail": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if file.size > 2 * 1024 * 1024:
+        return Response(
+            {"detail": "File size must be under 2 MB."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    allowed = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed:
+        return Response(
+            {"detail": "Only JPEG, PNG and WebP images are accepted."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    from PIL import Image
+
+    img = Image.open(file).convert("RGB")
+    img = img.resize((512, 512), Image.LANCZOS)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+
+    filename = f"avatars/{request.user.pk}.jpg"
+    request.user.profile_picture.save(filename, ContentFile(buf.getvalue()), save=True)
+    cache.delete(f"user:profile:{request.user.pk}")
+
+    return Response({"profile_picture": request.user.profile_picture.url})
+
+
+# ── Impact ─────────────────────────────────────────────────────────────────────
 
 
 @extend_schema(
@@ -116,3 +272,136 @@ def impact(request):
     from .services import compute_impact
 
     return Response(compute_impact(request.user))
+
+
+# ── GDPR ──────────────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Full data export as JSON")},
+    summary="Export all personal data (GDPR Article 20)",
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def export_data(request):
+    """Return a JSON snapshot of all personal data held for the authenticated user."""
+    from reports.models import RecyclingActivity, Reward, WasteReport
+    from reports.serializers import (
+        RecyclingActivitySerializer,
+        RewardSerializer,
+        WasteReportSerializer,
+    )
+
+    return Response(
+        {
+            "profile": UserSerializer(request.user).data,
+            "reports": WasteReportSerializer(
+                WasteReport.objects.filter(user=request.user), many=True
+            ).data,
+            "rewards": RewardSerializer(Reward.objects.filter(user=request.user), many=True).data,
+            "recycling": RecyclingActivitySerializer(
+                RecyclingActivity.objects.filter(user=request.user), many=True
+            ).data,
+        }
+    )
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Account deletion confirmation")},
+    summary="Soft-delete account (GDPR Article 17) — requires password + 'DELETE MY ACCOUNT'",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """
+    Soft-delete the requesting user's account.
+    Body must include ``password`` and ``confirmation = "DELETE MY ACCOUNT"``.
+    """
+    password = request.data.get("password", "")
+    confirmation = request.data.get("confirmation", "")
+
+    if not request.user.check_password(password):
+        return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if confirmation != "DELETE MY ACCOUNT":
+        return Response(
+            {"detail": "Send confirmation = 'DELETE MY ACCOUNT' to proceed."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    request.user.delete()  # soft delete via overridden model method
+    return Response({"detail": "Your account has been scheduled for deletion."})
+
+
+# ── Email / phone verification ─────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="OTP sent")},
+    summary="Send a verification OTP to email or phone",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@throttle_classes([AuthThrottle])
+def verify_send(request):
+    """Send a 6-digit OTP via the requested channel (email | phone)."""
+    channel = request.data.get("channel", "email")
+    purpose = request.data.get("purpose", "register_verify")
+
+    if channel not in ("email", "phone"):
+        return Response({"detail": "channel must be 'email' or 'phone'."}, status=400)
+
+    code = create_verification_code(request.user, channel, purpose)
+
+    if channel == "email":
+        from core.email import send_email
+
+        send_email(
+            request.user.email,
+            "Your pTrack verification code",
+            "verify_email",
+            {"user": request.user, "code": code},
+        )
+    else:
+        from core.sms import send_sms
+
+        send_sms(request.user.phone_number or "", f"Your pTrack code: {code}")
+
+    return Response({"detail": f"Verification code sent via {channel}."})
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={
+        200: OpenApiResponse(description="Verified"),
+        400: OpenApiResponse(description="Invalid or expired code"),
+    },
+    summary="Confirm OTP and mark the channel as verified",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@throttle_classes([AuthThrottle])
+def verify_confirm(request):
+    """Validate OTP and mark email_verified or phone_verified on the user."""
+    channel = request.data.get("channel", "email")
+    purpose = request.data.get("purpose", "register_verify")
+    code = request.data.get("code", "")
+
+    if not code:
+        return Response({"detail": "code is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not verify_code(request.user, channel, purpose, code):
+        return Response({"detail": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if channel == "email":
+        request.user.email_verified = True
+        request.user.save(update_fields=["email_verified"])
+    elif channel == "phone":
+        request.user.phone_verified = True
+        request.user.save(update_fields=["phone_verified"])
+
+    cache.delete(f"user:profile:{request.user.pk}")
+    return Response({"detail": "Verified successfully."})

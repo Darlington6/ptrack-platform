@@ -8,9 +8,12 @@ Point economy:
   Report verified    → +5  pts (citizen who filed the report)
 """
 
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db.models import Sum
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -36,6 +39,8 @@ _LEADERBOARD_CACHE_KEY = "leaderboard:top20"
 _LEADERBOARD_CACHE_TTL = 300  # 5 minutes
 _COMMUNITY_STATS_CACHE_KEY = "community:stats"
 _COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
+_COMMUNITY_TRENDS_CACHE_KEY = "community:trends"
+_COMMUNITY_TRENDS_CACHE_TTL = 3600  # 1 hour
 
 
 # ── Reports ────────────────────────────────────────────────────────────────────
@@ -302,4 +307,53 @@ def community_stats(request):
             "active_citizens": User.objects.filter(points__gt=0).count(),
         }
         cache.set(_COMMUNITY_STATS_CACHE_KEY, data, timeout=_COMMUNITY_STATS_CACHE_TTL)
+    return Response(data)
+
+
+# ── Community trends ───────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["reports"],
+    responses={200: OpenApiResponse(description="12-week rolling activity breakdown")},
+    summary="12-week community activity trends (cached 1 h)",
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def community_trends(request):
+    """Return weekly report/recycling/points buckets for the past 12 weeks. Cached 1 hour."""
+    data = cache.get(_COMMUNITY_TRENDS_CACHE_KEY)
+    if data is None:
+        now = timezone.now()
+        weeks = []
+        for i in range(11, -1, -1):
+            week_start = (now - timedelta(weeks=i)).date()
+            week_start -= timedelta(days=week_start.weekday())
+            week_end = week_start + timedelta(days=7)
+
+            reports_count = WasteReport.objects.filter(
+                created_at__date__gte=week_start, created_at__date__lt=week_end
+            ).count()
+            recycling_count = RecyclingActivity.objects.filter(
+                date__gte=week_start, date__lt=week_end
+            ).count()
+            points = (
+                Reward.objects.filter(
+                    date_earned__date__gte=week_start, date_earned__date__lt=week_end
+                ).aggregate(t=Sum("points_earned"))["t"]
+                or 0
+            )
+
+            weeks.append(
+                {
+                    "week": week_start.isoformat(),
+                    "reports": reports_count,
+                    "recycling": recycling_count,
+                    "points": points,
+                }
+            )
+
+        data = {"weeks": weeks}
+        cache.set(_COMMUNITY_TRENDS_CACHE_KEY, data, timeout=_COMMUNITY_TRENDS_CACHE_TTL)
+
     return Response(data)

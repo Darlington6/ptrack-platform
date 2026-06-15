@@ -8,5 +8,11 @@ urlpatterns = [
     path("login/", views.login, name="auth-login"),
     path("refresh/", TokenRefreshView.as_view(), name="auth-refresh"),
     path("me/", views.me, name="auth-me"),
-    path("impact/", views.impact, name="auth-impact"),
+    path("me/password/", views.password_change, name="auth-password-change"),
+    path("me/avatar/", views.avatar, name="auth-avatar"),
+    path("me/impact/", views.impact, name="auth-impact"),
+    path("me/export/", views.export_data, name="auth-export"),
+    path("me/delete/", views.delete_account, name="auth-delete"),
+    path("verify/send/", views.verify_send, name="auth-verify-send"),
+    path("verify/confirm/", views.verify_confirm, name="auth-verify-confirm"),
 ]

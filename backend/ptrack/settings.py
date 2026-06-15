@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_spectacular",
     "axes",
+    "anymail",
     # local apps
     "cloudinary_storage",
     "cloudinary",
@@ -311,3 +312,13 @@ AXES_CACHE = "default"
 # ── Misc ──────────────────────────────────────────────────────────────────────
 RESEND_API_KEY = cfg.RESEND_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
+
+# ── Email ─────────────────────────────────────────────────────────────────────
+DEFAULT_FROM_EMAIL = "pTrack <noreply@ptrack.rw>"
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+if cfg.RESEND_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+    ANYMAIL = {"RESEND_API_KEY": cfg.RESEND_API_KEY}
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
