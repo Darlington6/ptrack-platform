@@ -1,20 +1,19 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import * as Sentry from '@sentry/react';
+import './lib/i18n';
+import { initSentry } from './lib/sentry';
+import { useThemeStore } from './stores/themeStore';
 import App from './App';
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  tracesSampleRate: 1.0,
-  release: import.meta.env.VITE_APP_VERSION,
-  environment: import.meta.env.MODE,
-  // To disable sending user data, uncomment the line below. For more info visit:
-  // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#dataCollection
-  // dataCollection: { userInfo: false }
-});
+initSentry();
+// Hydrate theme before first render to avoid flash
+useThemeStore.getState().hydrate();
 
-createRoot(document.getElementById('root')!).render(
+const rootEl = document.getElementById('root');
+if (!rootEl) throw new Error('Root element not found');
+
+createRoot(rootEl).render(
   <StrictMode>
     <App />
   </StrictMode>

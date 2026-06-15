@@ -7,6 +7,7 @@ export interface User {
   sector: string;
   points: number;
   role: 'citizen' | 'admin';
+  profile_picture?: string | null;
   created_at: string;
 }
 

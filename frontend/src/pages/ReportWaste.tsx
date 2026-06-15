@@ -117,7 +117,7 @@ export default function ReportWaste() {
 
         {/* Image upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
+          <p className="block text-sm font-medium text-gray-700 mb-1">Photo</p>
           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
             {form.image ? (
               <p className="text-sm text-green-700 font-medium px-4 text-center">
@@ -142,10 +142,11 @@ export default function ReportWaste() {
 
         {/* Description */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label htmlFor="report-description" className="text-sm font-medium text-gray-700">
             Describe what you found (optional)
           </label>
           <textarea
+            id="report-description"
             name="description"
             value={form.description}
             onChange={handleChange}
@@ -157,8 +158,11 @@ export default function ReportWaste() {
 
         {/* Waste type */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">Waste Type</label>
+          <label htmlFor="report-waste-type" className="text-sm font-medium text-gray-700">
+            Waste Type
+          </label>
           <select
+            id="report-waste-type"
             name="waste_type"
             value={form.waste_type}
             onChange={handleChange}

@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { AuthContextType, RegisterPayload, RegisterRequest, User } from '../types';
 import client from '../api/client';
+import { useAuthStore } from '../stores/authStore';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -10,19 +11,28 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUserState] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  function setUser(u: User | null) {
+    setUserState(u);
+    useAuthStore.getState().setUser(u);
+  }
+
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    // Prefer token from authStore (persisted), fall back to localStorage for backward compat
+    const token = useAuthStore.getState().accessToken ?? localStorage.getItem('access_token');
     if (token) {
+      // Ensure authStore has the token if it came from localStorage
+      if (!useAuthStore.getState().accessToken) {
+        const refresh = localStorage.getItem('refresh_token') ?? '';
+        useAuthStore.getState().setTokens(token, refresh);
+      }
       client
         .get('/auth/me/')
         .then((res) => {
           const userData = res.data as User;
-
           setUser(userData);
-
           Sentry.setUser({
             id: userData.id.toString(),
             username: userData.username,
@@ -32,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         .catch(() => {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          useAuthStore.getState().clearAuth();
           Sentry.setUser(null);
         })
         .finally(() => setIsLoading(false));
@@ -40,12 +51,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  /** Stores tokens, fetches user profile, returns user object. */
   async function login(email: string, password: string): Promise<User> {
     const res = await client.post('/auth/login/', { email, password });
-    localStorage.setItem('access_token', res.data.access);
-    localStorage.setItem('refresh_token', res.data.refresh);
-    const userData = res.data.user as User;
+    const {
+      access,
+      refresh,
+      user: userData,
+    } = res.data as {
+      access: string;
+      refresh: string;
+      user: User;
+    };
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    useAuthStore.getState().setTokens(access, refresh);
     setUser(userData);
     Sentry.setUser(null);
     Sentry.setUser({
@@ -53,37 +72,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
       username: userData.username,
       email: userData.email,
     });
-
     return userData;
   }
 
-  /** Registers, stores tokens, sets user. */
   async function register(payload: RegisterPayload): Promise<User> {
     const res = await client.post('/auth/register/', payload as RegisterRequest);
-    localStorage.setItem('access_token', res.data.access);
-    localStorage.setItem('refresh_token', res.data.refresh);
-    const userData = res.data.user as User;
+    const {
+      access,
+      refresh,
+      user: userData,
+    } = res.data as {
+      access: string;
+      refresh: string;
+      user: User;
+    };
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    useAuthStore.getState().setTokens(access, refresh);
     setUser(userData);
-
     Sentry.setUser({
       id: userData.id.toString(),
       username: userData.username,
       email: userData.email,
     });
-
     return userData;
   }
 
   function logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-
+    useAuthStore.getState().clearAuth();
     Sentry.setUser(null);
-
     setUser(null);
   }
 
-  /** Refresh user data from /auth/me/ after points change etc. */
   async function refreshUser(): Promise<User> {
     const res = await client.get('/auth/me/');
     const userData = res.data as User;
@@ -103,6 +125,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (!context) {
