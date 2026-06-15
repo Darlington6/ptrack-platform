@@ -61,7 +61,9 @@ export default function Login() {
             />
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="login-password" className="text-sm font-medium text-gray-700">Password</label>
+              <label htmlFor="login-password" className="text-sm font-medium text-gray-700">
+                Password
+              </label>
               <div className="relative">
                 <input
                   id="login-password"

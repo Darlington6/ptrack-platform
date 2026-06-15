@@ -35,16 +35,14 @@ export const useThemeStore = create<ThemeState>()(
       resolved: 'light',
 
       setPreference: (preference) => {
-        const resolved: ResolvedTheme =
-          preference === 'system' ? getSystemTheme() : preference;
+        const resolved: ResolvedTheme = preference === 'system' ? getSystemTheme() : preference;
         applyTheme(resolved);
         set({ preference, resolved });
       },
 
       hydrate: () => {
         const { preference } = get();
-        const resolved: ResolvedTheme =
-          preference === 'system' ? getSystemTheme() : preference;
+        const resolved: ResolvedTheme = preference === 'system' ? getSystemTheme() : preference;
         applyTheme(resolved);
         set({ resolved });
 

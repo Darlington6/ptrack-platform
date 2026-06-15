@@ -21,8 +21,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     // Prefer token from authStore (persisted), fall back to localStorage for backward compat
-    const token =
-      useAuthStore.getState().accessToken ?? localStorage.getItem('access_token');
+    const token = useAuthStore.getState().accessToken ?? localStorage.getItem('access_token');
     if (token) {
       // Ensure authStore has the token if it came from localStorage
       if (!useAuthStore.getState().accessToken) {
@@ -54,7 +53,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function login(email: string, password: string): Promise<User> {
     const res = await client.post('/auth/login/', { email, password });
-    const { access, refresh, user: userData } = res.data as {
+    const {
+      access,
+      refresh,
+      user: userData,
+    } = res.data as {
       access: string;
       refresh: string;
       user: User;
@@ -74,7 +77,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function register(payload: RegisterPayload): Promise<User> {
     const res = await client.post('/auth/register/', payload as RegisterRequest);
-    const { access, refresh, user: userData } = res.data as {
+    const {
+      access,
+      refresh,
+      user: userData,
+    } = res.data as {
       access: string;
       refresh: string;
       user: User;

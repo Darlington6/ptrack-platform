@@ -48,7 +48,9 @@ export default function RecyclingModal({ onClose, onSuccess }: RecyclingModalPro
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-1">
-            <label htmlFor="recycling-activity-type" className="text-sm font-medium text-gray-700">Activity Type</label>
+            <label htmlFor="recycling-activity-type" className="text-sm font-medium text-gray-700">
+              Activity Type
+            </label>
             <select
               id="recycling-activity-type"
               value={activityType}

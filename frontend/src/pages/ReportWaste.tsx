@@ -158,7 +158,9 @@ export default function ReportWaste() {
 
         {/* Waste type */}
         <div className="flex flex-col gap-1">
-          <label htmlFor="report-waste-type" className="text-sm font-medium text-gray-700">Waste Type</label>
+          <label htmlFor="report-waste-type" className="text-sm font-medium text-gray-700">
+            Waste Type
+          </label>
           <select
             id="report-waste-type"
             name="waste_type"
