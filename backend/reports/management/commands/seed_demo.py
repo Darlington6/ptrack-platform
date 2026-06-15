@@ -4,8 +4,15 @@ from datetime import timedelta
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.utils.text import slugify
 
-from reports.models import RecyclingActivity, Reward, WasteReport
+from reports.models import (
+    BadgeDefinition,
+    PointConfiguration,
+    RecyclingActivity,
+    Reward,
+    WasteReport,
+)
 
 User = get_user_model()
 
@@ -504,6 +511,212 @@ class Command(BaseCommand):
                     notif_count += 1
 
         self.stdout.write(self.style.SUCCESS(f"  ✓ {notif_count} sample notifications created"))
+
+        # ── Education articles ────────────────────────────────────────────────
+        from education.models import Article
+
+        ARTICLES = [
+            {
+                "title_en": "Why Plastic Recycling Matters in Kigali",
+                "title_rw": "Impamvu Gusubiza Plastiki Bifite Akamaro i Kigali",
+                "body_en": (
+                    "Kigali produces hundreds of tonnes of plastic waste each year. "
+                    "Proper recycling reduces landfill pressure, prevents ocean and waterway "
+                    "pollution, and creates local jobs in the circular economy. "
+                    "Every bottle you drop off at a centre keeps Rwanda's rivers clean."
+                ),
+                "body_rw": (
+                    "Kigali igira amakilogiramu menshi ya plastiki buri mwaka. "
+                    "Gusubiza neza bitabara ahantu hose h'imyanda, birinda inzuzi na nyanja "
+                    "guhumuka, kandi bigira akazi mu bukungu bw'imyuzurure. "
+                    "Icupa cyose ugeza ku kigo kikubika kirinda inzuzi z'u Rwanda kuba nziza."
+                ),
+                "category": "recycling",
+                "reading_time_minutes": 4,
+            },
+            {
+                "title_en": "How to Sort Your Plastic Waste at Home",
+                "title_rw": "Uburyo bwo Gutondeka Imyanda ya Plastiki Mu Rugo",
+                "body_en": (
+                    "Not all plastics are the same. Look for the resin code on the bottom of "
+                    "containers: PET (1) bottles, HDPE (2) jugs, and PP (5) containers are "
+                    "widely accepted. Rinse items before dropping them off to improve recycling quality."
+                ),
+                "body_rw": (
+                    "Plastiki zose ntizimwe. Reba kode ya rezine ku nsi y'ibigega: "
+                    "Icupa cya PET (1), igifurishi cya HDPE (2), na sitiferi za PP (5) "
+                    "birakiriwe ahantu henshi. Oza ibintu mbere yo kuzitanga kugira ngo "
+                    "ubuziranenge bw'ugusubiza bugire ireme."
+                ),
+                "category": "recycling",
+                "reading_time_minutes": 3,
+            },
+            {
+                "title_en": "Rwanda's Plastic Ban: What You Need to Know",
+                "title_rw": "Ihanwa rya Plastiki mu Rwanda: Ibyo Ugomba Kumenya",
+                "body_en": (
+                    "Since 2008 Rwanda has enforced one of the world's strictest plastic bag bans. "
+                    "Understanding the policy — what's banned, what's allowed, and how enforcement "
+                    "works — helps businesses and citizens stay compliant and champion the ban's goals."
+                ),
+                "body_rw": (
+                    "Kuva 2008 u Rwanda rwarakoze kimwe mu mategeko akomeye ku isi yo guharamika "
+                    "amatsakara ya plastiki. Gusobanukirwa politiki — ibiharamijwe, ibemererwa, "
+                    "n'uburyo ingamba zikorwa — bifasha abakorwa n'abaturage kuguma mu mategeko "
+                    "no gusenga intego z'iharamika."
+                ),
+                "category": "policy",
+                "reading_time_minutes": 5,
+            },
+            {
+                "title_en": "The Climate Impact of Plastic Waste",
+                "title_rw": "Ingaruka z'Imyanda ya Plastiki ku Bihe",
+                "body_en": (
+                    "Burning plastic releases toxic greenhouse gases. Landfills containing "
+                    "decomposing plastic emit methane, a potent climate forcer. By recycling "
+                    "rather than discarding, Kigali residents directly reduce their carbon footprint "
+                    "and contribute to Rwanda's climate commitments under the Paris Agreement."
+                ),
+                "body_rw": (
+                    "Gutwika plastiki bigushusha ibyuka bibi bya sereziki. Imyanda irimo "
+                    "plastiki ivunitse ikosora metani, ibyuka bikomeye ku bihe. "
+                    "Gusubiza aho guta bituma abaturage ba Kigali bagabanya ubukana bwabo bwa karubone "
+                    "no gutera inkunga inshingano z'u Rwanda z'ibihe mu Masezerano ya Paris."
+                ),
+                "category": "climate",
+                "reading_time_minutes": 4,
+            },
+            {
+                "title_en": "Community Champions: Sectors Leading Kigali's Recycling",
+                "title_rw": "Intwari z'Umuryango: Imirenge Iyobora Gusubiza i Kigali",
+                "body_en": (
+                    "Some Kigali sectors are consistently outperforming others in plastic "
+                    "collection rates. Kimironko, Remera, and Kacyiru residents report and drop "
+                    "off the most waste per capita. Find out what they're doing differently and "
+                    "how you can replicate their success in your neighbourhood."
+                ),
+                "body_rw": (
+                    "Imirenge imwe ya Kigali ikomeza gukora neza kuruta indi mu mibare "
+                    "yo gukusanya plastiki. Abaturage ba Kimironko, Remera, na Kacyiru batanga "
+                    "kandi basubiza imyanda myinshi ku muntu. Menya icyo bakora bitandukanye "
+                    "n'uburyo ushobora gusubiramo intsinzi yabo mu karere kawe."
+                ),
+                "category": "community",
+                "reading_time_minutes": 3,
+            },
+            {
+                "title_en": "5 Simple Ways to Reduce Plastic Use Every Day",
+                "title_rw": "Inzira 5 Zoroshye zo Kugabanya Plastiki Buri Munsi",
+                "body_en": (
+                    "1. Carry a reusable bag when shopping. "
+                    "2. Use a refillable water bottle. "
+                    "3. Choose products with minimal packaging. "
+                    "4. Refuse single-use straws and cutlery. "
+                    "5. Buy in bulk to reduce packaging waste. "
+                    "Small daily habits add up to big environmental wins over time."
+                ),
+                "body_rw": (
+                    "1. Shyira isaho y'ugusubiramo iyo ugiye gushopping. "
+                    "2. Koresha icupa cy'amazi ushobora kuzuza. "
+                    "3. Hitamo ibicuruzwa bifite ubupaki buke. "
+                    "4. Anga inzitizi no gukanya gukoreshwa rimwe. "
+                    "5. Gura byinshi kugira ngo ugabanyize imyanda y'ubupaki. "
+                    "Imyitwarire mito ya buri munsi itera ingaruka nkuru ku bidukikije n'igihe."
+                ),
+                "category": "waste_reduction",
+                "reading_time_minutes": 2,
+            },
+        ]
+
+        article_count = 0
+        for art in ARTICLES:
+            slug = slugify(art["title_en"])[:120]
+            _, created = Article.objects.get_or_create(
+                slug=slug,
+                defaults={
+                    **art,
+                    "is_published": True,
+                    "published_at": timezone.now(),
+                },
+            )
+            if created:
+                article_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f"  ✓ {article_count} education articles created"))
+
+        # ── Point configuration ───────────────────────────────────────────────
+        POINT_CONFIGS = [
+            {
+                "event": "report_submitted",
+                "points": 10,
+                "description": "Points awarded when a citizen submits a waste report.",
+            },
+            {
+                "event": "recycling_logged",
+                "points": 15,
+                "description": "Points awarded when a citizen logs a recycling drop-off.",
+            },
+            {
+                "event": "verification_bonus",
+                "points": 5,
+                "description": "Bonus points to the citizen when their report is verified by an admin.",
+            },
+        ]
+        for pc in POINT_CONFIGS:
+            PointConfiguration.objects.get_or_create(event=pc["event"], defaults=pc)
+
+        self.stdout.write(self.style.SUCCESS("  ✓ Point configurations seeded"))
+
+        # ── Badge definitions ─────────────────────────────────────────────────
+        BADGES = [
+            {
+                "name": "First Steps",
+                "slug": "first-steps",
+                "description": "Submit your first waste report.",
+                "required_points": 10,
+                "badge_type": "points",
+                "icon": "🌱",
+            },
+            {
+                "name": "Plastic Fighter",
+                "slug": "plastic-fighter",
+                "description": "Earn 100 points.",
+                "required_points": 100,
+                "badge_type": "points",
+                "icon": "♻️",
+            },
+            {
+                "name": "Recycling Hero",
+                "slug": "recycling-hero",
+                "description": "Earn 300 points.",
+                "required_points": 300,
+                "badge_type": "points",
+                "icon": "🦸",
+            },
+            {
+                "name": "Green Champion",
+                "slug": "green-champion",
+                "description": "Earn 500 points.",
+                "required_points": 500,
+                "badge_type": "points",
+                "icon": "🏆",
+            },
+            {
+                "name": "Kigali Guardian",
+                "slug": "kigali-guardian",
+                "description": "Earn 1000 points.",
+                "required_points": 1000,
+                "badge_type": "points",
+                "icon": "🛡️",
+            },
+        ]
+        badge_count = 0
+        for b in BADGES:
+            _, created = BadgeDefinition.objects.get_or_create(slug=b["slug"], defaults=b)
+            if created:
+                badge_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f"  ✓ {badge_count} badge definitions created"))
 
         self.stdout.write(self.style.SUCCESS("\nDemo seed complete!"))
         self.stdout.write("  Admin login  → admin@ptrack.rw / admin1234")

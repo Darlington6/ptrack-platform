@@ -5,6 +5,42 @@ from django.utils import timezone
 from accounts.managers import AllObjectsManager, SoftDeleteManager
 
 
+class PointConfiguration(models.Model):
+    EVENT_CHOICES = [
+        ("report_submitted", "Report Submitted"),
+        ("recycling_logged", "Recycling Logged"),
+        ("verification_bonus", "Verification Bonus"),
+    ]
+
+    event = models.CharField(max_length=30, choices=EVENT_CHOICES, unique=True)
+    points = models.IntegerField()
+    description = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event"]
+
+    def __str__(self):
+        return f"{self.event}: {self.points} pts"
+
+
+class BadgeDefinition(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=200, blank=True)
+    required_points = models.IntegerField(default=0)
+    badge_type = models.CharField(max_length=30, default="points")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["required_points"]
+
+    def __str__(self):
+        return self.name
+
+
 class WasteReport(models.Model):
     WASTE_TYPE_CHOICES = [
         ("bottles", "Plastic Bottles"),

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "core",
     "recycling_centres",
     "nudges",
+    "education",
 ]
 
 MIDDLEWARE = [
@@ -218,6 +219,20 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "CONTACT": {"name": "Desmond Tunyinko", "email": "d.tunyinko@alustudent.com"},
     "LICENSE": {"name": "MIT"},
+    "SECURITY": [{"BearerAuth": []}],
+    "COMPONENTS": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "description": (
+                    "JWT access token. Obtain via POST /api/v1/auth/login/ "
+                    "and set as: Authorization: Bearer <token>"
+                ),
+            }
+        }
+    },
     "TAGS": [
         {"name": "auth", "description": "Registration, login, JWT refresh, current user"},
         {"name": "reports", "description": "Waste report submission and verification"},
@@ -226,7 +241,21 @@ SPECTACULAR_SETTINGS = {
         {"name": "rewards", "description": "User reward history"},
         {"name": "recycling-centres", "description": "Kigali recycling drop-off centres"},
         {"name": "nudges", "description": "Personalised behavioural nudges"},
+        {"name": "education", "description": "Education articles about recycling and climate"},
+        {"name": "notifications", "description": "In-app notification inbox"},
         {"name": "health", "description": "Service health check"},
+        {"name": "admin-analytics", "description": "Platform analytics (admin only)"},
+        {"name": "admin-audit-logs", "description": "Admin audit trail (admin only)"},
+        {"name": "admin-reports", "description": "Bulk report management (admin only)"},
+        {
+            "name": "admin-configurations",
+            "description": "Point and badge configuration (admin only)",
+        },
+        {
+            "name": "admin-recycling-centres",
+            "description": "Recycling centre management (admin only)",
+        },
+        {"name": "admin-education", "description": "Education content management (admin only)"},
     ],
 }
 
@@ -322,3 +351,58 @@ if cfg.RESEND_API_KEY:
     ANYMAIL = {"RESEND_API_KEY": cfg.RESEND_API_KEY}
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+_LOG_FORMATTER = "json" if not DEBUG else "verbose"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.json.JsonFormatter",
+            "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+        },
+        "verbose": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": _LOG_FORMATTER,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "ptrack": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "accounts": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "reports": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "core": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+    },
+}

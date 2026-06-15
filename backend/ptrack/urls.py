@@ -30,6 +30,8 @@ urlpatterns = [
     path("api/v1/", include("recycling_centres.urls")),
     path("api/v1/", include("nudges.urls")),
     path("api/v1/", include("core.urls")),
+    path("api/v1/", include("core.admin_urls")),
+    path("api/v1/", include("education.urls")),
     # ── OpenAPI docs ─────────────────────────────────────────────────────────
     path("api/v1/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
