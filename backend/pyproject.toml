@@ -7,7 +7,7 @@ select = ["E", "F", "I", "B", "W"]
 ignore = ["B008", "B904", "E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["accounts", "reports", "core", "recycling_centres", "nudges", "utils"]
+known-first-party = ["accounts", "reports", "core", "recycling_centres", "nudges", "education", "utils"]
 
 [tool.black]
 line-length = 100
@@ -34,9 +34,13 @@ module = [
     "core.sms",
     "core.notifications",
     "core.serializers",
+    "core.admin_views",
     "nudges.models",
     "nudges.serializers",
     "recycling_centres.models",
+    "recycling_centres.views",
+    "education.models",
+    "education.views",
 ]
 ignore_errors = true
 

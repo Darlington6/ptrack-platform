@@ -1,0 +1,541 @@
+"""
+Admin-only API views for pTrack.
+
+All endpoints require IsAdminRole (user.role == "admin").
+Grouped by resource:
+  /api/v1/admin/analytics/   — aggregated platform stats
+  /api/v1/admin/audit-logs/  — paginated AuditLog CRUD + CSV export
+  /api/v1/admin/reports/     — bulk verify/reject + CSV export
+  /api/v1/admin/configurations/ — PointConfiguration + BadgeDefinition CRUD
+"""
+
+import csv
+from datetime import timedelta
+
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.db.models import Count, Q, Sum
+from django.http import StreamingHttpResponse
+from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
+from rest_framework import serializers, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+
+from reports.models import BadgeDefinition, PointConfiguration, Reward, WasteReport
+from reports.permissions import IsAdminRole
+
+from .models import AuditLog
+from .pagination import FeedCursorPagination
+
+User = get_user_model()
+
+_ANALYTICS_CACHE_TTL = 300  # 5 minutes
+
+
+# ── Serializers (inline — admin only, no need for separate file) ───────────────
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    actor_email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AuditLog
+        fields = [
+            "id",
+            "actor",
+            "actor_email",
+            "action",
+            "target_type",
+            "target_id",
+            "metadata",
+            "ip_address",
+            "user_agent",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+    def get_actor_email(self, obj):
+        return obj.actor.email if obj.actor else None
+
+
+class PointConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PointConfiguration
+        fields = ["id", "event", "points", "description", "updated_at"]
+        read_only_fields = ["id", "updated_at"]
+
+
+class BadgeDefinitionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BadgeDefinition
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "icon",
+            "required_points",
+            "badge_type",
+            "is_active",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
+
+
+# ── CSV helpers ────────────────────────────────────────────────────────────────
+
+
+class _Echo:
+    def write(self, value):
+        return value
+
+
+def _csv_stream(header, rows):
+    writer = csv.writer(_Echo())
+    yield writer.writerow(header)
+    for row in rows:
+        yield writer.writerow(row)
+
+
+# ── Analytics ──────────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    parameters=[
+        OpenApiParameter("days", int, description="Number of days to look back (default 84 = 12w)"),
+    ],
+    responses={200: OpenApiResponse(description="Weekly report counts")},
+    summary="Reports over time — weekly buckets (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_reports_over_time(request):
+    days = int(request.query_params.get("days", 84))
+    cache_key = f"admin:analytics:reports_over_time:{days}"
+    data = cache.get(cache_key)
+    if data is None:
+        now = timezone.now()
+        weeks = []
+        for i in range(days // 7 - 1, -1, -1):
+            w_start = (now - timedelta(weeks=i)).date()
+            w_start -= timedelta(days=w_start.weekday())
+            w_end = w_start + timedelta(days=7)
+            count = WasteReport.objects.filter(
+                created_at__date__gte=w_start, created_at__date__lt=w_end
+            ).count()
+            weeks.append({"week": w_start.isoformat(), "count": count})
+        data = {"weeks": weeks}
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    responses={200: OpenApiResponse(description="Report counts grouped by user sector")},
+    summary="Reports by sector (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_by_sector(request):
+    cache_key = "admin:analytics:by_sector"
+    data = cache.get(cache_key)
+    if data is None:
+        rows = (
+            WasteReport.objects.select_related("user")
+            .values("user__sector")
+            .annotate(count=Count("id"))
+            .order_by("-count")
+        )
+        data = [{"sector": r["user__sector"] or "Unknown", "count": r["count"]} for r in rows]
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    responses={200: OpenApiResponse(description="Report counts grouped by waste type")},
+    summary="Reports by waste type (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_by_type(request):
+    cache_key = "admin:analytics:by_type"
+    data = cache.get(cache_key)
+    if data is None:
+        rows = (
+            WasteReport.objects.values("waste_type").annotate(count=Count("id")).order_by("-count")
+        )
+        data = list(rows)
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    parameters=[
+        OpenApiParameter("limit", int, description="Number of users to return (default 20)"),
+    ],
+    responses={200: OpenApiResponse(description="Top users by points")},
+    summary="Top users by points (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_top_users(request):
+    limit = min(int(request.query_params.get("limit", 20)), 100)
+    cache_key = f"admin:analytics:top_users:{limit}"
+    data = cache.get(cache_key)
+    if data is None:
+        users = User.objects.order_by("-points")[:limit]
+        data = [
+            {
+                "id": u.id,
+                "email": u.email,
+                "full_name": u.full_name or u.username,
+                "points": u.points,
+                "sector": u.sector,
+                "report_count": u.reports.count(),
+            }
+            for u in users
+        ]
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    responses={200: OpenApiResponse(description="Report lat/lon coordinates for heatmap")},
+    summary="Report heatmap coordinates (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_heatmap(request):
+    cache_key = "admin:analytics:heatmap"
+    data = cache.get(cache_key)
+    if data is None:
+        points = list(
+            WasteReport.objects.filter(~Q(latitude=None), ~Q(longitude=None)).values(
+                "latitude", "longitude", "waste_type", "status"
+            )
+        )
+        data = {"points": points}
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    responses={200: OpenApiResponse(description="Key performance indicators")},
+    summary="Platform KPIs (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_kpis(request):
+    cache_key = "admin:analytics:kpis"
+    data = cache.get(cache_key)
+    if data is None:
+        now = timezone.now()
+        week_ago = now - timedelta(days=7)
+        month_ago = now - timedelta(days=30)
+        data = {
+            "total_reports": WasteReport.objects.count(),
+            "pending_reports": WasteReport.objects.filter(status="pending").count(),
+            "verified_reports": WasteReport.objects.filter(status="verified").count(),
+            "reports_this_week": WasteReport.objects.filter(created_at__gte=week_ago).count(),
+            "reports_this_month": WasteReport.objects.filter(created_at__gte=month_ago).count(),
+            "total_citizens": User.objects.filter(role="citizen").count(),
+            "active_citizens_30d": User.objects.filter(reports__created_at__gte=month_ago)
+            .distinct()
+            .count(),
+            "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
+        }
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+# ── Audit Log ──────────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["admin-audit-logs"],
+    parameters=[
+        OpenApiParameter("actor", int, description="Filter by actor user ID"),
+        OpenApiParameter("action", str, description="Filter by action contains"),
+    ],
+    responses={200: AuditLogSerializer(many=True)},
+    summary="Paginated audit log (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def audit_log_list(request):
+    qs = AuditLog.objects.select_related("actor").all()
+
+    actor_id = request.query_params.get("actor")
+    if actor_id:
+        qs = qs.filter(actor_id=actor_id)
+
+    action = request.query_params.get("action")
+    if action:
+        qs = qs.filter(action__icontains=action)
+
+    paginator = FeedCursorPagination()
+    page = paginator.paginate_queryset(qs, request)
+    if page is not None:
+        return paginator.get_paginated_response(AuditLogSerializer(page, many=True).data)
+    return Response(AuditLogSerializer(qs, many=True).data)
+
+
+@extend_schema(
+    tags=["admin-audit-logs"],
+    responses={200: AuditLogSerializer},
+    summary="Retrieve a single audit log entry (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def audit_log_detail(request, pk):
+    try:
+        entry = AuditLog.objects.select_related("actor").get(pk=pk)
+    except AuditLog.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+    return Response(AuditLogSerializer(entry).data)
+
+
+@extend_schema(
+    tags=["admin-audit-logs"],
+    responses={200: OpenApiResponse(description="CSV file download")},
+    summary="Export audit logs as CSV (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def audit_log_export(request):
+    qs = AuditLog.objects.select_related("actor").all().order_by("-created_at")
+
+    header = ["id", "actor_email", "action", "target_type", "target_id", "ip_address", "created_at"]
+
+    def rows():
+        for entry in qs.iterator():
+            yield [
+                entry.id,
+                entry.actor.email if entry.actor else "",
+                entry.action,
+                entry.target_type,
+                entry.target_id or "",
+                entry.ip_address or "",
+                entry.created_at.isoformat(),
+            ]
+
+    response = StreamingHttpResponse(_csv_stream(header, rows()), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="audit_logs.csv"'
+    return response
+
+
+# ── Admin reports: bulk ops + export ──────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["admin-reports"],
+    request=None,
+    responses={200: OpenApiResponse(description="Number of reports verified")},
+    summary="Bulk verify reports (admin only)",
+)
+@api_view(["POST"])
+@permission_classes([IsAdminRole])
+def reports_bulk_verify(request):
+    ids = request.data.get("ids", [])
+    if not isinstance(ids, list) or not ids:
+        return Response({"detail": "Provide a non-empty list of report IDs."}, status=400)
+
+    reports = WasteReport.objects.filter(pk__in=ids, status="pending")
+    count = reports.count()
+
+    for report in reports.select_related("user"):
+        report.status = "verified"
+        report.save(update_fields=["status"])
+        Reward.objects.create(user=report.user, points_earned=5, reward_type="verification_bonus")
+        report.user.points += 5
+        report.user.save(update_fields=["points"])
+        cache.delete(f"user:profile:{report.user.pk}")
+
+    cache.delete("leaderboard:top20")
+    return Response({"verified": count})
+
+
+@extend_schema(
+    tags=["admin-reports"],
+    request=None,
+    responses={200: OpenApiResponse(description="Number of reports rejected")},
+    summary="Bulk reject reports (admin only)",
+)
+@api_view(["POST"])
+@permission_classes([IsAdminRole])
+def reports_bulk_reject(request):
+    ids = request.data.get("ids", [])
+    reason = request.data.get("reason", "")
+    if not isinstance(ids, list) or not ids:
+        return Response({"detail": "Provide a non-empty list of report IDs."}, status=400)
+
+    updated = WasteReport.objects.filter(pk__in=ids, status="pending").update(status="resolved")
+    return Response({"rejected": updated, "reason": reason})
+
+
+@extend_schema(
+    tags=["admin-reports"],
+    responses={200: OpenApiResponse(description="CSV file download")},
+    summary="Export all reports as CSV (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def reports_export(request):
+    qs = WasteReport.objects.select_related("user").order_by("-created_at")
+
+    header = [
+        "id",
+        "user_email",
+        "latitude",
+        "longitude",
+        "waste_type",
+        "status",
+        "description",
+        "created_at",
+    ]
+
+    def rows():
+        for r in qs.iterator():
+            yield [
+                r.id,
+                r.user.email,
+                r.latitude,
+                r.longitude,
+                r.waste_type,
+                r.status,
+                r.description,
+                r.created_at.isoformat(),
+            ]
+
+    response = StreamingHttpResponse(_csv_stream(header, rows()), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="reports.csv"'
+    return response
+
+
+# ── Reward configuration ───────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["admin-configurations"],
+    responses={200: PointConfigSerializer(many=True)},
+    summary="List point configurations (admin only)",
+    methods=["GET"],
+)
+@extend_schema(
+    tags=["admin-configurations"],
+    request=PointConfigSerializer,
+    responses={201: PointConfigSerializer},
+    summary="Create a point configuration (admin only)",
+    methods=["POST"],
+)
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminRole])
+def point_config_list_create(request):
+    if request.method == "POST":
+        serializer = PointConfigSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(PointConfigSerializer(obj).data, status=status.HTTP_201_CREATED)
+    return Response(PointConfigSerializer(PointConfiguration.objects.all(), many=True).data)
+
+
+@extend_schema(
+    tags=["admin-configurations"],
+    request=PointConfigSerializer,
+    responses={200: PointConfigSerializer},
+    summary="Update a point configuration (admin only)",
+    methods=["PATCH"],
+)
+@extend_schema(
+    tags=["admin-configurations"],
+    responses={204: None},
+    summary="Delete a point configuration (admin only)",
+    methods=["DELETE"],
+)
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAdminRole])
+def point_config_detail(request, pk):
+    try:
+        obj = PointConfiguration.objects.get(pk=pk)
+    except PointConfiguration.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == "PATCH":
+        serializer = PointConfigSerializer(obj, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(PointConfigSerializer(obj).data)
+
+
+@extend_schema(
+    tags=["admin-configurations"],
+    responses={200: BadgeDefinitionSerializer(many=True)},
+    summary="List badge definitions (admin only)",
+    methods=["GET"],
+)
+@extend_schema(
+    tags=["admin-configurations"],
+    request=BadgeDefinitionSerializer,
+    responses={201: BadgeDefinitionSerializer},
+    summary="Create a badge definition (admin only)",
+    methods=["POST"],
+)
+@api_view(["GET", "POST"])
+@permission_classes([IsAdminRole])
+def badge_list_create(request):
+    if request.method == "POST":
+        serializer = BadgeDefinitionSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        obj = serializer.save()
+        return Response(BadgeDefinitionSerializer(obj).data, status=status.HTTP_201_CREATED)
+    return Response(BadgeDefinitionSerializer(BadgeDefinition.objects.all(), many=True).data)
+
+
+@extend_schema(
+    tags=["admin-configurations"],
+    request=BadgeDefinitionSerializer,
+    responses={200: BadgeDefinitionSerializer},
+    summary="Update a badge definition (admin only)",
+    methods=["PATCH"],
+)
+@extend_schema(
+    tags=["admin-configurations"],
+    responses={204: None},
+    summary="Delete a badge definition (admin only)",
+    methods=["DELETE"],
+)
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAdminRole])
+def badge_detail(request, pk):
+    try:
+        obj = BadgeDefinition.objects.get(pk=pk)
+    except BadgeDefinition.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == "PATCH":
+        serializer = BadgeDefinitionSerializer(obj, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(BadgeDefinitionSerializer(obj).data)
