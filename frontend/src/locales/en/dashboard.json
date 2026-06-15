@@ -1,0 +1,20 @@
+{
+  "your_points": "Your Points",
+  "rank_in": "Rank #{{rank}} in {{sector}}",
+  "quick_actions": "Quick Actions",
+  "report_waste": "Report Waste",
+  "log_recycling": "Log Recycling",
+  "leaderboard": "Leaderboard",
+  "recent_activity": "Recent Activity",
+  "no_activity": "No activity yet — submit your first report!",
+  "streak": "{{count}}-day streak",
+  "weekly_goal": "Weekly Goal",
+  "reports_submitted": "Reports submitted",
+  "recycling_logged": "Recycling logged",
+  "verification_bonus": "Verification bonus",
+  "community_impact": "Community Impact",
+  "total_reports": "Total Reports",
+  "verified_reports": "Verified Reports",
+  "active_citizens": "Active Citizens",
+  "view_community": "View community impact"
+}

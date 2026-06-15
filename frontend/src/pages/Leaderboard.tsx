@@ -8,9 +8,12 @@ const TABS = ['This Week', 'This Month', 'All Time'];
 function getInitials(name: string | undefined): string {
   if (!name) return '?';
   const parts = name.trim().split(' ');
-  return parts.length >= 2
-    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase();
+  if (parts.length >= 2) {
+    const first = parts[0]?.[0] ?? '';
+    const last = parts[parts.length - 1]?.[0] ?? '';
+    return (first + last).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
 }
 
 const AVATAR_COLORS = [

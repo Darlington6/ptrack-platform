@@ -53,7 +53,7 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      const username = form.email.split('@')[0];
+      const username = form.email.split('@')[0] ?? form.email;
       await register({ ...form, username, confirm_password: form.confirm_password });
       navigate('/dashboard');
     } catch (err) {

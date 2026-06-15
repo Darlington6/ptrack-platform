@@ -16,6 +16,7 @@
     "noImplicitReturns": true,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true

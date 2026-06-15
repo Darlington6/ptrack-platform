@@ -1,0 +1,19 @@
+{
+  "title": "Tanga Raporo y'Imyanda",
+  "description": "Ibisobanuro (ntibisabwa)",
+  "waste_type": "Ubwoko bw'Imyanda",
+  "location": "Ahantu",
+  "photo": "Ifoto",
+  "submit_report": "Ohereza Raporo",
+  "submitting": "Kohereza…",
+  "success": "Raporo yoherejwe! Wahawe amanota +10.",
+  "get_location": "Gushakisha ahantu…",
+  "location_error": "Ahantu ntishoboye gubonerwa. Nyamuneka fungura GPS.",
+  "bottles": "Incupa za Plastiki",
+  "bags": "Amatsakara ya Plastiki",
+  "mixed": "Plastiki Zitandukanye",
+  "other": "Ibindi",
+  "pending": "Gitegereje",
+  "verified": "Byemejwe",
+  "resolved": "Byakemuwe"
+}

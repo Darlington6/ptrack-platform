@@ -1,0 +1,20 @@
+{
+  "title": "Settings",
+  "profile": "Profile",
+  "appearance": "Appearance",
+  "language_region": "Language & Region",
+  "notifications_settings": "Notifications",
+  "privacy_security": "Privacy & Security",
+  "account": "Account",
+  "change_password": "Change Password",
+  "export_data": "Export My Data",
+  "delete_account": "Delete Account",
+  "delete_account_confirm": "This will permanently delete your account and all data. This action cannot be undone.",
+  "current_password": "Current Password",
+  "new_password": "New Password",
+  "save_changes": "Save Changes",
+  "saved": "Changes saved!",
+  "weekly_goal_label": "Weekly report goal",
+  "show_on_leaderboard": "Show on leaderboard",
+  "allow_public_reports": "Allow public reports"
+}

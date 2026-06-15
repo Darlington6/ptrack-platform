@@ -1,0 +1,20 @@
+{
+  "your_points": "Amanota Yawe",
+  "rank_in": "Umwanya wa #{{rank}} muri {{sector}}",
+  "quick_actions": "Ibikorwa Byihuse",
+  "report_waste": "Tanga Raporo y'Imyanda",
+  "log_recycling": "Andika Ugusubiza",
+  "leaderboard": "Urutonde rw'Abantu",
+  "recent_activity": "Ibikorwa Bishya",
+  "no_activity": "Nta bikorwa birabaho — tanga raporo yawe ya mbere!",
+  "streak": "Inzira y'iminsi {{count}}",
+  "weekly_goal": "Intego ya Buri Cyumweru",
+  "reports_submitted": "Raporo zotanzwe",
+  "recycling_logged": "Ugusubiza kwanditswe",
+  "verification_bonus": "Inyongera yo kwemeza",
+  "community_impact": "Ingaruka ku Muryango",
+  "total_reports": "Raporo zose",
+  "verified_reports": "Raporo zemejwe",
+  "active_citizens": "Abaturage bakora",
+  "view_community": "Reba ingaruka z'umuryango"
+}

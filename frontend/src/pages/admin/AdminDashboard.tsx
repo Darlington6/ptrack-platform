@@ -112,10 +112,12 @@ export default function AdminDashboard() {
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">R-{r.id}</td>
                     <td className="px-4 py-3 font-medium text-gray-800">
-                      {r.user_detail?.full_name?.split(' ')[0] || '—'}{' '}
-                      {r.user_detail?.full_name?.split(' ')[1]?.[0]
-                        ? r.user_detail.full_name.split(' ')[1][0] + '.'
-                        : ''}
+                      {(() => {
+                        const parts = r.user_detail?.full_name?.split(' ') ?? [];
+                        const first = parts[0] ?? '—';
+                        const initial = parts[1]?.[0];
+                        return initial ? `${first} ${initial}.` : first;
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs">
                       {r.latitude?.toFixed(3)}, {r.longitude?.toFixed(3)}

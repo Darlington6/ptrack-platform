@@ -1,0 +1,12 @@
+{
+  "title": "My Rewards",
+  "total_points": "Total Points",
+  "history": "Reward History",
+  "no_rewards": "No rewards yet. Submit a report to start earning!",
+  "points_earned": "+{{points}} pts",
+  "report_submitted": "Waste Report",
+  "recycling_logged": "Recycling Activity",
+  "verification_bonus": "Verification Bonus",
+  "badges": "My Badges",
+  "badge_locked": "Locked — earn {{points}} pts to unlock"
+}

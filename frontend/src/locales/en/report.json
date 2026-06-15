@@ -1,0 +1,19 @@
+{
+  "title": "Report Waste",
+  "description": "Description (optional)",
+  "waste_type": "Waste Type",
+  "location": "Location",
+  "photo": "Photo",
+  "submit_report": "Submit Report",
+  "submitting": "Submitting…",
+  "success": "Report submitted! +10 points earned.",
+  "get_location": "Getting location…",
+  "location_error": "Could not get your location. Please enable GPS.",
+  "bottles": "Plastic Bottles",
+  "bags": "Plastic Bags",
+  "mixed": "Mixed Plastic",
+  "other": "Other",
+  "pending": "Pending",
+  "verified": "Verified",
+  "resolved": "Resolved"
+}
