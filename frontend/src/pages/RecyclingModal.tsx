@@ -1,61 +1,76 @@
-import { useState, type FormEvent } from 'react';
-import { X } from 'lucide-react';
+import { useState } from 'react';
+import { X, Recycle } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import client from '../api/client';
-import { Button } from '../components/ui/Button';
 
 const ACTIVITY_TYPES = [
-  { value: 'drop_off', label: 'Drop Off' },
-  { value: 'pickup', label: 'Pickup' },
-  { value: 'exchange', label: 'Exchange' },
-  { value: 'other', label: 'Other' },
-];
+  { value: 'drop_off', label: 'Drop-off at centre' },
+  { value: 'pickup', label: 'Community pickup' },
+  { value: 'exchange', label: 'Plastic exchange' },
+  { value: 'other', label: 'Other activity' },
+] as const;
 
-interface RecyclingModalProps {
+const INPUT_CLS =
+  'w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500';
+
+interface Props {
   onClose: () => void;
-  onSuccess: () => void;
 }
 
-export default function RecyclingModal({ onClose, onSuccess }: RecyclingModalProps) {
-  const [activityType, setActivityType] = useState('drop_off');
+export default function RecyclingModal({ onClose }: Props) {
+  const qc = useQueryClient();
+  const [activityType, setActivityType] = useState<string>('drop_off');
+  const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
-    setError('');
     try {
-      await client.post('/recycling/', { activity_type: activityType });
-      onSuccess();
+      await client.post('/recycling/', { activity_type: activityType, note: note || undefined });
+      toast.success('+15 points! Recycling activity logged.');
+      void qc.invalidateQueries({ queryKey: ['rewards'] });
+      void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      onClose();
     } catch {
-      setError('Failed to log activity.');
+      toast.error('Failed to log activity. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-lg w-full max-w-sm p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Log Recycling Activity</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div
+      className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm shadow-xl">
+        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100 dark:border-slate-700">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
+              <Recycle size={16} className="text-green-600" />
+            </div>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">Log Recycling</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+            aria-label="Close"
+          >
             <X size={20} />
           </button>
         </div>
 
-        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="recycling-activity-type" className="text-sm font-medium text-gray-700">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
               Activity Type
             </label>
             <select
-              id="recycling-activity-type"
               value={activityType}
               onChange={(e) => setActivityType(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`${INPUT_CLS} bg-white dark:bg-slate-700`}
             >
               {ACTIVITY_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>
@@ -64,13 +79,32 @@ export default function RecyclingModal({ onClose, onSuccess }: RecyclingModalPro
               ))}
             </select>
           </div>
-          <p className="text-sm text-gray-500">
-            You will earn <span className="font-semibold text-green-600">+15 points</span> for this
-            activity.
-          </p>
-          <Button type="submit" className="w-full" disabled={loading}>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+              Note <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="e.g. Dropped off 3 bags at Kimironko centre"
+              className={`${INPUT_CLS} resize-none`}
+            />
+          </div>
+
+          <div className="bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-2.5 flex items-center justify-between">
+            <span className="text-sm text-gray-700 dark:text-slate-300">Points earned</span>
+            <span className="text-base font-bold text-green-600">+15 pts</span>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
+          >
             {loading ? 'Logging…' : 'Log Activity'}
-          </Button>
+          </button>
         </form>
       </div>
     </div>

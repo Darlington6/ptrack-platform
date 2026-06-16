@@ -24,9 +24,10 @@ from rest_framework.response import Response
 from accounts.throttles import RecyclingLogThrottle, ReportSubmitThrottle
 from core.pagination import FeedCursorPagination, StandardPagination
 
-from .models import RecyclingActivity, Reward, WasteReport
+from .models import BadgeDefinition, RecyclingActivity, Reward, WasteReport
 from .permissions import IsAdminRole
 from .serializers import (
+    BadgeDefinitionSerializer,
     LeaderboardEntrySerializer,
     RecyclingActivitySerializer,
     RewardSerializer,
@@ -228,29 +229,83 @@ def recycling_list_create(request):
 
 @extend_schema(
     tags=["leaderboard"],
+    parameters=[
+        OpenApiParameter(
+            name="period",
+            type=str,
+            enum=["week", "month", "all"],
+            default="all",
+            description="Score window: week (7 days), month (30 days), or all-time total.",
+        )
+    ],
     responses={200: LeaderboardEntrySerializer(many=True)},
-    summary="Top 20 users ranked by points",
+    summary="Top 20 users ranked by points for the chosen period",
 )
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
-    """Return the top 20 users ordered by total points (descending). Cached 5 min."""
-    data = cache.get(_LEADERBOARD_CACHE_KEY)
-    if data is None:
-        top_users = User.objects.filter(show_on_leaderboard=True).order_by("-points")[:20]
+    """Return the top 20 users by points for the requested period. Cached 5 min."""
+    period = request.query_params.get("period", "all")
+
+    if period in ("week", "month"):
+        cutoff = timezone.now() - timedelta(days=7 if period == "week" else 30)
+        rows = (
+            Reward.objects.filter(
+                date_earned__gte=cutoff,
+                user__show_on_leaderboard=True,
+                user__is_deleted=False,
+            )
+            .values("user__id", "user__username", "user__full_name", "user__sector")
+            .annotate(points=Sum("points_earned"))
+            .order_by("-points")[:20]
+        )
         data = [
             {
                 "rank": idx + 1,
-                "id": u.id,
-                "username": u.username,
-                "full_name": u.full_name or u.username,
-                "points": u.points,
-                "sector": u.sector,
+                "id": row["user__id"],
+                "username": row["user__username"],
+                "full_name": row["user__full_name"] or row["user__username"],
+                "points": row["points"],
+                "sector": row["user__sector"],
             }
-            for idx, u in enumerate(top_users)
+            for idx, row in enumerate(rows)
         ]
-        cache.set(_LEADERBOARD_CACHE_KEY, data, timeout=_LEADERBOARD_CACHE_TTL)
+    else:
+        data = cache.get(_LEADERBOARD_CACHE_KEY)
+        if data is None:
+            top_users = User.objects.filter(show_on_leaderboard=True, is_deleted=False).order_by(
+                "-points"
+            )[:20]
+            data = [
+                {
+                    "rank": idx + 1,
+                    "id": u.id,
+                    "username": u.username,
+                    "full_name": u.full_name or u.username,
+                    "points": u.points,
+                    "sector": u.sector,
+                }
+                for idx, u in enumerate(top_users)
+            ]
+            cache.set(_LEADERBOARD_CACHE_KEY, data, timeout=_LEADERBOARD_CACHE_TTL)
+
     return Response(data)
+
+
+# ── Badges (public) ────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["badges"],
+    responses={200: BadgeDefinitionSerializer(many=True)},
+    summary="List all active badge definitions (public)",
+)
+@api_view(["GET"])
+@permission_classes([])
+def badges_list(request):
+    """Return all active badge definitions ordered by required_points. No auth required."""
+    badges = BadgeDefinition.objects.filter(is_active=True)
+    return Response(BadgeDefinitionSerializer(badges, many=True).data)
 
 
 # ── Rewards ────────────────────────────────────────────────────────────────────

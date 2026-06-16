@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -31,6 +31,19 @@ import ThemeSettings from './pages/settings/ThemeSettings';
 import NotificationSettings from './pages/settings/NotificationSettings';
 import PrivacySettings from './pages/settings/PrivacySettings';
 import DataSettings from './pages/settings/DataSettings';
+import MyActivity from './pages/MyActivity';
+import ReportDetail from './pages/ReportDetail';
+import CommunityImpact from './pages/CommunityImpact';
+import RecyclingCentres from './pages/RecyclingCentres';
+import Education from './pages/Education';
+import EducationArticle from './pages/EducationArticle';
+
+// Static / public-ish pages
+import HelpFAQ from './pages/HelpFAQ';
+import About from './pages/About';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
+import NotFound from './pages/NotFound';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -100,6 +113,16 @@ export default function App() {
               <Route path="/settings/notifications" element={<NotificationSettings />} />
               <Route path="/settings/privacy" element={<PrivacySettings />} />
               <Route path="/settings/data" element={<DataSettings />} />
+              <Route path="/activity" element={<MyActivity />} />
+              <Route path="/reports/:id" element={<ReportDetail />} />
+              <Route path="/community" element={<CommunityImpact />} />
+              <Route path="/centres" element={<RecyclingCentres />} />
+              <Route path="/education" element={<Education />} />
+              <Route path="/education/:slug" element={<EducationArticle />} />
+              <Route path="/help" element={<HelpFAQ />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<Terms />} />
             </Route>
 
             {/* Admin */}
@@ -115,7 +138,7 @@ export default function App() {
               <Route path="/admin/users" element={<AdminUsers />} />
             </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
