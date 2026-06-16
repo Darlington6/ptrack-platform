@@ -1,6 +1,5 @@
 # Generated migration — adds all new user profile/engagement/verification fields.
 
-import django.utils.timezone
 from django.db import migrations, models
 
 
