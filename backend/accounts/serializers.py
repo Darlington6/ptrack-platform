@@ -36,6 +36,7 @@ class UserSerializer(serializers.ModelSerializer):
             "preferred_language",
             "theme_preference",
             # Engagement
+            "has_completed_onboarding",
             "weekly_goal",
             "current_streak",
             "longest_streak",

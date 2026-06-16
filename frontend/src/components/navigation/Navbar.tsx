@@ -1,41 +1,48 @@
 import { NavLink } from 'react-router-dom';
 import { Bell } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
-import { ThemeToggle } from '../theme/ThemeToggle';
-import { LanguageToggle } from './LanguageToggle';
-import { useNetworkStore } from '../../stores/networkStore';
+import { notificationsApi } from '../../api/endpoints/notifications';
 
-interface Props {
-  title?: string;
-}
-
-export function Navbar({ title }: Props) {
+export function Navbar() {
   const { user } = useAuth();
-  const networkStatus = useNetworkStore((s) => s.status);
-  const name = user?.full_name || user?.username || 'User';
+  const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['notifications', 'unread'],
+    queryFn: async () => {
+      const res = await notificationsApi.list();
+      return (res.data.unread_count as number | undefined) ?? 0;
+    },
+    staleTime: 30_000,
+    enabled: !!user,
+  });
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-2">
-        <span className="text-lg font-bold text-green-600">pTrack</span>
-        {title && (
-          <span className="text-sm text-gray-500 dark:text-slate-400 hidden sm:inline">
-            / {title}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-        <NavLink
-          to="/notifications"
-          className="relative p-1.5 text-gray-500 dark:text-slate-400 hover:text-gray-700"
-        >
+      <span className="text-xl font-bold text-green-600">pTrack</span>
+
+      <div className="flex items-center gap-3">
+        <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
+          Hi, {firstName} 👋
+        </span>
+
+        <NavLink to="/notifications" className="relative p-1.5 text-gray-500 dark:text-slate-400">
           <Bell size={20} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </NavLink>
+
         <NavLink to="/profile">
-          <Avatar src={user?.profile_picture} name={name} size="sm" statusDot={networkStatus} />
+          <Avatar
+            src={user?.profile_picture}
+            name={user?.full_name ?? user?.username ?? 'U'}
+            size="sm"
+          />
         </NavLink>
       </div>
     </header>

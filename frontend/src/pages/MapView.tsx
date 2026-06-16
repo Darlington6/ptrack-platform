@@ -3,7 +3,7 @@ import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import client from '../api/client';
 import type { WasteReportDetail } from '../types';
 
-const STATUS_BADGE = {
+const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   verified: 'bg-green-100 text-green-800',
   resolved: 'bg-blue-100 text-blue-800',

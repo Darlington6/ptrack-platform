@@ -1,98 +1,207 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Activity, Bell, Shield, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  Activity,
+  Trophy,
+  Bell,
+  Settings,
+  HelpCircle,
+  Info,
+  LogOut,
+  ChevronRight,
+  MapPin,
+  Share2,
+  Pencil,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Avatar } from '../components/ui/Avatar';
+import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import { AvatarUploadModal } from '../components/AvatarUploadModal';
 import client from '../api/client';
+import type { ImpactSummary } from '../types';
+
+function formatDate(iso: string): string {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-RW', { month: 'short', year: 'numeric' });
+}
+
+const MENU = [
+  { icon: Activity, label: 'My Activity', to: '/activity' },
+  { icon: Trophy, label: 'My Achievements', to: '/rewards' },
+  { icon: Bell, label: 'Notifications', to: '/notifications' },
+  { icon: Settings, label: 'Settings', to: '/settings' },
+  { icon: HelpCircle, label: 'Help & Support', to: '/help' },
+  { icon: Info, label: 'About pTrack', to: '/about' },
+] as const;
 
 export default function Profile() {
-  const { user, logout } = useAuth();
+  const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
-  const [reportCount, setReportCount] = useState(0);
-  const [activityCount, setActivityCount] = useState(0);
+
+  const [reportsCount, setReportsCount] = useState(0);
+  const [recyclingCount, setRecyclingCount] = useState(0);
+  const [impact, setImpact] = useState<ImpactSummary | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   useEffect(() => {
     client
-      .get('/reports/', { params: { user: 'me' } })
-      .then((r) => setReportCount(r.data.count || 0));
-    client.get('/recycling/').then((r) => setActivityCount(r.data.results?.length || 0));
-  }, []);
+      .get<{ count?: number; length?: number }>('/reports/', { params: { user: 'me' } })
+      .then((r) => setReportsCount(r.data.count ?? 0))
+      .catch(() => null);
 
-  const initials = (user?.full_name || user?.username || 'U')
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+    client
+      .get<{ results?: unknown[] }>('/recycling/')
+      .then((r) => setRecyclingCount(r.data.results?.length ?? 0))
+      .catch(() => null);
+
+    client
+      .get<ImpactSummary>('/auth/me/impact/')
+      .then((r) => setImpact(r.data))
+      .catch(() => null);
+  }, []);
 
   function handleLogout() {
     logout();
     navigate('/');
   }
 
-  const MENU_ITEMS = [
-    { icon: Activity, label: 'My Activity', action: () => navigate('/rewards') },
-    { icon: Bell, label: 'Notifications', action: () => {} },
-    { icon: Shield, label: 'Privacy Settings', action: () => {} },
-    { icon: HelpCircle, label: 'Help & Support', action: () => {} },
+  const stats = [
+    { label: 'Reports', value: String(reportsCount) },
+    { label: 'Recycling', value: String(recyclingCount) },
+    { label: 'Points', value: String(user?.points ?? 0) },
+    { label: 'Badges', value: '0' },
+    { label: 'Streak', value: `${user?.current_streak ?? 0}d` },
   ];
 
   return (
-    <div className="pb-24 px-4">
-      {/* Profile header */}
-      <div className="flex flex-col items-center py-8">
-        <div className="w-20 h-20 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl font-bold mb-3 shadow">
-          {initials}
+    <div className="pb-24">
+      {/* Header */}
+      <div>
+        <div className="bg-green-600 h-28" />
+        <div className="mx-4 -mt-12 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 p-5">
+          <div className="flex items-end gap-4 -mt-14 mb-3">
+            <div className="relative">
+              <Avatar
+                src={user?.profile_picture}
+                name={user?.full_name ?? user?.username ?? 'U'}
+                size="lg"
+              />
+              <button
+                onClick={() => setShowAvatarModal(true)}
+                className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center shadow"
+                aria-label="Change photo"
+              >
+                <Pencil size={11} />
+              </button>
+            </div>
+            <div className="pb-1">
+              <p className="font-bold text-gray-900 dark:text-slate-100 text-lg leading-tight">
+                {user?.full_name ?? user?.username}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">
+                {user?.email?.startsWith('phone_') ? user?.phone_number : user?.email}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
+            <MapPin size={12} /> {user?.sector} · Joined {formatDate(user?.created_at ?? '')}
+          </p>
+          {user?.bio && (
+            <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">{user.bio}</p>
+          )}
         </div>
-        <h1 className="text-xl font-bold text-gray-900">{user?.full_name || user?.username}</h1>
-        <p className="text-sm text-gray-500">{user?.email}</p>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {[
-          { label: 'Reports', value: reportCount },
-          { label: 'Recycling Logs', value: activityCount },
-          { label: 'Points', value: user?.points ?? 0 },
-        ].map(({ label, value }) => (
-          <div key={label} className="bg-white rounded-lg border border-gray-200 p-3 text-center">
-            <p className="text-2xl font-bold text-green-600">{value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-          </div>
-        ))}
+      {/* Stats grid */}
+      <div className="mx-4 mt-4">
+        <div className="grid grid-cols-3 gap-2 mb-2">
+          {stats.slice(0, 3).map((s) => (
+            <div
+              key={s.label}
+              className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-3 text-center"
+            >
+              <p className="text-xl font-bold text-green-600">{s.value}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {stats.slice(3).map((s) => (
+            <div
+              key={s.label}
+              className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-3 text-center"
+            >
+              <p className="text-xl font-bold text-green-600">{s.value}</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Impact card */}
+      {impact && (
+        <div className="mx-4 mt-4 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
+          <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
+            Your Environmental Impact
+          </p>
+          <p className="text-sm text-green-700 dark:text-green-400">
+            You've helped prevent ~<span className="font-bold">{impact.plastic_kg}kg</span> of
+            plastic from reaching Kigali's drainage.
+          </p>
+          <button className="mt-3 text-xs font-medium text-green-600 flex items-center gap-1 hover:underline">
+            <Share2 size={12} /> Share my impact
+          </button>
+        </div>
+      )}
 
       {/* Menu */}
-      <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100 mb-4">
-        {MENU_ITEMS.map(({ icon: Icon, label, action }) => (
-          <button
-            key={label}
-            onClick={action}
-            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition-colors text-left"
+      <div className="mx-4 mt-4 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
+        {MENU.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className="flex items-center gap-3 p-4 border-b border-gray-100 dark:border-slate-700 last:border-0 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
-            <Icon size={18} className="text-gray-500" />
-            <span className="flex-1 text-sm font-medium text-gray-700">{label}</span>
+            <item.icon size={18} className="text-gray-500 dark:text-slate-400" />
+            <span className="flex-1 text-sm font-medium text-gray-800 dark:text-slate-200">
+              {item.label}
+            </span>
             <ChevronRight size={16} className="text-gray-400" />
-          </button>
+          </NavLink>
         ))}
-      </div>
 
-      {/* Logout — separate card to match Figma */}
-      <div className="bg-white rounded-lg border border-gray-200">
         <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3.5 text-red-600 hover:bg-red-50 transition-colors rounded-lg"
+          onClick={() => setShowLogoutConfirm(true)}
+          className="flex items-center gap-3 p-4 w-full text-left hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
         >
-          <LogOut size={18} />
-          <span className="text-sm font-medium">Logout</span>
+          <LogOut size={18} className="text-red-500" />
+          <span className="text-sm font-medium text-red-600">Logout</span>
         </button>
       </div>
 
-      {/* Version footer — matches Figma */}
-      <p className="text-center text-xs text-gray-400 mt-6">
-        pTrack v1.0.0
-        <br />
-        Built for Kigali. For Africa.
+      <p className="text-center text-xs text-gray-400 mt-6 pb-2">
+        pTrack v1.0.0 · Built for Kigali.
       </p>
+
+      {/* Logout confirm */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="Logout"
+        message="Are you sure you want to log out?"
+        confirmLabel="Logout"
+      />
+
+      {/* Avatar upload */}
+      <AvatarUploadModal
+        isOpen={showAvatarModal}
+        onClose={() => setShowAvatarModal(false)}
+        onSuccess={(url) => {
+          if (user) setUser({ ...user, profile_picture: url });
+        }}
+      />
     </div>
   );
 }

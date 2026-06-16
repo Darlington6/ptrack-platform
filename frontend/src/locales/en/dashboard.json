@@ -9,12 +9,10 @@
   "no_activity": "No activity yet — submit your first report!",
   "streak": "{{count}}-day streak",
   "weekly_goal": "Weekly Goal",
-  "reports_submitted": "Reports submitted",
-  "recycling_logged": "Recycling logged",
-  "verification_bonus": "Verification bonus",
   "community_impact": "Community Impact",
   "total_reports": "Total Reports",
-  "verified_reports": "Verified Reports",
   "active_citizens": "Active Citizens",
-  "view_community": "View community impact"
+  "plastic_logged": "Plastic Logged",
+  "neighbours_reported": "{{count}} neighbours reported this week",
+  "be_nth": "Be the {{n}}th — your community needs you!"
 }
