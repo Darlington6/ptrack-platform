@@ -1,4 +1,7 @@
-# Generated migration — adds all new user profile/engagement/verification fields.
+# These fields were already added to the DB by the sibling migration
+# 0002_alter_user_managers_user_allow_public_reports_and_more on production.
+# SeparateDatabaseAndState keeps Django's migration state correct while
+# emitting no SQL, so neither a fresh DB nor an existing one will error.
 
 from django.db import migrations, models
 
@@ -10,99 +13,104 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="user",
-            name="updated_at",
-            field=models.DateTimeField(auto_now=True),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="profile_picture",
-            field=models.ImageField(blank=True, null=True, upload_to="avatars/"),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="bio",
-            field=models.CharField(blank=True, max_length=200),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="preferred_language",
-            field=models.CharField(
-                choices=[("en", "English"), ("rw", "Kinyarwanda")],
-                default="en",
-                max_length=2,
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="theme_preference",
-            field=models.CharField(
-                choices=[("system", "System"), ("light", "Light"), ("dark", "Dark")],
-                default="system",
-                max_length=10,
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="has_completed_onboarding",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="weekly_goal",
-            field=models.IntegerField(default=5),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="current_streak",
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="longest_streak",
-            field=models.IntegerField(default=0),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="last_activity_date",
-            field=models.DateField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="email_verified",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="phone_verified",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="show_on_leaderboard",
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="allow_public_reports",
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="notification_preferences",
-            field=models.JSONField(
-                default=dict,
-            ),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="is_deleted",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="user",
-            name="deleted_at",
-            field=models.DateTimeField(blank=True, null=True),
-        ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[],
+            state_operations=[
+                migrations.AddField(
+                    model_name="user",
+                    name="updated_at",
+                    field=models.DateTimeField(auto_now=True),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="profile_picture",
+                    field=models.ImageField(blank=True, null=True, upload_to="avatars/"),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="bio",
+                    field=models.CharField(blank=True, max_length=200),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="preferred_language",
+                    field=models.CharField(
+                        choices=[("en", "English"), ("rw", "Kinyarwanda")],
+                        default="en",
+                        max_length=2,
+                    ),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="theme_preference",
+                    field=models.CharField(
+                        choices=[("system", "System"), ("light", "Light"), ("dark", "Dark")],
+                        default="system",
+                        max_length=10,
+                    ),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="has_completed_onboarding",
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="weekly_goal",
+                    field=models.IntegerField(default=5),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="current_streak",
+                    field=models.IntegerField(default=0),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="longest_streak",
+                    field=models.IntegerField(default=0),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="last_activity_date",
+                    field=models.DateField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="email_verified",
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="phone_verified",
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="show_on_leaderboard",
+                    field=models.BooleanField(default=True),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="allow_public_reports",
+                    field=models.BooleanField(default=True),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="notification_preferences",
+                    field=models.JSONField(
+                        default=dict,
+                    ),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="is_deleted",
+                    field=models.BooleanField(default=False),
+                ),
+                migrations.AddField(
+                    model_name="user",
+                    name="deleted_at",
+                    field=models.DateTimeField(blank=True, null=True),
+                ),
+            ],
+        )
     ]
