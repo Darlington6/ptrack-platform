@@ -12,13 +12,11 @@ def add_has_completed_onboarding(apps, schema_editor):
                     "ALTER TABLE accounts_user ADD COLUMN has_completed_onboarding BOOL NOT NULL DEFAULT 0"
                 )
         else:
-            cursor.execute(
-                """
+            cursor.execute("""
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'accounts_user'
                   AND column_name = 'has_completed_onboarding'
-                """
-            )
+                """)
             if not cursor.fetchone():
                 cursor.execute(
                     "ALTER TABLE accounts_user ADD COLUMN has_completed_onboarding BOOLEAN NOT NULL DEFAULT FALSE"

@@ -482,9 +482,7 @@ def password_reset_request(request):
         else:
             import logging
 
-            logging.getLogger(__name__).info(
-                "Password reset OTP for %s: %s", identifier, code
-            )
+            logging.getLogger(__name__).info("Password reset OTP for %s: %s", identifier, code)
 
     return Response({"detail": "If an account exists, a reset code has been sent."})
 
@@ -525,9 +523,7 @@ def password_reset_confirm(request):
         )
 
     if not _verify_otp(user, "password_reset", code):
-        return Response(
-            {"detail": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"detail": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
 
     user.set_password(new_password)
     user.save(update_fields=["password"])
