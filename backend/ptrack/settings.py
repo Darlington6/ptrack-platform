@@ -262,6 +262,15 @@ SPECTACULAR_SETTINGS = {
 # ── CORS ───────────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [o.strip() for o in cfg.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "origin",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-request-id",
+]
 
 # ── Storage ───────────────────────────────────────────────────────────────────
 STORAGES = {
