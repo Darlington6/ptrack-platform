@@ -11,4 +11,5 @@ urlpatterns = [
     path("rewards/me/", views.my_rewards, name="my-rewards"),
     path("community/stats/", views.community_stats, name="community-stats"),
     path("community/trends/", views.community_trends, name="community-trends"),
+    path("badges/", views.badges_list, name="badges-list"),
 ]

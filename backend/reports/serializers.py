@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.serializers import UserSerializer
 
-from .models import RecyclingActivity, Reward, WasteReport
+from .models import BadgeDefinition, RecyclingActivity, Reward, WasteReport
 
 
 class WasteReportSerializer(serializers.ModelSerializer):
@@ -46,3 +46,18 @@ class LeaderboardEntrySerializer(serializers.Serializer):
     full_name = serializers.CharField()
     points = serializers.IntegerField()
     sector = serializers.CharField()
+
+
+class BadgeDefinitionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BadgeDefinition
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "icon",
+            "required_points",
+            "badge_type",
+            "is_active",
+        ]
