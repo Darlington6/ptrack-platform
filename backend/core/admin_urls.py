@@ -63,4 +63,7 @@ urlpatterns = [
         v.badge_detail,
         name="admin-badge-detail",
     ),
+    # User management
+    path("admin/users/", v.admin_users_list, name="admin-users-list"),
+    path("admin/users/<int:pk>/", v.admin_user_detail, name="admin-user-detail"),
 ]

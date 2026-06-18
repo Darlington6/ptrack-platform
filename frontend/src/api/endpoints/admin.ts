@@ -3,24 +3,27 @@ import type {
   AuditLog,
   PointConfiguration,
   BadgeDefinition,
-  PaginatedResponse,
   CursorPaginatedResponse,
   AdminAnalyticsKpis,
+  RecyclingCentre,
+  Article,
+  WasteReport,
+  PaginatedResponse,
 } from '../types';
 
-interface AnalyticsByWeek {
+export interface AnalyticsByWeek {
   week: string;
   count: number;
 }
-interface AnalyticsBySector {
+export interface AnalyticsBySector {
   sector: string;
   count: number;
 }
-interface AnalyticsByType {
+export interface AnalyticsByType {
   waste_type: string;
   count: number;
 }
-interface AnalyticsTopUser {
+export interface AnalyticsTopUser {
   id: number;
   email: string;
   full_name: string;
@@ -28,14 +31,29 @@ interface AnalyticsTopUser {
   sector: string;
   report_count: number;
 }
-interface HeatmapPoint {
+export interface HeatmapPoint {
   latitude: number;
   longitude: number;
   waste_type: string;
   status: string;
 }
-interface AnalyticsHeatmap {
+export interface AnalyticsHeatmap {
   points: HeatmapPoint[];
+}
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  phone_number?: string;
+  sector: string;
+  role: 'citizen' | 'admin';
+  points: number;
+  is_active: boolean;
+  email_verified?: boolean;
+  current_streak?: number;
+  created_at: string;
+  report_count: number;
 }
 
 export const adminApi = {
@@ -53,9 +71,50 @@ export const adminApi = {
   },
 
   auditLogs: {
-    list: (params?: { actor?: number; action?: string }) =>
-      client.get<CursorPaginatedResponse<AuditLog>>('/admin/audit-logs/', { params }),
+    list: (params?: {
+      actor?: number;
+      action?: string;
+      cursor?: string;
+      target_type?: string;
+      date_from?: string;
+      date_to?: string;
+    }) => client.get<CursorPaginatedResponse<AuditLog>>('/admin/audit-logs/', { params }),
     detail: (id: number) => client.get<AuditLog>(`/admin/audit-logs/${id}/`),
+  },
+
+  reports: {
+    list: (params?: {
+      status?: string;
+      waste_type?: string;
+      sector?: string;
+      search?: string;
+      page?: number;
+      page_size?: number;
+      date_from?: string;
+      date_to?: string;
+    }) => client.get<PaginatedResponse<WasteReport>>('/reports/', { params }),
+    bulkVerify: (ids: number[]) =>
+      client.post<{ verified: number }>('/admin/reports/bulk-verify/', { ids }),
+    bulkReject: (ids: number[], reason?: string) =>
+      client.post<{ rejected: number }>('/admin/reports/bulk-reject/', { ids, reason }),
+    exportUrl: (params: Record<string, string>) => {
+      const qs = new URLSearchParams(params).toString();
+      return `/admin/reports/export.csv${qs ? '?' + qs : ''}`;
+    },
+  },
+
+  users: {
+    list: (params?: {
+      search?: string;
+      role?: string;
+      sector?: string;
+      verified?: string;
+      has_activity?: string;
+    }) => client.get<AdminUser[]>('/admin/users/', { params }),
+    detail: (id: number) => client.get<AdminUser>(`/admin/users/${id}/`),
+    update: (id: number, data: { role?: string; is_active?: boolean }) =>
+      client.patch<AdminUser>(`/admin/users/${id}/`, data),
+    suspend: (id: number) => client.delete(`/admin/users/${id}/`),
   },
 
   configurations: {
@@ -76,7 +135,26 @@ export const adminApi = {
       delete: (id: number) => client.delete(`/admin/configurations/badges/${id}/`),
     },
   },
+
+  education: {
+    list: () => client.get<Article[]>('/education/articles/'),
+    create: (data: FormData) =>
+      client.post<Article>('/admin/education/articles/', data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    update: (slug: string, data: FormData | Partial<Article>) =>
+      client.patch<Article>(`/admin/education/articles/${slug}/`, data),
+    delete: (slug: string) => client.delete(`/admin/education/articles/${slug}/delete/`),
+  },
+
+  centres: {
+    list: () => client.get<RecyclingCentre[]>('/recycling-centres/'),
+    create: (data: Partial<RecyclingCentre>) =>
+      client.post<RecyclingCentre>('/admin/recycling-centres/', data),
+    update: (id: number, data: Partial<RecyclingCentre>) =>
+      client.patch<RecyclingCentre>(`/admin/recycling-centres/${id}/`, data),
+    delete: (id: number) => client.delete(`/admin/recycling-centres/${id}/delete/`),
+  },
 };
 
-// Unused import guard — PaginatedResponse is used in audit logs list if needed elsewhere
 export type { PaginatedResponse };

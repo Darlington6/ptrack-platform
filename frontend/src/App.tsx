@@ -49,6 +49,12 @@ import NotFound from './pages/NotFound';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminReports from './pages/admin/AdminReports';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminAnalytics from './pages/admin/AdminAnalytics';
+import AdminAuditLog from './pages/admin/AdminAuditLog';
+import AdminCentres from './pages/admin/AdminCentres';
+import AdminEducation from './pages/admin/AdminEducation';
+import AdminRewardConfig from './pages/admin/AdminRewardConfig';
+import AdminSettings from './pages/admin/AdminSettings';
 
 // Sidebar/AdminLayout from existing components
 import { Sidebar } from './components/Sidebar';
@@ -136,6 +142,12 @@ export default function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/admin/analytics" element={<AdminAnalytics />} />
+              <Route path="/admin/audit-log" element={<AdminAuditLog />} />
+              <Route path="/admin/centres" element={<AdminCentres />} />
+              <Route path="/admin/education" element={<AdminEducation />} />
+              <Route path="/admin/rewards" element={<AdminRewardConfig />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
