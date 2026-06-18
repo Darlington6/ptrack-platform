@@ -1,132 +1,356 @@
-import { useEffect, useState } from 'react';
-import { AdminAvatar } from '../../components/AdminAvatar';
-import client from '../../api/client';
-import type { WasteReportDetail } from '../../types';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle, XCircle, Download, Eye } from 'lucide-react';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { AdminPageShell } from '../../components/admin/AdminPageShell';
+import { adminApi } from '../../api/endpoints/admin';
+import type { WasteReport } from '../../api/types';
 
 const STATUS_BADGE: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  verified: 'bg-green-100 text-green-800',
-  resolved: 'bg-blue-100 text-blue-800',
+  pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  verified: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  resolved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
 };
 
+const WASTE_TYPES = ['bottles', 'bags', 'mixed', 'other'];
+const STATUSES = ['pending', 'verified', 'resolved'];
+
 export default function AdminReports() {
-  const [reports, setReports] = useState<WasteReportDetail[]>([]);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState('');
+  const [wasteType, setWasteType] = useState('');
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [selected, setSelected] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    const params = statusFilter !== 'all' ? { status: statusFilter } : {};
-    client.get('/reports/', { params }).then((r) => setReports(r.data.results || []));
-  }, [statusFilter]);
+  const params = {
+    page,
+    page_size: 25,
+    ordering: '-created_at',
+    ...(status && { status }),
+    ...(wasteType && { waste_type: wasteType }),
+    ...(search && { search }),
+    ...(dateFrom && { date_from: dateFrom }),
+    ...(dateTo && { date_to: dateTo }),
+  };
 
-  async function handleVerify(id: number) {
-    await client.patch(`/reports/${id}/verify/`);
-    const params = statusFilter !== 'all' ? { status: statusFilter } : {};
-    client.get('/reports/', { params }).then((r) => setReports(r.data.results || []));
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'reports-list', params],
+    queryFn: () => adminApi.reports.list(params),
+    staleTime: 30_000,
+  });
+
+  const reports: WasteReport[] = data?.data?.results ?? [];
+  const count: number = data?.data?.count ?? 0;
+  const totalPages = Math.ceil(count / 25) || 1;
+
+  function refetch() {
+    void qc.invalidateQueries({ queryKey: ['admin', 'reports'] });
+    void qc.invalidateQueries({ queryKey: ['admin', 'kpis'] });
+    setSelected(new Set());
   }
 
-  const filtered = search
-    ? reports.filter(
-        (r) =>
-          r.user_detail?.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-          r.user_detail?.email?.toLowerCase().includes(search.toLowerCase())
-      )
-    : reports;
+  const bulkVerify = useMutation({
+    mutationFn: () => adminApi.reports.bulkVerify(Array.from(selected)),
+    onSuccess: (res) => {
+      toast.success(`${res.data.verified} report(s) verified`);
+      refetch();
+    },
+    onError: () => toast.error('Bulk verify failed'),
+  });
+
+  const bulkReject = useMutation({
+    mutationFn: () => adminApi.reports.bulkReject(Array.from(selected)),
+    onSuccess: (res) => {
+      toast.success(`${res.data.rejected} report(s) rejected`);
+      refetch();
+    },
+    onError: () => toast.error('Bulk reject failed'),
+  });
+
+  function toggleRow(id: number) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    if (selected.size === reports.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(reports.map((r) => r.id)));
+    }
+  }
+
+  function exportCsv() {
+    const p: Record<string, string> = {};
+    if (status) p['status'] = status;
+    if (wasteType) p['waste_type'] = wasteType;
+    if (search) p['search'] = search;
+    if (dateFrom) p['date_from'] = dateFrom;
+    if (dateTo) p['date_to'] = dateTo;
+    const path = adminApi.reports.exportUrl(p);
+    const base = (import.meta.env.VITE_API_BASE_URL as string) ?? '';
+    window.open(`${base}/api/v1${path}`, '_blank');
+  }
+
+  const actions = (
+    <div className="flex items-center gap-2 flex-wrap">
+      {selected.size > 0 && (
+        <>
+          <button
+            onClick={() => bulkVerify.mutate()}
+            disabled={bulkVerify.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60"
+          >
+            <CheckCircle size={14} /> Verify {selected.size}
+          </button>
+          <button
+            onClick={() => bulkReject.mutate()}
+            disabled={bulkReject.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-60"
+          >
+            <XCircle size={14} /> Reject {selected.size}
+          </button>
+        </>
+      )}
+      <button
+        onClick={exportCsv}
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800"
+      >
+        <Download size={14} /> Export CSV
+      </button>
+    </div>
+  );
 
   return (
-    <div className="flex-1">
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-800">Reports</h1>
-        <AdminAvatar />
-      </header>
-
-      <div className="p-6">
+    <AdminPageShell title={`Reports (${count})`} actions={actions}>
+      <div className="space-y-4">
         {/* Filters */}
-        <div className="flex gap-3 mb-4 flex-wrap">
+        <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
           <input
             type="text"
             placeholder="Search by user name or email…"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-64"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 dark:text-slate-200 w-56"
           />
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            value={status}
+            onChange={(e) => {
+              setStatus(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="verified">Verified</option>
-            <option value="resolved">Resolved</option>
+            <option value="">All statuses</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {s.charAt(0).toUpperCase() + s.slice(1)}
+              </option>
+            ))}
           </select>
+          <select
+            value={wasteType}
+            onChange={(e) => {
+              setWasteType(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <option value="">All types</option>
+            {WASTE_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+            title="From date"
+          />
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setPage(1);
+            }}
+            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+            title="To date"
+          />
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 overflow-x-auto">
+        {/* Table */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
               <tr>
-                {['ID', 'User', 'Type', 'Description', 'Status', 'Date', 'Actions'].map((h) => (
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={reports.length > 0 && selected.size === reports.length}
+                    onChange={toggleAll}
+                    className="rounded text-green-600 focus:ring-green-500"
+                    aria-label="Select all"
+                  />
+                </th>
+                {['ID', 'User', 'Type', 'Status', 'Location', 'Date', 'Actions'].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
+                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider"
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">#{r.id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-800">
-                    {r.user_detail?.full_name || r.user_detail?.email || '—'}
-                  </td>
-                  <td className="px-4 py-3 capitalize">{r.waste_type.replace('_', ' ')}</td>
-                  <td className="px-4 py-3 text-gray-500 max-w-xs truncate">
-                    {r.description || '—'}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status]}`}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      {r.status === 'pending' && (
-                        <button
-                          onClick={() => handleVerify(r.id)}
-                          className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition-colors"
-                        >
-                          Verify
-                        </button>
-                      )}
-                      {r.status === 'pending' && (
-                        <button className="text-xs border border-red-300 text-red-600 px-3 py-1 rounded hover:bg-red-50 transition-colors">
-                          Reject
-                        </button>
-                      )}
-                    </div>
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
+                  >
+                    Loading…
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
+              )}
+              {!isLoading &&
+                reports.map((r) => (
+                  <tr
+                    key={r.id}
+                    className={`hover:bg-gray-50 dark:hover:bg-slate-700/40 ${selected.has(r.id) ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
+                  >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(r.id)}
+                        onChange={() => toggleRow(r.id)}
+                        className="rounded text-green-600 focus:ring-green-500"
+                        aria-label={`Select report ${r.id}`}
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                      #{r.id}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-800 dark:text-slate-200 max-w-[140px] truncate">
+                      {r.user_detail?.full_name ?? r.user_detail?.email ?? '—'}
+                    </td>
+                    <td className="px-4 py-3 capitalize text-gray-700 dark:text-slate-300">
+                      {r.waste_type.replace('_', ' ')}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status] ?? ''}`}
+                      >
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                      {r.latitude.toFixed(3)},{r.longitude.toFixed(3)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => navigate(`/reports/${r.id}`)}
+                          title="View"
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        {r.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() =>
+                                void adminApi.reports.bulkVerify([r.id]).then(() => {
+                                  toast.success('Verified');
+                                  refetch();
+                                })
+                              }
+                              title="Verify"
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle size={15} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                void adminApi.reports.bulkReject([r.id]).then(() => {
+                                  toast.success('Rejected');
+                                  refetch();
+                                })
+                              }
+                              title="Reject"
+                              className="text-red-400 hover:text-red-600"
+                            >
+                              <XCircle size={15} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              {!isLoading && reports.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
-                    No reports found.
+                  <td
+                    colSpan={8}
+                    className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
+                  >
+                    No reports match the current filters.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-400">
+            <p>{count} total reports</p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
+              >
+                Prev
+              </button>
+              <span>
+                {page} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

@@ -14,7 +14,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q, Sum  # noqa: F401
 from django.http import StreamingHttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
@@ -539,3 +539,124 @@ def badge_detail(request, pk):
         return Response(serializer.data)
 
     return Response(BadgeDefinitionSerializer(obj).data)
+
+
+# ── Admin user management ──────────────────────────────────────────────────────
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    report_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "full_name",
+            "phone_number",
+            "sector",
+            "role",
+            "points",
+            "is_active",
+            "email_verified",
+            "current_streak",
+            "created_at",
+            "report_count",
+        ]
+        read_only_fields = ["id", "email", "username", "points", "created_at", "report_count"]
+
+    def get_report_count(self, obj):
+        return getattr(obj, "_report_count", 0)
+
+
+@extend_schema(
+    tags=["admin-users"],
+    responses={200: AdminUserSerializer(many=True)},
+    summary="List all users (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def admin_users_list(request):
+    search = request.query_params.get("search", "")
+    role = request.query_params.get("role", "")
+    sector = request.query_params.get("sector", "")
+    verified = request.query_params.get("verified", "")
+    has_activity = request.query_params.get("has_activity", "")
+
+    qs = User.objects.annotate(report_count_ann=Count("reports")).order_by("-created_at")
+
+    if search:
+        qs = qs.filter(
+            Q(full_name__icontains=search)
+            | Q(email__icontains=search)
+            | Q(phone_number__icontains=search)
+        )
+    if role:
+        qs = qs.filter(role=role)
+    if sector:
+        qs = qs.filter(sector__iexact=sector)
+    if verified == "true":
+        qs = qs.filter(email_verified=True)
+    elif verified == "false":
+        qs = qs.filter(email_verified=False)
+    if has_activity == "true":
+        qs = qs.filter(report_count_ann__gt=0)
+
+    users = list(
+        qs.values(
+            "id",
+            "username",
+            "email",
+            "full_name",
+            "phone_number",
+            "sector",
+            "role",
+            "points",
+            "is_active",
+            "email_verified",
+            "current_streak",
+            "created_at",
+            report_count=Count("reports"),
+        )
+    )
+    return Response(users)
+
+
+@extend_schema(
+    tags=["admin-users"],
+    request=AdminUserSerializer,
+    responses={200: AdminUserSerializer},
+    summary="Update a user (role / is_active) (admin only)",
+    methods=["PATCH"],
+)
+@extend_schema(
+    tags=["admin-users"],
+    responses={204: None},
+    summary="Soft-delete (suspend) a user (admin only)",
+    methods=["DELETE"],
+)
+@api_view(["GET", "PATCH", "DELETE"])
+@permission_classes([IsAdminRole])
+def admin_user_detail(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        user.is_active = False
+        user.save(update_fields=["is_active"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    if request.method == "PATCH":
+        allowed = {"role", "is_active"}
+        data = {k: v for k, v in request.data.items() if k in allowed}
+        for field, val in data.items():
+            setattr(user, field, val)
+        user.save(update_fields=list(data.keys()))
+        serializer = AdminUserSerializer(user)
+        return Response(serializer.data)
+
+    serializer = AdminUserSerializer(user)
+    return Response(serializer.data)
