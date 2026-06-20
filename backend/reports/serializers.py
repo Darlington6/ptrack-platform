@@ -17,12 +17,13 @@ class WasteReportSerializer(serializers.ModelSerializer):
             "latitude",
             "longitude",
             "image",
+            "thumbnail",
             "description",
             "waste_type",
             "status",
             "created_at",
         ]
-        read_only_fields = ["id", "user", "status", "created_at"]
+        read_only_fields = ["id", "user", "status", "thumbnail", "created_at"]
 
 
 class RewardSerializer(serializers.ModelSerializer):

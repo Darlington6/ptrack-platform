@@ -189,6 +189,7 @@ REST_FRAMEWORK = {
         "auth": "5/min",
         "report_submit": "10/hour",
         "recycling_log": "20/day",
+        "map_bbox": "60/hour",
     },
     # Pagination
     "DEFAULT_PAGINATION_CLASS": "core.pagination.StandardPagination",
@@ -350,6 +351,7 @@ AXES_CACHE = "default"
 # ── Misc ──────────────────────────────────────────────────────────────────────
 RESEND_API_KEY = cfg.RESEND_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
+USE_CLOUDINARY = cfg.USE_CLOUDINARY
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 DEFAULT_FROM_EMAIL = "pTrack <noreply@ptrack.rw>"

@@ -2,8 +2,14 @@ import client from '../client';
 import type { WasteReport, PaginatedResponse } from '../types';
 
 export const reportsApi = {
-  list: (params?: { status?: string; user?: string }) =>
-    client.get<PaginatedResponse<WasteReport>>('/reports/', { params }),
+  list: (params?: {
+    status?: string;
+    user?: string;
+    north?: number;
+    south?: number;
+    east?: number;
+    west?: number;
+  }) => client.get<PaginatedResponse<WasteReport>>('/reports/', { params }),
 
   create: (data: FormData) =>
     client.post<WasteReport>('/reports/', data, {

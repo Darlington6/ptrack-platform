@@ -17,3 +17,9 @@ class RecyclingLogThrottle(UserRateThrottle):
     """20 recycling activity logs per day per authenticated user."""
 
     scope = "recycling_log"
+
+
+class MapBboxThrottle(UserRateThrottle):
+    """60 bbox map fetches per hour per authenticated user."""
+
+    scope = "map_bbox"
