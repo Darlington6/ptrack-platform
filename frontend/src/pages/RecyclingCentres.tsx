@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Phone, Clock, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, ExternalLink, List, Map as MapIcon } from 'lucide-react';
+import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { recyclingCentresApi } from '../api/endpoints/recyclingCentres';
 import type { RecyclingCentre } from '../api/types';
 
+const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 const MATERIALS = ['All', 'PET', 'HDPE', 'Glass', 'Paper', 'Metal', 'Electronics'];
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -29,7 +32,6 @@ function CentreCard({
     userLat !== null && userLon !== null
       ? haversineKm(userLat, userLon, centre.latitude, centre.longitude)
       : null;
-
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${centre.latitude},${centre.longitude}`;
 
   return (
@@ -45,8 +47,6 @@ function CentreCard({
           </span>
         )}
       </div>
-
-      {/* Materials */}
       {centre.accepted_materials.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {centre.accepted_materials.slice(0, 5).map((m) => (
@@ -59,8 +59,6 @@ function CentreCard({
           ))}
         </div>
       )}
-
-      {/* Hours + phone */}
       <div className="space-y-1">
         {centre.operating_hours['weekdays'] && (
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
@@ -73,7 +71,6 @@ function CentreCard({
           </p>
         )}
       </div>
-
       <a
         href={mapsUrl}
         target="_blank"
@@ -88,7 +85,9 @@ function CentreCard({
 
 export default function RecyclingCentres() {
   const [materialFilter, setMaterialFilter] = useState('All');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [userPos, setUserPos] = useState<{ lat: number; lon: number } | null>(null);
+  const [selectedCentre, setSelectedCentre] = useState<RecyclingCentre | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['recycling-centres', materialFilter],
@@ -114,32 +113,51 @@ export default function RecyclingCentres() {
     : centres;
 
   return (
-    <div className="px-4 pt-4 pb-24 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recycling Centres</h1>
-        <button
-          onClick={requestLocation}
-          className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
-        >
-          <MapPin size={13} /> Near me
-        </button>
-      </div>
+    <div className="flex flex-col h-full pb-24">
+      {/* Header */}
+      <div className="px-4 pt-4 pb-2 space-y-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recycling Centres</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={requestLocation}
+              className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
+            >
+              <MapPin size={13} /> Near me
+            </button>
+            <div className="flex rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-2.5 py-1.5 ${viewMode === 'list' ? 'bg-green-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400'}`}
+              >
+                <List size={14} />
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-2.5 py-1.5 ${viewMode === 'map' ? 'bg-green-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400'}`}
+              >
+                <MapIcon size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
 
-      {/* Material filter chips */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {MATERIALS.map((m) => (
-          <button
-            key={m}
-            onClick={() => setMaterialFilter(m)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              materialFilter === m
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-            }`}
-          >
-            {m}
-          </button>
-        ))}
+        {/* Material filter chips */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {MATERIALS.map((m) => (
+            <button
+              key={m}
+              onClick={() => setMaterialFilter(m)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                materialFilter === m
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading && (
@@ -149,21 +167,81 @@ export default function RecyclingCentres() {
       )}
 
       {!isLoading && sorted.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
+        <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm px-4">
           No centres found for the selected material.
         </div>
       )}
 
-      <div className="space-y-3">
-        {sorted.map((c) => (
-          <CentreCard
-            key={c.id}
-            centre={c}
-            userLat={userPos?.lat ?? null}
-            userLon={userPos?.lon ?? null}
-          />
-        ))}
-      </div>
+      {/* Map mode */}
+      {viewMode === 'map' && !isLoading && (
+        <div
+          className="mx-4 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700"
+          style={{ height: '400px' }}
+        >
+          <Map
+            mapId={MAP_ID ?? null}
+            defaultCenter={userPos ? { lat: userPos.lat, lng: userPos.lon } : KIMIRONKO}
+            defaultZoom={13}
+            gestureHandling="greedy"
+            disableDefaultUI
+            zoomControl
+            style={{ width: '100%', height: '100%' }}
+          >
+            {sorted.map((c) => (
+              <AdvancedMarker
+                key={c.id}
+                position={{ lat: c.latitude, lng: c.longitude }}
+                onClick={() => setSelectedCentre(c)}
+              />
+            ))}
+            {selectedCentre && (
+              <InfoWindow
+                position={{ lat: selectedCentre.latitude, lng: selectedCentre.longitude }}
+                onCloseClick={() => setSelectedCentre(null)}
+              >
+                <div className="text-sm min-w-[180px] space-y-1.5">
+                  <p className="font-semibold text-gray-800">{selectedCentre.name}</p>
+                  <p className="text-xs text-gray-500">{selectedCentre.address}</p>
+                  {selectedCentre.accepted_materials.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {selectedCentre.accepted_materials.slice(0, 4).map((m) => (
+                        <span
+                          key={m}
+                          className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full"
+                        >
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${selectedCentre.latitude},${selectedCentre.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-center text-xs font-semibold text-green-700 hover:underline mt-2"
+                  >
+                    Get Directions →
+                  </a>
+                </div>
+              </InfoWindow>
+            )}
+          </Map>
+        </div>
+      )}
+
+      {/* List mode */}
+      {viewMode === 'list' && !isLoading && (
+        <div className="px-4 mt-2 space-y-3">
+          {sorted.map((c) => (
+            <CentreCard
+              key={c.id}
+              centre={c}
+              userLat={userPos?.lat ?? null}
+              userLon={userPos?.lon ?? null}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

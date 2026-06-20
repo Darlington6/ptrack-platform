@@ -50,6 +50,7 @@ export interface WasteReport {
   latitude: number;
   longitude: number;
   image?: string | null;
+  thumbnail?: string | null;
   description?: string;
   waste_type: WasteType;
   status: ReportStatus;

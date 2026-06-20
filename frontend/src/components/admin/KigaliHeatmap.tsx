@@ -1,46 +1,54 @@
-import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
+import { useEffect } from 'react';
+import { Map, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import type { HeatmapPoint } from '../../api/endpoints/admin';
+
+const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
 
 interface Props {
   points: HeatmapPoint[];
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  pending: '#f59e0b',
-  verified: '#16a34a',
-  resolved: '#60a5fa',
-};
+function HeatmapLayer({ points }: Props) {
+  const map = useMap();
+  const viz = useMapsLibrary('visualization');
+
+  useEffect(() => {
+    if (!map || !viz) return;
+    // @types/google.maps stubs the modern importLibrary HeatmapLayer without
+    // options or setMap — cast to the legacy constructor signature which is
+    // what the runtime actually provides.
+    type HeatmapLayerCtor = new (opts: {
+      data: google.maps.LatLng[];
+      map: google.maps.Map;
+      radius?: number;
+      opacity?: number;
+    }) => { setMap(m: google.maps.Map | null): void };
+    const Ctor = google.maps.visualization.HeatmapLayer as unknown as HeatmapLayerCtor;
+    const layer = new Ctor({
+      data: points.map((p) => new google.maps.LatLng(p.latitude, p.longitude)),
+      map,
+      radius: 20,
+      opacity: 0.7,
+    });
+    return () => {
+      layer.setMap(null);
+    };
+  }, [map, viz, points]);
+
+  return null;
+}
 
 export function KigaliHeatmap({ points }: Props) {
   return (
-    <MapContainer
-      center={[-1.9441, 30.0619]}
-      zoom={13}
-      style={{ height: '100%', width: '100%', borderRadius: '0 0 8px 8px' }}
-      scrollWheelZoom={false}
+    <Map
+      defaultCenter={KIMIRONKO}
+      defaultZoom={13}
+      gestureHandling="none"
+      disableDefaultUI
+      zoomControl
+      style={{ height: '100%', width: '100%' }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      {points.map((p, i) => (
-        <CircleMarker
-          key={i}
-          center={[p.latitude, p.longitude]}
-          radius={8}
-          pathOptions={{
-            color: STATUS_COLOR[p.status] ?? '#16a34a',
-            fillColor: STATUS_COLOR[p.status] ?? '#16a34a',
-            fillOpacity: 0.6,
-            weight: 1,
-          }}
-        >
-          <Tooltip>
-            {p.waste_type} · {p.status}
-          </Tooltip>
-        </CircleMarker>
-      ))}
-    </MapContainer>
+      <HeatmapLayer points={points} />
+    </Map>
   );
 }

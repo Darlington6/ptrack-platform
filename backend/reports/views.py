@@ -8,6 +8,7 @@ Point economy:
   Report verified    → +5  pts (citizen who filed the report)
 """
 
+import math
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -21,7 +22,7 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from accounts.throttles import RecyclingLogThrottle, ReportSubmitThrottle
+from accounts.throttles import MapBboxThrottle, RecyclingLogThrottle, ReportSubmitThrottle
 from core.pagination import FeedCursorPagination, StandardPagination
 
 from .models import BadgeDefinition, RecyclingActivity, Reward, WasteReport
@@ -83,6 +84,35 @@ def reports_list_create(request):
             qs = qs.filter(status=status_filter)
         if request.query_params.get("user") == "me":
             qs = qs.filter(user=request.user)
+
+        # Bbox filter — throttled; max area ~100 km²
+        north = request.query_params.get("north")
+        south = request.query_params.get("south")
+        east = request.query_params.get("east")
+        west = request.query_params.get("west")
+        if any([north, south, east, west]):
+            throttle = MapBboxThrottle()
+            if not throttle.allow_request(request, None):
+                return Response(
+                    {"detail": "Map refresh rate limit exceeded. Wait a moment."},
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+            try:
+                n, s, e, w = float(north), float(south), float(east), float(west)
+            except (TypeError, ValueError):
+                return Response(
+                    {"detail": "Invalid bbox params."}, status=status.HTTP_400_BAD_REQUEST
+                )
+            lat_center = (n + s) / 2
+            lat_km = abs(n - s) * 111.0
+            lng_km = abs(e - w) * 111.0 * math.cos(math.radians(lat_center))
+            area_km2 = lat_km * lng_km
+            if area_km2 > 100:
+                return Response(
+                    {"detail": f"Bounding box too large ({area_km2:.0f} km²). Max 100 km²."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            qs = qs.filter(latitude__lte=n, latitude__gte=s, longitude__lte=e, longitude__gte=w)
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(qs, request)
