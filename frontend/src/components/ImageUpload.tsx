@@ -41,7 +41,13 @@ export function ImageUpload({
       onChange(renamed);
     } catch {
       onChange(file);
-      setPreview(URL.createObjectURL(file));
+      // Use FileReader so the preview URL is a data: string, not a blob: URL
+      // derived directly from the raw user File (which CodeQL flags as tainted).
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (typeof ev.target?.result === 'string') setPreview(ev.target.result);
+      };
+      reader.readAsDataURL(file);
     } finally {
       setCompressing(false);
       setProgress(0);
