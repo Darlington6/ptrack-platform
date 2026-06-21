@@ -2,7 +2,11 @@
 Management command: send_streak_warnings
 
 Finds users with streaks ≥ 2 who have not logged activity in the last 20 hours
-and sends both an in-app notification and (if they opted in) an email reminder.
+and sends an in-app notification, an email reminder (if opted in), and a web
+push notification (if push_enabled).
+
+Schedule: daily at 19:00 CAT (UTC+2) via Render cron:
+    0 17 * * *   python manage.py send_streak_warnings
 
 Usage:
     python manage.py send_streak_warnings
@@ -21,6 +25,7 @@ class Command(BaseCommand):
         from accounts.models import User
         from core.email import send_email
         from core.notifications import notify
+        from push.helpers import send_push
 
         cutoff = (timezone.now() - timedelta(hours=20)).date()
         at_risk = User.objects.filter(
@@ -31,13 +36,13 @@ class Command(BaseCommand):
 
         count = 0
         for user in at_risk:
-            notify(
-                user,
-                "streak_warning",
-                "Your streak is at risk!",
-                f"You have a {user.current_streak}-day streak. Log activity today to keep it going.",
-                action_url="/dashboard",
+            title = "Your streak is at risk!"
+            body = (
+                f"You have a {user.current_streak}-day streak. "
+                "Log activity today to keep it going."
             )
+
+            notify(user, "streak_warning", title, body, action_url="/dashboard")
 
             prefs = user.notification_preferences or {}
             if prefs.get("streak_reminders", True) and not user.email.startswith("phone_"):
@@ -47,6 +52,9 @@ class Command(BaseCommand):
                     "streak_warning",
                     {"user": user, "streak": user.current_streak},
                 )
+
+            if prefs.get("push_enabled", False):
+                send_push(user, title, body, url="/dashboard")
 
             count += 1
 

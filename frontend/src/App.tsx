@@ -59,6 +59,7 @@ import AdminSettings from './pages/admin/AdminSettings';
 
 // Sidebar/AdminLayout from existing components
 import { Sidebar } from './components/Sidebar';
+import { UpdateBanner } from './components/UpdateBanner';
 
 function AdminLayout() {
   return (
@@ -80,6 +81,7 @@ export default function App() {
       >
         <BrowserRouter>
           <AuthProvider>
+            <UpdateBanner />
             <Routes>
               {/* Public */}
               <Route element={<PublicLayout />}>
