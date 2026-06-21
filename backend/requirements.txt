@@ -43,7 +43,7 @@ django-csp==3.8
 argon2-cffi==25.1.0
 
 # ── Config validation ─────────────────────────────────────────────────────────
-pydantic-settings==2.14.1
+pydantic-settings==2.14.2
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 django-anymail[resend]==13.0
