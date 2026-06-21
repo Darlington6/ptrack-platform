@@ -4,7 +4,7 @@ certifi==2026.5.20
 charset-normalizer==3.4.7
 cloudinary==1.44.2
 django-cloudinary-storage==0.3.0
-Django==5.1.15
+Django==5.2.15
 gunicorn==23.0.0
 whitenoise==6.12.0
 psycopg2-binary==2.9.12
@@ -32,7 +32,7 @@ uritemplate==4.2.0
 urllib3==2.7.0
 
 # ── Caching ───────────────────────────────────────────────────────────────────
-django-redis==5.4.0
+django-redis==7.0.0
 
 # ── Rate limiting / security ──────────────────────────────────────────────────
 django-axes==8.3.1
