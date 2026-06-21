@@ -41,6 +41,10 @@ module = [
     "recycling_centres.views",
     "education.models",
     "education.views",
+    "push.models",
+    "push.views",
+    "push.helpers",
+    "push.admin",
 ]
 ignore_errors = true
 
