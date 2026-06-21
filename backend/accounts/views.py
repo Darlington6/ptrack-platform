@@ -42,7 +42,7 @@ from .serializers import (
     UserSerializer,
     _is_phone,
 )
-from .throttles import AuthThrottle
+from .throttles import AuthThrottle, GoogleAuthThrottle
 
 _ME_CACHE_TTL = 60  # seconds
 
@@ -374,6 +374,179 @@ def delete_account(request):
 
 
 # ── Email / phone verification ─────────────────────────────────────────────────
+
+
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+
+
+def _verify_google_token(id_token_str: str):
+    """Verify a Google ID token and return the payload dict, or raise ValueError."""
+    from django.conf import settings
+    from google.auth.transport import requests as google_requests
+    from google.oauth2 import id_token as google_id_token
+
+    client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", "")
+    if not client_id:
+        raise ValueError("GOOGLE_OAUTH_CLIENT_ID is not configured.")
+    return google_id_token.verify_oauth2_token(
+        id_token_str,
+        google_requests.Request(),
+        client_id,
+    )
+
+
+def _ensure_unique_username(base: str) -> str:
+    username = base[:150]
+    counter = 1
+    while User.objects.filter(username=username).exists():
+        suffix = str(counter)
+        username = f"{base[:150 - len(suffix) - 1]}_{suffix}"
+        counter += 1
+    return username
+
+
+@extend_schema(
+    tags=["auth"],
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {"id_token": {"type": "string"}},
+            "required": ["id_token"],
+        }
+    },
+    responses={200: OpenApiResponse(description="JWT tokens + user profile")},
+    summary="Sign in or register via Google ID token",
+)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([GoogleAuthThrottle])
+def google_auth(request):
+    """
+    POST /api/v1/auth/google/
+    Verify Google ID token, then log in or create an account.
+    """
+    id_token_str = request.data.get("id_token", "")
+    if not id_token_str:
+        return Response({"detail": "id_token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        info = _verify_google_token(id_token_str)
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    email = info.get("email", "")
+    google_sub = info["sub"]
+    full_name = f"{info.get('given_name', '')} {info.get('family_name', '')}".strip()
+    email_verified = info.get("email_verified", False)
+
+    try:
+        user = User.objects.get(email__iexact=email)
+        if user.google_sub and user.google_sub != google_sub:
+            return Response(
+                {
+                    "detail": "This email is linked to a different Google account. Please log in with your original method."
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+        update_fields = []
+        if not user.google_sub:
+            user.google_sub = google_sub
+            update_fields.append("google_sub")
+        if not user.email_verified and email_verified:
+            user.email_verified = True
+            update_fields.append("email_verified")
+        if update_fields:
+            user.save(update_fields=update_fields)
+    except User.DoesNotExist:
+        username = _ensure_unique_username(email.split("@")[0])
+        user = User(
+            email=email,
+            username=username,
+            full_name=full_name,
+            email_verified=email_verified,
+            google_sub=google_sub,
+            auth_method="google",
+        )
+        user.set_unusable_password()
+        user.save()
+
+    cache.delete(f"user:profile:{user.pk}")
+    return Response(AuthResponseSerializer.build(user))
+
+
+@extend_schema(
+    tags=["auth"],
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {"id_token": {"type": "string"}},
+            "required": ["id_token"],
+        }
+    },
+    responses={200: OpenApiResponse(description="Google account linked")},
+    summary="Link a Google account to the currently authenticated user",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@throttle_classes([GoogleAuthThrottle])
+def google_link(request):
+    """POST /api/v1/auth/google/link/ — link Google to an existing account."""
+    id_token_str = request.data.get("id_token", "")
+    if not id_token_str:
+        return Response({"detail": "id_token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        info = _verify_google_token(id_token_str)
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+    google_sub = info["sub"]
+
+    if request.user.google_sub:
+        return Response(
+            {"detail": "A Google account is already linked."},
+            status=status.HTTP_409_CONFLICT,
+        )
+    if User.objects.filter(google_sub=google_sub).exists():
+        return Response(
+            {"detail": "This Google account is already linked to another user."},
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    request.user.google_sub = google_sub
+    if info.get("email_verified") and not request.user.email_verified:
+        request.user.email_verified = True
+        request.user.save(update_fields=["google_sub", "email_verified"])
+    else:
+        request.user.save(update_fields=["google_sub"])
+    cache.delete(f"user:profile:{request.user.pk}")
+    return Response({"detail": "Google account linked successfully."})
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Google account disconnected")},
+    summary="Disconnect the Google account from the currently authenticated user",
+)
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def google_unlink(request):
+    """DELETE /api/v1/auth/google/unlink/ — disconnect Google from account."""
+    if not request.user.google_sub:
+        return Response(
+            {"detail": "No Google account is linked."}, status=status.HTTP_400_BAD_REQUEST
+        )
+    if not request.user.has_usable_password():
+        return Response(
+            {
+                "detail": "Set a password before disconnecting Google — otherwise you would lose access to your account."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    request.user.google_sub = None
+    request.user.save(update_fields=["google_sub"])
+    cache.delete(f"user:profile:{request.user.pk}")
+    return Response({"detail": "Google account disconnected."})
 
 
 @extend_schema(

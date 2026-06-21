@@ -188,6 +188,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
         "auth": "5/min",
+        "google_auth": "10/min",
         "report_submit": "10/hour",
         "recycling_log": "20/day",
         "map_bbox": "60/hour",
@@ -352,6 +353,7 @@ AXES_CACHE = "default"
 # ── Misc ──────────────────────────────────────────────────────────────────────
 RESEND_API_KEY = cfg.RESEND_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
+GOOGLE_OAUTH_CLIENT_ID = cfg.GOOGLE_OAUTH_CLIENT_ID
 USE_CLOUDINARY = cfg.USE_CLOUDINARY
 
 # ── Web Push (VAPID) ──────────────────────────────────────────────────────────

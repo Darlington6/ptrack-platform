@@ -7,6 +7,12 @@ class AuthThrottle(AnonRateThrottle):
     scope = "auth"
 
 
+class GoogleAuthThrottle(AnonRateThrottle):
+    """10 requests/minute per IP — applied to Google OAuth endpoints."""
+
+    scope = "google_auth"
+
+
 class ReportSubmitThrottle(UserRateThrottle):
     """10 report submissions per hour per authenticated user."""
 

@@ -73,6 +73,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return userData;
   }
 
+  async function googleLogin(idToken: string): Promise<User> {
+    const res = await client.post('/auth/google/', { id_token: idToken });
+    const { access, refresh, user: userData } = res.data as {
+      access: string;
+      refresh: string;
+      user: User;
+    };
+    localStorage.setItem('access_token', access);
+    localStorage.setItem('refresh_token', refresh);
+    useAuthStore.getState().setTokens(access, refresh);
+    setUser(userData);
+    Sentry.setUser({
+      id: userData.id.toString(),
+      username: userData.username,
+      email: userData.email,
+    });
+    return userData;
+  }
+
   async function register(payload: RegisterPayload): Promise<User> {
     const res = await client.post('/auth/register/', payload as RegisterRequest);
     const {
@@ -116,6 +135,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     login,
     register,
+    googleLogin,
     logout,
     refreshUser,
     setUser: (u) => setUser(u),

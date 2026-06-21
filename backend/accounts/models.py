@@ -55,6 +55,10 @@ class User(AbstractUser):
     # ── Preferences ───────────────────────────────────────────────────────────
     notification_preferences = models.JSONField(default=_default_notification_preferences)
 
+    # ── OAuth ─────────────────────────────────────────────────────────────────
+    google_sub = models.CharField(max_length=255, null=True, blank=True, unique=True, db_index=True)
+    auth_method = models.CharField(max_length=20, default="manual")
+
     # ── Soft delete ───────────────────────────────────────────────────────────
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
