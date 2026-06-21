@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import client from '../api/client';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { ImageUpload } from '../components/ImageUpload';
 import { GeoConsentModal, getGeoConsent, saveGeoConsent } from '../components/GeoConsentModal';
 import { useDebounce } from '../hooks/useDebounce';
+import { enqueueReport, flushQueue } from '../lib/offlineQueue';
 
 const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
@@ -42,6 +43,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 
 export default function ReportWaste() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { refreshUser } = useAuth();
 
   const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIMIRONKO);
@@ -73,7 +75,7 @@ export default function ReportWaste() {
     );
   }
 
-  // Check consent on mount
+  // Check consent on mount + retrieve shared image from Web Share Target
   useEffect(() => {
     const consent = getGeoConsent();
     if (consent === 'allowed') {
@@ -81,12 +83,52 @@ export default function ReportWaste() {
     } else if (consent === null) {
       setShowConsent(true);
     }
+
+    // Android share target sends the user here with ?shared=true after the SW
+    // stores the file in the 'ptrack-share-target' cache.
+    const params = new URLSearchParams(location.search);
+    if (params.get('shared') === 'true') {
+      void caches.open('ptrack-share-target').then(async (cache) => {
+        const response = await cache.match('shared-image');
+        if (response) {
+          const blob = await response.blob();
+          const file = new File([blob], 'shared-image.jpg', { type: blob.type || 'image/jpeg' });
+          setImage(file);
+          await cache.delete('shared-image');
+        }
+      });
+    }
+
+    // Flush any queued reports that failed while offline
+    void flushQueue();
+
+    // Also flush whenever the window comes back online
+    const onOnline = () => void flushQueue();
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
     try {
+      const payload = {
+        latitude: markerPos.lat,
+        longitude: markerPos.lng,
+        waste_type: wasteType,
+        description,
+      };
+
+      // If offline, queue locally and show a friendly message
+      if (!navigator.onLine) {
+        await enqueueReport(payload, image);
+        setToast('Saved offline. Will sync automatically when you reconnect.');
+        setTimeout(() => navigate('/dashboard'), 2500);
+        return;
+      }
+
+      // Online path — POST normally
       const data = new FormData();
       data.append('latitude', String(markerPos.lat));
       data.append('longitude', String(markerPos.lng));
@@ -94,15 +136,22 @@ export default function ReportWaste() {
       data.append('description', description);
       if (image) data.append('image', image);
 
-      const res = await client.post('/reports/', data, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      await refreshUser();
-      setToast(
-        `Report submitted! +10 points earned. Balance: ${String(res.data.new_points_balance)} pts`
-      );
-      setTimeout(() => navigate('/dashboard'), 2000);
+      try {
+        const res = await client.post('/reports/', data, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        await refreshUser();
+        setToast(
+          `Report submitted! +10 points earned. Balance: ${String(res.data.new_points_balance)} pts`
+        );
+        setTimeout(() => navigate('/dashboard'), 2000);
+      } catch (networkErr) {
+        // Network error while online — queue for later sync
+        await enqueueReport(payload, image);
+        setToast("Saved. Will sync when you're back online.");
+        setTimeout(() => navigate('/dashboard'), 2500);
+        void networkErr;
+      }
     } catch {
       setToast('Failed to submit report. Please try again.');
     } finally {

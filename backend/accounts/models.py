@@ -11,6 +11,7 @@ def _default_notification_preferences():
         "weekly_digest": True,
         "community_updates": True,
         "badge_earned": True,
+        "push_enabled": False,
     }
 
 

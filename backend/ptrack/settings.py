@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "recycling_centres",
     "nudges",
     "education",
+    "push",
 ]
 
 MIDDLEWARE = [
@@ -352,6 +353,11 @@ AXES_CACHE = "default"
 RESEND_API_KEY = cfg.RESEND_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
 USE_CLOUDINARY = cfg.USE_CLOUDINARY
+
+# ── Web Push (VAPID) ──────────────────────────────────────────────────────────
+VAPID_PUBLIC_KEY = cfg.VAPID_PUBLIC_KEY
+VAPID_PRIVATE_KEY = cfg.VAPID_PRIVATE_KEY
+VAPID_SUBJECT = cfg.VAPID_SUBJECT
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 DEFAULT_FROM_EMAIL = "pTrack <noreply@ptrack.rw>"

@@ -1,11 +1,11 @@
 """
 Management command: send_weekly_digest
 
-Sends a weekly summary email to every user who has opted in
-(notification_preferences.weekly_digest = True).
+Sends a weekly summary email (and push notification if opted in) to every user
+who has not disabled weekly_digest in their notification preferences.
 
-Schedule this to run weekly via cron or Render's scheduled jobs:
-    python manage.py send_weekly_digest
+Schedule: every Sunday at 18:00 CAT (UTC+2) via Render cron:
+    0 16 * * 0   python manage.py send_weekly_digest
 
 Usage:
     python manage.py send_weekly_digest
@@ -25,6 +25,7 @@ class Command(BaseCommand):
         from accounts.models import User
         from core.email import send_email
         from core.notifications import notify
+        from push.helpers import send_push
         from reports.models import RecyclingActivity, Reward, WasteReport
 
         week_start = timezone.now().date() - timedelta(days=7)
@@ -47,18 +48,18 @@ class Command(BaseCommand):
                 or 0
             )
 
-            notify(
-                user,
-                "weekly_digest",
-                "Your weekly pTrack summary",
-                f"This week: {reports} reports, {recycling} recycling activities, {points_earned} pts.",
-                action_url="/rewards",
+            title = "Your weekly pTrack summary"
+            body = (
+                f"This week: {reports} reports, {recycling} recycling activities, "
+                f"{points_earned} pts."
             )
+
+            notify(user, "weekly_digest", title, body, action_url="/rewards")
 
             if not user.email.startswith("phone_"):
                 send_email(
                     user.email,
-                    "Your weekly pTrack summary",
+                    title,
                     "weekly_digest",
                     {
                         "user": user,
@@ -68,5 +69,8 @@ class Command(BaseCommand):
                     },
                 )
                 sent += 1
+
+            if prefs.get("push_enabled", False):
+                send_push(user, title, body, url="/rewards")
 
         self.stdout.write(self.style.SUCCESS(f"Sent {sent} weekly digest email(s)."))

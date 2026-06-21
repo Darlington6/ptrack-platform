@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     GOOGLE_MAPS_API_KEY: str = ""
 
+    # Web Push (VAPID)
+    VAPID_PUBLIC_KEY: str = ""
+    VAPID_PRIVATE_KEY: str = ""
+    VAPID_SUBJECT: str = "mailto:d.tunyinko@alustudent.com"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
