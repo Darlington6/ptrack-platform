@@ -435,7 +435,9 @@ def google_auth(request):
     try:
         info = _verify_google_token(access_token)
     except ValueError:
-        return Response({"detail": "Invalid Google access token."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Invalid Google access token."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     email = info.get("email", "")
     google_sub = info["sub"]
@@ -501,7 +503,9 @@ def google_link(request):
     try:
         info = _verify_google_token(access_token)
     except ValueError:
-        return Response({"detail": "Invalid Google access token."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Invalid Google access token."}, status=status.HTTP_400_BAD_REQUEST
+        )
 
     google_sub = info["sub"]
 
