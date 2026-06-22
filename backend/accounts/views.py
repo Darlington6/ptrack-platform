@@ -379,20 +379,23 @@ def delete_account(request):
 # ── Google OAuth ──────────────────────────────────────────────────────────────
 
 
-def _verify_google_token(id_token_str: str):
-    """Verify a Google ID token and return the payload dict, or raise ValueError."""
-    from django.conf import settings
-    from google.auth.transport import requests as google_requests
-    from google.oauth2 import id_token as google_id_token
+def _verify_google_token(access_token: str) -> dict:
+    """Exchange a Google OAuth2 access token for userinfo, or raise ValueError."""
+    import json as _json
+    import urllib.error
+    import urllib.request
 
-    client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", "")
-    if not client_id:
-        raise ValueError("GOOGLE_OAUTH_CLIENT_ID is not configured.")
-    return google_id_token.verify_oauth2_token(
-        id_token_str,
-        google_requests.Request(),
-        client_id,
+    req = urllib.request.Request(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        headers={"Authorization": f"Bearer {access_token}"},
     )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return _json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        raise ValueError("Invalid or expired Google access token.") from exc
+    except Exception as exc:
+        raise ValueError(f"Google token verification failed: {exc}") from exc
 
 
 def _ensure_unique_username(base: str) -> str:
@@ -410,12 +413,12 @@ def _ensure_unique_username(base: str) -> str:
     request={
         "application/json": {
             "type": "object",
-            "properties": {"id_token": {"type": "string"}},
-            "required": ["id_token"],
+            "properties": {"access_token": {"type": "string"}},
+            "required": ["access_token"],
         }
     },
     responses={200: OpenApiResponse(description="JWT tokens + user profile")},
-    summary="Sign in or register via Google ID token",
+    summary="Sign in or register via Google OAuth2 access token",
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -423,14 +426,14 @@ def _ensure_unique_username(base: str) -> str:
 def google_auth(request):
     """
     POST /api/v1/auth/google/
-    Verify Google ID token, then log in or create an account.
+    Verify Google access token, then log in or create an account.
     """
-    id_token_str = request.data.get("id_token", "")
-    if not id_token_str:
-        return Response({"detail": "id_token is required."}, status=status.HTTP_400_BAD_REQUEST)
+    access_token = request.data.get("access_token", "")
+    if not access_token:
+        return Response({"detail": "access_token is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        info = _verify_google_token(id_token_str)
+        info = _verify_google_token(access_token)
     except ValueError as exc:
         return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -479,8 +482,8 @@ def google_auth(request):
     request={
         "application/json": {
             "type": "object",
-            "properties": {"id_token": {"type": "string"}},
-            "required": ["id_token"],
+            "properties": {"access_token": {"type": "string"}},
+            "required": ["access_token"],
         }
     },
     responses={200: OpenApiResponse(description="Google account linked")},
@@ -491,12 +494,12 @@ def google_auth(request):
 @throttle_classes([GoogleAuthThrottle])
 def google_link(request):
     """POST /api/v1/auth/google/link/ — link Google to an existing account."""
-    id_token_str = request.data.get("id_token", "")
-    if not id_token_str:
-        return Response({"detail": "id_token is required."}, status=status.HTTP_400_BAD_REQUEST)
+    access_token = request.data.get("access_token", "")
+    if not access_token:
+        return Response({"detail": "access_token is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        info = _verify_google_token(id_token_str)
+        info = _verify_google_token(access_token)
     except ValueError as exc:
         return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -41,10 +41,21 @@ export const useThemeStore = create<ThemeState>()(
       },
 
       hydrate: () => {
-        const { preference } = get();
+        // Read directly from localStorage — persist middleware rehydrates async,
+        // so get().preference would still be the default 'system' at call time.
+        let preference: ThemePreference = 'system';
+        try {
+          const raw = localStorage.getItem('ptrack-theme');
+          if (raw) {
+            const parsed = JSON.parse(raw) as { state?: { preference?: ThemePreference } };
+            preference = parsed?.state?.preference ?? 'system';
+          }
+        } catch {
+          // ignore
+        }
         const resolved: ResolvedTheme = preference === 'system' ? getSystemTheme() : preference;
         applyTheme(resolved);
-        set({ resolved });
+        set({ preference, resolved });
 
         const mq = window.matchMedia('(prefers-color-scheme: dark)');
         const handler = () => {

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { authApi } from '../../api/endpoints/auth';
 import { useAuth } from '../../context/AuthContext';
 
@@ -49,21 +49,23 @@ export default function SecuritySettings() {
     }
   }
 
-  async function handleGoogleLink(credentialResponse: CredentialResponse) {
-    if (!credentialResponse.credential) return;
-    try {
-      await authApi.googleLink(credentialResponse.credential);
-      await refreshUser();
-      toast.success('Google account connected.');
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      if (status === 409) {
-        toast.error('This Google account is already linked to another user.');
-      } else {
-        toast.error('Failed to connect Google account.');
+  const triggerGoogleLink = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        await authApi.googleLink(tokenResponse.access_token);
+        await refreshUser();
+        toast.success('Google account connected.');
+      } catch (err: unknown) {
+        const s = (err as { response?: { status?: number } })?.response?.status;
+        if (s === 409) {
+          toast.error('This Google account is already linked to another user.');
+        } else {
+          toast.error('Failed to connect Google account.');
+        }
       }
-    }
-  }
+    },
+    onError: () => toast.error('Failed to connect Google account.'),
+  });
 
   async function handleGoogleUnlink() {
     setUnlinking(true);
@@ -136,15 +138,29 @@ export default function SecuritySettings() {
         <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <svg width="20" height="20" viewBox="0 0 18 18" aria-hidden="true" className="shrink-0">
-              <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" />
-              <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" />
-              <path fill="#FBBC05" d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" />
-              <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.167 6.656 3.58 9 3.58z" />
+              <path
+                fill="#4285F4"
+                d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+              />
+              <path
+                fill="#34A853"
+                d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"
+              />
+              <path
+                fill="#EA4335"
+                d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.167 6.656 3.58 9 3.58z"
+              />
             </svg>
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Google</p>
               {user?.google_connected ? (
-                <p className="text-xs text-green-600 dark:text-green-400">Connected as {user.email}</p>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  Connected as {user.email}
+                </p>
               ) : (
                 <p className="text-xs text-gray-400">Not connected</p>
               )}
@@ -161,14 +177,31 @@ export default function SecuritySettings() {
               {unlinking ? 'Disconnecting…' : 'Disconnect'}
             </button>
           ) : (
-            <GoogleLogin
-              onSuccess={handleGoogleLink}
-              onError={() => toast.error('Failed to connect Google account.')}
-              theme="outline"
-              size="medium"
-              text="continue_with"
-              shape="rectangular"
-            />
+            <button
+              type="button"
+              onClick={() => triggerGoogleLink()}
+              className="flex items-center gap-2 py-2 px-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+                <path
+                  fill="#4285F4"
+                  d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.167 6.656 3.58 9 3.58z"
+                />
+              </svg>
+              Connect
+            </button>
           )}
         </div>
       </div>

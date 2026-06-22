@@ -73,9 +73,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return userData;
   }
 
-  async function googleLogin(idToken: string): Promise<User> {
-    const res = await client.post('/auth/google/', { id_token: idToken });
-    const { access, refresh, user: userData } = res.data as {
+  async function googleLogin(accessToken: string): Promise<User> {
+    const res = await client.post('/auth/google/', { access_token: accessToken });
+    const {
+      access,
+      refresh,
+      user: userData,
+    } = res.data as {
       access: string;
       refresh: string;
       user: User;

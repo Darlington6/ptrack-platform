@@ -12,6 +12,18 @@
       rel="stylesheet"
     />
     <meta name="theme-color" content="#16A34A" />
+    <script>
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem('ptrack-theme') || '{}');
+          var p = s && s.state && s.state.preference;
+          var isDark =
+            p === 'dark' ||
+            (p !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

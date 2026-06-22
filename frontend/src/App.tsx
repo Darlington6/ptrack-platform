@@ -76,95 +76,95 @@ function AdminLayout() {
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
-    <QueryClientProvider client={queryClient}>
-      <APIProvider
-        apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''}
-        libraries={['visualization']}
-      >
-        <BrowserRouter>
-          <AuthProvider>
-            <UpdateBanner />
-            <Routes>
-              {/* Public */}
-              <Route element={<PublicLayout />}>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/verify" element={<Verify />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-              </Route>
+      <QueryClientProvider client={queryClient}>
+        <APIProvider
+          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''}
+          libraries={['visualization']}
+        >
+          <BrowserRouter>
+            <AuthProvider>
+              <UpdateBanner />
+              <Routes>
+                {/* Public */}
+                <Route element={<PublicLayout />}>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/verify" element={<Verify />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                </Route>
 
-              {/* Onboarding (protected, no chrome) */}
-              <Route
-                path="/onboarding"
-                element={
-                  <ProtectedRoute>
-                    <Onboarding />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Onboarding (protected, no chrome) */}
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <Onboarding />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Citizen */}
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <CitizenLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/report" element={<ReportWaste />} />
-                <Route path="/map" element={<MapView />} />
-                <Route path="/rewards" element={<Rewards />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/settings/account" element={<AccountSettings />} />
-                <Route path="/settings/security" element={<SecuritySettings />} />
-                <Route path="/settings/language" element={<LanguageSettings />} />
-                <Route path="/settings/theme" element={<ThemeSettings />} />
-                <Route path="/settings/notifications" element={<NotificationSettings />} />
-                <Route path="/settings/privacy" element={<PrivacySettings />} />
-                <Route path="/settings/data" element={<DataSettings />} />
-                <Route path="/activity" element={<MyActivity />} />
-                <Route path="/reports/:id" element={<ReportDetail />} />
-                <Route path="/community" element={<CommunityImpact />} />
-                <Route path="/centres" element={<RecyclingCentres />} />
-                <Route path="/education" element={<Education />} />
-                <Route path="/education/:slug" element={<EducationArticle />} />
-                <Route path="/help" element={<HelpFAQ />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<Terms />} />
-              </Route>
+                {/* Citizen */}
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <CitizenLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/report" element={<ReportWaste />} />
+                  <Route path="/map" element={<MapView />} />
+                  <Route path="/rewards" element={<Rewards />} />
+                  <Route path="/leaderboard" element={<Leaderboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/settings/account" element={<AccountSettings />} />
+                  <Route path="/settings/security" element={<SecuritySettings />} />
+                  <Route path="/settings/language" element={<LanguageSettings />} />
+                  <Route path="/settings/theme" element={<ThemeSettings />} />
+                  <Route path="/settings/notifications" element={<NotificationSettings />} />
+                  <Route path="/settings/privacy" element={<PrivacySettings />} />
+                  <Route path="/settings/data" element={<DataSettings />} />
+                  <Route path="/activity" element={<MyActivity />} />
+                  <Route path="/reports/:id" element={<ReportDetail />} />
+                  <Route path="/community" element={<CommunityImpact />} />
+                  <Route path="/centres" element={<RecyclingCentres />} />
+                  <Route path="/education" element={<Education />} />
+                  <Route path="/education/:slug" element={<EducationArticle />} />
+                  <Route path="/help" element={<HelpFAQ />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<Terms />} />
+                </Route>
 
-              {/* Admin */}
-              <Route
-                element={
-                  <ProtectedRoute requireAdmin>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/reports" element={<AdminReports />} />
-                <Route path="/admin/users" element={<AdminUsers />} />
-                <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/audit-log" element={<AdminAuditLog />} />
-                <Route path="/admin/centres" element={<AdminCentres />} />
-                <Route path="/admin/education" element={<AdminEducation />} />
-                <Route path="/admin/rewards" element={<AdminRewardConfig />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-              </Route>
+                {/* Admin */}
+                <Route
+                  element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/reports" element={<AdminReports />} />
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                  <Route path="/admin/audit-log" element={<AdminAuditLog />} />
+                  <Route path="/admin/centres" element={<AdminCentres />} />
+                  <Route path="/admin/education" element={<AdminEducation />} />
+                  <Route path="/admin/rewards" element={<AdminRewardConfig />} />
+                  <Route path="/admin/settings" element={<AdminSettings />} />
+                </Route>
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </APIProvider>
-    </QueryClientProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </APIProvider>
+      </QueryClientProvider>
     </GoogleOAuthProvider>
   );
 }
