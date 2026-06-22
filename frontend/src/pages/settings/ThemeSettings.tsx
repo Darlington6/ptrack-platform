@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
+import { useThemeStore } from '../../stores/themeStore';
 import client from '../../api/client';
 import type { User, ThemePreference } from '../../types';
 
@@ -14,17 +15,10 @@ const THEMES: { value: ThemePreference; label: string }[] = [
 export default function ThemeSettings() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
+  const { setPreference } = useThemeStore();
 
   async function handleSelect(theme: ThemePreference) {
-    // Apply immediately to <html>
-    const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else if (theme === 'light') root.classList.remove('dark');
-    else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      root.classList.toggle('dark', prefersDark);
-    }
-
+    setPreference(theme); // applies to DOM + persists to localStorage
     try {
       const res = await client.patch<User>('/auth/me/', { theme_preference: theme });
       setUser(res.data);
