@@ -1,9 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { Bell } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { notificationsApi } from '../../api/endpoints/notifications';
+
+function greetingIcon(): string {
+  const h = new Date().getHours();
+  if (h < 6 || h >= 21) return '🌙';
+  if (h < 12) return '🌅';
+  if (h < 17) return '☀️';
+  return '🌆';
+}
 
 export function Navbar() {
   const { user } = useAuth();
@@ -25,11 +32,11 @@ export function Navbar() {
 
       <div className="flex items-center gap-3">
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
-          Hi, {firstName} 👋
+          Hi, {firstName} 👋{greetingIcon()}
         </span>
 
-        <NavLink to="/notifications" className="relative p-1.5 text-gray-500 dark:text-slate-400">
-          <Bell size={20} />
+        <NavLink to="/notifications" className="relative p-1.5">
+          <span className="text-xl">🔔</span>
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
               {unreadCount > 9 ? '9+' : unreadCount}

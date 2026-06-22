@@ -17,13 +17,6 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function greetingIcon(): string {
-  const h = new Date().getHours();
-  if (h < 6 || h >= 21) return '🌙';
-  if (h < 12) return '🌅';
-  return '☀️';
-}
-
 const REWARD_ICONS: Record<string, string> = {
   report_submitted: '📍',
   recycling_logged: '♻️',
@@ -91,28 +84,9 @@ export default function Dashboard() {
     }
   }, [goalComplete]);
 
-  const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
-
   return (
     <div className="px-4 pt-4 pb-24 space-y-4">
-      {/* A — Greeting bar */}
-      <div className="flex items-center justify-between">
-        <p className="text-lg font-bold text-gray-900 dark:text-white">
-          Hi, {firstName} {greetingIcon()}
-        </p>
-        <div className="flex items-center gap-3">
-          <Link to="/notifications" aria-label="Notifications" className="relative">
-            <span className="text-xl">🔔</span>
-          </Link>
-          <Link to="/profile">
-            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm font-bold">
-              {firstName[0]?.toUpperCase() ?? 'U'}
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      {/* B — NudgeBanner */}
+      {/* NudgeBanner */}
       <NudgeBanner />
 
       {/* C — Points card */}
