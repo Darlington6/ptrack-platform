@@ -2,13 +2,13 @@
 
 # ── Code quality ──────────────────────────────────────────────────────────────
 black==26.5.1
-ruff==0.15.17
+ruff==0.15.18
 mypy==1.15.0
 django-stubs[compatible-mypy]==6.0.5
 djangorestframework-stubs[compatible-mypy]==3.17.0
 types-requests==2.33.0.20260518
 
 # ── Testing ───────────────────────────────────────────────────────────────────
-pytest==9.1.0
+pytest==9.1.1
 pytest-django==4.12.0
 pytest-cov==7.1.0
