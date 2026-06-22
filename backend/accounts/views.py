@@ -500,8 +500,8 @@ def google_link(request):
 
     try:
         info = _verify_google_token(access_token)
-    except ValueError as exc:
-        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+    except ValueError:
+        return Response({"detail": "Invalid Google access token."}, status=status.HTTP_400_BAD_REQUEST)
 
     google_sub = info["sub"]
 
