@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import client from '../api/client';
 import type { Reward, RecyclingActivity, WasteReport } from '../types';
 
@@ -38,6 +39,7 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 export default function MyActivity() {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>('all');
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,7 +155,12 @@ export default function MyActivity() {
 
   return (
     <div className="px-4 pt-4 pb-24 space-y-4">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Activity</h1>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Activity</h1>
+      </div>
 
       {/* Filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">

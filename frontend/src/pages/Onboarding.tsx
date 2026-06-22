@@ -6,25 +6,25 @@ import client from '../api/client';
 
 const SLIDES = [
   {
-    bg: 'bg-green-50 dark:bg-green-950',
+    bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
     icon: '👋',
     title: 'Welcome to pTrack!',
     body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
   },
   {
-    bg: 'bg-amber-50 dark:bg-amber-950',
+    bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
     icon: '⭐',
     title: 'Earn points for every action',
     body: 'Report waste (+10 pts), log recycling (+15 pts), get verified (+5 bonus). Points unlock rewards and badges.',
   },
   {
-    bg: 'bg-blue-50 dark:bg-blue-950',
+    bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
     icon: '🏆',
     title: 'Climb the leaderboard',
     body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
   },
   {
-    bg: 'bg-purple-50 dark:bg-purple-950',
+    bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
     icon: '🚀',
     title: 'Ready to get started?',
     body: 'Start your first report and earn 10 points right now. Kigali is counting on you!',
@@ -56,11 +56,13 @@ export default function Onboarding() {
     }
   }
 
-  const currentSlide = SLIDES[slide] ?? SLIDES[0];
+  // slide is always in [0, SLIDES.length-1]
+  const currentSlide = SLIDES[slide]!;
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center px-6 transition-colors duration-500 ${currentSlide.bg}`}
+      className="min-h-screen flex flex-col items-center justify-center px-6"
+      style={{ background: currentSlide.bg, transition: 'background 0.5s ease' }}
     >
       {/* Icon */}
       <span className="text-6xl mb-8 select-none" aria-hidden="true">

@@ -32,7 +32,7 @@ export function Navbar() {
 
       <div className="flex items-center gap-3">
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
-          Hi, {firstName} 👋{greetingIcon()}
+          Hi, {firstName} {greetingIcon()}
         </span>
 
         <NavLink to="/notifications" className="relative p-1.5">

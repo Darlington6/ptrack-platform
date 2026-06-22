@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Info, Trophy, Flame, BarChart2, Users, Shield, Bell } from 'lucide-react';
+import { Info, Trophy, Flame, BarChart2, Users, Shield, Bell, ArrowLeft } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { notificationsApi } from '../api/endpoints/notifications';
@@ -119,7 +119,10 @@ export default function Notifications() {
 
   return (
     <div className="pb-24 px-4">
-      <div className="py-4">
+      <div className="py-4 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={20} />
+        </button>
         <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Notifications</h1>
       </div>
 

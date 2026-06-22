@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CheckCircle, Clock, XCircle, Trash2, ShieldCheck } from 'lucide-react';
+import { Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
@@ -148,12 +149,18 @@ export default function ReportDetail() {
           </div>
         </div>
 
-        {/* Map placeholder */}
-        <div className="w-full h-36 bg-gray-100 dark:bg-slate-800 rounded-xl flex items-center justify-center border border-gray-200 dark:border-slate-700">
-          <div className="text-center">
-            <span className="text-2xl">📍</span>
-            <p className="text-xs text-gray-400 mt-1">Map view coming soon</p>
-          </div>
+        {/* Location map */}
+        <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
+          <Map
+            mapId={(import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) ?? null}
+            defaultCenter={{ lat: report.latitude, lng: report.longitude }}
+            defaultZoom={15}
+            gestureHandling="none"
+            disableDefaultUI
+            style={{ width: '100%', height: '100%' }}
+          >
+            <AdvancedMarker position={{ lat: report.latitude, lng: report.longitude }} />
+          </Map>
         </div>
 
         {/* Actions */}

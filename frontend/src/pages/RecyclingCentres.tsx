@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { MapPin, Phone, Clock, ExternalLink, List, Map as MapIcon } from 'lucide-react';
+import { MapPin, Phone, Clock, ExternalLink, List, Map as MapIcon, ArrowLeft } from 'lucide-react';
 import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { recyclingCentresApi } from '../api/endpoints/recyclingCentres';
 import type { RecyclingCentre } from '../api/types';
@@ -84,6 +85,7 @@ function CentreCard({
 }
 
 export default function RecyclingCentres() {
+  const navigate = useNavigate();
   const [materialFilter, setMaterialFilter] = useState('All');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [userPos, setUserPos] = useState<{ lat: number; lon: number } | null>(null);
@@ -117,7 +119,12 @@ export default function RecyclingCentres() {
       {/* Header */}
       <div className="px-4 pt-4 pb-2 space-y-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recycling Centres</h1>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+              <ArrowLeft size={20} />
+            </button>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recycling Centres</h1>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={requestLocation}

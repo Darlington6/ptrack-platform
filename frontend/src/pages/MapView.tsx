@@ -180,7 +180,7 @@ export default function MapView() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="flex flex-col" style={{ height: 'calc(100dvh - 128px)' }}>
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-700 flex items-center justify-between">
         <h1 className="text-base font-semibold text-gray-800 dark:text-slate-100">
