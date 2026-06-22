@@ -53,6 +53,9 @@ export interface User {
     community_updates: boolean;
     badge_earned: boolean;
   };
+  // OAuth
+  google_connected: boolean;
+  auth_method: 'manual' | 'google';
 }
 
 export interface WasteReport {
@@ -145,6 +148,7 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User>;
   register: (data: RegisterRequest) => Promise<User>;
+  googleLogin: (idToken: string) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<User>;
   setUser: (user: User | null) => void;

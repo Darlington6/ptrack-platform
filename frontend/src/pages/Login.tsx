@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 const schema = z.object({
@@ -21,7 +22,7 @@ const INPUT_CLS =
 const LABEL_CLS = 'block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const [showPassword, setShowPassword] = useState(false);
@@ -31,6 +32,31 @@ export default function Login() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+
+  const triggerGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        const user = await googleLogin(tokenResponse.access_token);
+        if (user.role === 'admin') {
+          navigate('/admin');
+        } else if (!user.has_completed_onboarding) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
+        }
+      } catch (err: unknown) {
+        const s = (err as { response?: { status?: number } })?.response?.status;
+        if (s === 409) {
+          toast.error(
+            'This email is linked to a different Google account. Please log in with your original method.'
+          );
+        } else {
+          toast.error('Google sign-in failed. Please try again.');
+        }
+      }
+    },
+    onError: () => toast.error('Google sign-in failed. Please try again.'),
+  });
 
   async function onSubmit(data: FormData) {
     try {
@@ -67,11 +93,10 @@ export default function Login() {
       </p>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-8 w-full max-w-md">
-        {/* Google SSO placeholder */}
         <button
           type="button"
-          onClick={() => toast.info(t('google_coming_soon'))}
-          className="border border-gray-300 dark:border-slate-600 rounded-xl py-3 px-4 flex items-center justify-center gap-2 w-full text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+          onClick={() => triggerGoogleLogin()}
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
             <path

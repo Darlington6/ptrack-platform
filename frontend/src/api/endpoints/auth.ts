@@ -37,4 +37,9 @@ export const authApi = {
 
   resetPasswordConfirm: (identifier: string, code: string, new_password: string) =>
     client.post('/auth/password/reset/confirm/', { identifier, code, new_password }),
+
+  googleLink: (accessToken: string) =>
+    client.post('/auth/google/link/', { access_token: accessToken }),
+
+  googleUnlink: () => client.delete('/auth/google/unlink/'),
 };

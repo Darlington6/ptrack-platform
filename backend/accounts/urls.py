@@ -21,4 +21,8 @@ urlpatterns = [
     path(
         "password/reset/confirm/", views.password_reset_confirm, name="auth-password-reset-confirm"
     ),
+    # Google OAuth
+    path("google/", views.google_auth, name="auth-google"),
+    path("google/link/", views.google_link, name="auth-google-link"),
+    path("google/unlink/", views.google_unlink, name="auth-google-unlink"),
 ]
