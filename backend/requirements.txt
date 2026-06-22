@@ -46,7 +46,7 @@ argon2-cffi==25.1.0
 pydantic-settings==2.14.2
 
 # ── Email ─────────────────────────────────────────────────────────────────────
-django-anymail[resend]==13.0
+django-anymail[resend]==15.0
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 python-json-logger==3.3.0
