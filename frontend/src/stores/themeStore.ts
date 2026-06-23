@@ -24,7 +24,7 @@ function applyTheme(resolved: ResolvedTheme): void {
   }
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (meta) {
-    meta.content = resolved === 'dark' ? '#0f172a' : '#16A34A';
+    meta.content = resolved === 'dark' ? '#0f172a' : '#ffffff';
   }
 }
 

@@ -11,8 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" />
     <script>
       (function () {
         try {
@@ -21,7 +20,11 @@
           var isDark =
             p === 'dark' ||
             (p !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-          if (isDark) document.documentElement.classList.add('dark');
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+            var tc = document.querySelector('meta[name="theme-color"]');
+            if (tc) tc.setAttribute('content', '#0f172a');
+          }
         } catch (e) {}
       })();
     </script>
