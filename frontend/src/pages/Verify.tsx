@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { OtpInput } from '../components/ui/OtpInput';
@@ -102,12 +102,13 @@ export default function Verify() {
           )}
         </div>
 
-        <Link
-          to="/dashboard"
-          className="block mt-4 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+        <button
+          type="button"
+          onClick={() => navigate(user?.has_completed_onboarding ? '/dashboard' : '/onboarding')}
+          className="block mt-4 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 mx-auto"
         >
           {t('skip_for_now')}
-        </Link>
+        </button>
       </div>
     </div>
   );

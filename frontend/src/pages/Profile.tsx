@@ -13,7 +13,10 @@ import {
   Share2,
   Pencil,
   Recycle,
+  BookOpen,
+  Trash2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from '../components/ui/Avatar';
@@ -31,6 +34,7 @@ const MENU = [
   { icon: Activity, label: 'My Activity', to: '/activity' },
   { icon: Trophy, label: 'My Achievements', to: '/rewards' },
   { icon: Recycle, label: 'Recycling Centres', to: '/centres' },
+  { icon: BookOpen, label: 'Recycling Tips & Education', to: '/education' },
   { icon: Bell, label: 'Notifications', to: '/notifications' },
   { icon: Settings, label: 'Settings', to: '/settings' },
   { icon: HelpCircle, label: 'Help & Support', to: '/help' },
@@ -47,6 +51,7 @@ export default function Profile() {
   const [impact, setImpact] = useState<ImpactSummary | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
 
   useEffect(() => {
     client
@@ -68,6 +73,17 @@ export default function Profile() {
   function handleLogout() {
     logout();
     navigate('/');
+  }
+
+  async function handleDeleteAvatar() {
+    try {
+      await client.delete('/auth/me/avatar/');
+      setUser({ ...user!, profile_picture: null });
+      toast.success('Profile photo removed.');
+    } catch {
+      toast.error('Failed to remove photo.');
+    }
+    setShowDeleteAvatarConfirm(false);
   }
 
   const stats = [
@@ -99,6 +115,15 @@ export default function Profile() {
               >
                 <Pencil size={11} />
               </button>
+              {!!user?.profile_picture && (
+                <button
+                  onClick={() => setShowDeleteAvatarConfirm(true)}
+                  className="absolute bottom-0 left-0 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"
+                  aria-label="Remove photo"
+                >
+                  <Trash2 size={11} />
+                </button>
+              )}
             </div>
             <div className="pb-1">
               <p className="font-bold text-gray-900 dark:text-slate-100 text-lg leading-tight">
@@ -197,6 +222,16 @@ export default function Profile() {
         title="Logout"
         message="Are you sure you want to log out?"
         confirmLabel="Logout"
+      />
+
+      {/* Delete avatar confirm */}
+      <ConfirmDialog
+        isOpen={showDeleteAvatarConfirm}
+        onClose={() => setShowDeleteAvatarConfirm(false)}
+        onConfirm={() => void handleDeleteAvatar()}
+        title="Remove photo"
+        message="This will permanently remove your profile photo."
+        confirmLabel="Remove"
       />
 
       {/* Avatar upload */}
