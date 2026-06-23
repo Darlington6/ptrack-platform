@@ -375,8 +375,12 @@ def delete_account(request):
         if not request.user.check_password(password):
             return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
 
-    request.user.delete()  # soft delete via overridden model method
-    return Response({"detail": "Your account has been scheduled for deletion."})
+    # Hard delete — cascades to all related records. The UI already says
+    # "This cannot be undone", and re-registration must work immediately.
+    from django.contrib.auth import get_user_model
+
+    get_user_model().all_objects.filter(pk=request.user.pk).delete()
+    return Response({"detail": "Your account has been permanently deleted."})
 
 
 # ── Email / phone verification ─────────────────────────────────────────────────

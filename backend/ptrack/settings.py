@@ -362,7 +362,7 @@ VAPID_PRIVATE_KEY = cfg.VAPID_PRIVATE_KEY
 VAPID_SUBJECT = cfg.VAPID_SUBJECT
 
 # ── Email ─────────────────────────────────────────────────────────────────────
-DEFAULT_FROM_EMAIL = "pTrack <onboarding@resend.dev>"
+DEFAULT_FROM_EMAIL = cfg.DEFAULT_FROM_EMAIL
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 if cfg.RESEND_API_KEY:

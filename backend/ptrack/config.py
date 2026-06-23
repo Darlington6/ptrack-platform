@@ -36,6 +36,7 @@ class Settings(BaseSettings):
 
     # External APIs
     RESEND_API_KEY: str = ""
+    DEFAULT_FROM_EMAIL: str = "pTrack <onboarding@resend.dev>"
     GOOGLE_MAPS_API_KEY: str = ""
     GOOGLE_OAUTH_CLIENT_ID: str = ""
 
