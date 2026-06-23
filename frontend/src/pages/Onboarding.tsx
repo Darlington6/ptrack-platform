@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -35,8 +35,25 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [slide, setSlide] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function resetTimer() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setSlide((s) => (s + 1) % SLIDES.length);
+    }, 3000);
+  }
+
+  useEffect(() => {
+    resetTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function finishOnboarding() {
+    if (timerRef.current) clearInterval(timerRef.current);
     try {
       await client.patch('/auth/me/', { has_completed_onboarding: true });
       if (user) {
@@ -49,6 +66,7 @@ export default function Onboarding() {
   }
 
   function handleNext() {
+    resetTimer();
     if (slide < SLIDES.length - 1) {
       setSlide((s) => s + 1);
     } else {

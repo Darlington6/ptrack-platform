@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { NudgeBanner } from '../components/feedback/NudgeBanner';
 import RecyclingModal from './RecyclingModal';
+import { Skeleton } from '../components/ui/Skeleton';
 import client from '../api/client';
 import type { CursorPaginatedResponse, Reward, CommunityStats } from '../types';
 
@@ -42,7 +43,7 @@ export default function Dashboard() {
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const confettiFired = useRef(false);
 
-  const { data: rewardsData } = useQuery({
+  const { data: rewardsData, isLoading: rewardsLoading } = useQuery({
     queryKey: ['rewards', 'dashboard'],
     queryFn: () => client.get<CursorPaginatedResponse<RewardsResponse>>('/rewards/me/?limit=5'),
     staleTime: 60_000,
@@ -90,20 +91,24 @@ export default function Dashboard() {
       <NudgeBanner />
 
       {/* C — Points card */}
-      <div className="bg-gradient-to-br from-green-600 to-green-800 dark:from-green-700 dark:to-green-900 rounded-2xl p-6 text-white relative overflow-hidden">
-        <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10" />
-        <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5" />
-        <p className="text-sm font-medium text-green-100 mb-1">{t('your_points')}</p>
-        <p className="text-5xl font-extrabold tabular-nums mb-3">{user?.points ?? 0}</p>
-        <div className="flex items-center justify-between text-sm">
-          <span>🔥 {t('streak', { count: user?.current_streak ?? 0 })}</span>
-          {rank !== null && (
-            <span className="font-semibold">
-              ↗ {t('rank_in', { rank, sector: user?.sector ?? 'Kimironko' })}
-            </span>
-          )}
+      {rewardsLoading ? (
+        <Skeleton className="h-32 rounded-2xl" />
+      ) : (
+        <div className="bg-gradient-to-br from-green-600 to-green-800 dark:from-green-700 dark:to-green-900 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10" />
+          <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5" />
+          <p className="text-sm font-medium text-green-100 mb-1">{t('your_points')}</p>
+          <p className="text-5xl font-extrabold tabular-nums mb-3">{user?.points ?? 0}</p>
+          <div className="flex items-center justify-between text-sm">
+            <span>🔥 {t('streak', { count: user?.current_streak ?? 0 })}</span>
+            {rank !== null && (
+              <span className="font-semibold">
+                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'Kimironko' })}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* D — Weekly goal */}
       <div
@@ -227,7 +232,13 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {rewards.length === 0 ? (
+        {rewardsLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 rounded-xl" />
+            ))}
+          </div>
+        ) : rewards.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-6 text-center text-gray-500 dark:text-slate-400 text-sm">
             {t('no_activity')}
           </div>

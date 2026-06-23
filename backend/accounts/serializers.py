@@ -101,12 +101,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         if _is_phone(identifier):
             phone = identifier.strip()
-            if User.objects.filter(phone_number=phone).exists():
+            placeholder_email = f"phone_{_clean_phone(phone)}@ptrack.local"
+            if (
+                User.objects.filter(phone_number=phone).exists()
+                or User.objects.filter(email=placeholder_email).exists()
+            ):
                 raise serializers.ValidationError(
                     {"email": "An account with this phone number already exists."}
                 )
             data["phone_number"] = phone
-            data["email"] = f"phone_{_clean_phone(phone)}@ptrack.local"
+            data["email"] = placeholder_email
         else:
             try:
                 serializers.EmailField().run_validation(identifier)

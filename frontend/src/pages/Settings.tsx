@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
-import { User, Lock, Globe, Sun, Bell, Eye, Database, ChevronRight } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { User, Lock, Globe, Sun, Bell, Eye, Database, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const ITEMS = [
@@ -18,11 +18,15 @@ const ITEMS = [
 ] as const;
 
 export default function Settings() {
+  const navigate = useNavigate();
   const { t } = useTranslation('settings');
 
   return (
     <div className="pb-24 px-4">
-      <div className="py-4">
+      <div className="py-4 flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={20} />
+        </button>
         <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t('title')}</h1>
       </div>
 

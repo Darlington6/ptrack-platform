@@ -149,14 +149,17 @@ export default function ReportDetail() {
           </div>
         </div>
 
-        {/* Location map */}
+        {/* Location map — interactive, shows where waste was reported */}
         <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
           <Map
             mapId={(import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) ?? null}
             defaultCenter={{ lat: report.latitude, lng: report.longitude }}
             defaultZoom={15}
-            gestureHandling="none"
-            disableDefaultUI
+            gestureHandling="cooperative"
+            zoomControl
+            streetViewControl={false}
+            mapTypeControl={false}
+            fullscreenControl={false}
             style={{ width: '100%', height: '100%' }}
           >
             <AdvancedMarker position={{ lat: report.latitude, lng: report.longitude }} />

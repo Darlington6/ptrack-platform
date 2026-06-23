@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Locate } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import client from '../api/client';
 import { Button } from '../components/ui/Button';
@@ -197,9 +197,6 @@ export default function ReportWaste() {
       <form onSubmit={handleSubmit} className="px-4 py-4 space-y-5">
         {/* Map */}
         <div>
-          <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Pin the exact location
-          </p>
           <div
             className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700"
             style={{ height: '220px' }}
@@ -225,9 +222,15 @@ export default function ReportWaste() {
               />
             </GoogleMap>
           </div>
-          {/* Address bar */}
-          <div className="mt-1.5 flex items-center justify-between gap-2">
-            <p className="text-xs text-gray-500 dark:text-slate-400 truncate flex-1">{address}</p>
+          {/* Location row */}
+          <div className="mt-2 flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-500 inline-block flex-shrink-0" />
+                Location auto-detected
+              </p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{address}</p>
+            </div>
             <button
               type="button"
               onClick={() => {
@@ -238,9 +241,9 @@ export default function ReportWaste() {
                   setShowConsent(true);
                 }
               }}
-              className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 flex-shrink-0"
+              className="text-xs font-medium text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5"
             >
-              <Locate size={12} /> My location
+              Change
             </button>
           </div>
         </div>

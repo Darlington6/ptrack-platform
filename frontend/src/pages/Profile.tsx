@@ -12,7 +12,9 @@ import {
   MapPin,
   Share2,
   Pencil,
+  Recycle,
 } from 'lucide-react';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from '../components/ui/Avatar';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
@@ -28,6 +30,7 @@ function formatDate(iso: string): string {
 const MENU = [
   { icon: Activity, label: 'My Activity', to: '/activity' },
   { icon: Trophy, label: 'My Achievements', to: '/rewards' },
+  { icon: Recycle, label: 'Recycling Centres', to: '/centres' },
   { icon: Bell, label: 'Notifications', to: '/notifications' },
   { icon: Settings, label: 'Settings', to: '/settings' },
   { icon: HelpCircle, label: 'Help & Support', to: '/help' },
@@ -37,6 +40,7 @@ const MENU = [
 export default function Profile() {
   const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
+  const networkStatus = useNetworkStatus();
 
   const [reportsCount, setReportsCount] = useState(0);
   const [recyclingCount, setRecyclingCount] = useState(0);
@@ -86,6 +90,7 @@ export default function Profile() {
                 src={user?.profile_picture}
                 name={user?.full_name ?? user?.username ?? 'U'}
                 size="lg"
+                statusDot={networkStatus}
               />
               <button
                 onClick={() => setShowAvatarModal(true)}
