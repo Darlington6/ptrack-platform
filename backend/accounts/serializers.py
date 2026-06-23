@@ -124,6 +124,12 @@ class RegisterSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"email": "Enter a valid email address or phone number."}
                 )
+            # Check uniqueness against ALL users including soft-deleted ones so
+            # a deleted account's email doesn't pass validation and hit a DB UNIQUE error.
+            if User.all_objects.filter(email=identifier).exists():
+                raise serializers.ValidationError(
+                    {"email": "An account with this email already exists."}
+                )
 
         return data
 
