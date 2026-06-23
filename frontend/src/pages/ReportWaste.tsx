@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
+import { toast } from 'sonner';
 import client from '../api/client';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -52,7 +53,6 @@ export default function ReportWaste() {
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState('');
   const [showConsent, setShowConsent] = useState(false);
 
   // Debounced marker position for geocoding
@@ -123,8 +123,8 @@ export default function ReportWaste() {
       // If offline, queue locally and show a friendly message
       if (!navigator.onLine) {
         await enqueueReport(payload, image);
-        setToast('Saved offline. Will sync automatically when you reconnect.');
-        setTimeout(() => navigate('/dashboard'), 2500);
+        toast.success("Saved offline — will sync automatically when you're back online.");
+        setTimeout(() => navigate('/dashboard'), 2000);
         return;
       }
 
@@ -141,19 +141,19 @@ export default function ReportWaste() {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         await refreshUser();
-        setToast(
-          `Report submitted! +10 points earned. Balance: ${String(res.data.new_points_balance)} pts`
+        toast.success(
+          `Report submitted! +10 pts — Balance: ${String(res.data.new_points_balance ?? '')} pts`
         );
-        setTimeout(() => navigate('/dashboard'), 2000);
+        setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
         // Network error while online — queue for later sync
         await enqueueReport(payload, image);
-        setToast("Saved. Will sync when you're back online.");
-        setTimeout(() => navigate('/dashboard'), 2500);
+        toast.success("Saved — will sync when you're back online.");
+        setTimeout(() => navigate('/dashboard'), 2000);
         void networkErr;
       }
     } catch {
-      setToast('Failed to submit report. Please try again.');
+      toast.error('Failed to submit report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -187,12 +187,6 @@ export default function ReportWaste() {
           Report Plastic Waste
         </h1>
       </div>
-
-      {toast && (
-        <div className="mx-4 mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-700 dark:text-green-400 text-sm font-medium">
-          {toast}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="px-4 py-4 space-y-5">
         {/* Map */}
