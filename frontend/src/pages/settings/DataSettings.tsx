@@ -9,11 +9,13 @@ import { Button } from '../../components/ui/Button';
 
 export default function DataSettings() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [password, setPassword] = useState('');
   const [deleting, setDeleting] = useState(false);
+
+  const hasPassword = !!user?.has_usable_password;
 
   async function handleExport() {
     try {
@@ -26,7 +28,6 @@ export default function DataSettings() {
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      // export endpoint doesn't require body — call impact instead as placeholder
       toast.info('Data export requested. You will receive an email.');
     }
   }
@@ -38,15 +39,21 @@ export default function DataSettings() {
     }
     setDeleting(true);
     try {
-      await authApi.deleteAccount(password);
+      await authApi.deleteAccount(hasPassword ? password : '');
       logout();
       toast.success('Your account has been deleted.');
       navigate('/');
     } catch {
-      toast.error('Incorrect password or request failed.');
+      toast.error(hasPassword ? 'Incorrect password or request failed.' : 'Request failed.');
     } finally {
       setDeleting(false);
     }
+  }
+
+  function handleClose() {
+    setShowDeleteModal(false);
+    setDeleteConfirmText('');
+    setPassword('');
   }
 
   return (
@@ -80,16 +87,13 @@ export default function DataSettings() {
         </button>
       </div>
 
-      <Modal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete account"
-      >
+      <Modal isOpen={showDeleteModal} onClose={handleClose} title="Delete account">
         <div className="space-y-4">
           <p className="text-sm text-gray-600 dark:text-slate-400">
             This will permanently delete your account. Type{' '}
             <span className="font-mono font-bold text-red-600">DELETE MY ACCOUNT</span> to confirm.
           </p>
+
           <input
             type="text"
             value={deleteConfirmText}
@@ -97,15 +101,19 @@ export default function DataSettings() {
             placeholder="DELETE MY ACCOUNT"
             className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
           />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Your password"
-            className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
+
+          {hasPassword && (
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Your password"
+              className="w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          )}
+
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setShowDeleteModal(false)} className="flex-1">
+            <Button variant="outline" onClick={handleClose} className="flex-1">
               Cancel
             </Button>
             <Button variant="danger" onClick={handleDelete} disabled={deleting} className="flex-1">

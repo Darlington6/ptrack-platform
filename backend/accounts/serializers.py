@@ -18,9 +18,13 @@ def _clean_phone(phone: str) -> str:
 
 class UserSerializer(serializers.ModelSerializer):
     google_connected = serializers.SerializerMethodField()
+    has_usable_password = serializers.SerializerMethodField()
 
     def get_google_connected(self, obj) -> bool:
         return bool(obj.google_sub)
+
+    def get_has_usable_password(self, obj) -> bool:
+        return obj.has_usable_password()
 
     class Meta:
         model = User
@@ -56,6 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
             "notification_preferences",
             # OAuth
             "google_connected",
+            "has_usable_password",
             "auth_method",
         ]
         read_only_fields = [
@@ -69,6 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
             "email_verified",
             "phone_verified",
             "google_connected",
+            "has_usable_password",
             "auth_method",
         ]
 

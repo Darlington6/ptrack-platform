@@ -55,6 +55,7 @@ export interface User {
   };
   // OAuth
   google_connected: boolean;
+  has_usable_password: boolean;
   auth_method: 'manual' | 'google';
 }
 

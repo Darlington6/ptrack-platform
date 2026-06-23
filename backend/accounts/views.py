@@ -218,15 +218,21 @@ def password_change(request):
     current = request.data.get("current_password", "")
     new = request.data.get("new_password", "")
 
-    if not current or not new:
+    if not new:
         return Response(
-            {"detail": "current_password and new_password are required."},
+            {"detail": "new_password is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    if not request.user.check_password(current):
-        return Response(
-            {"detail": "Current password is incorrect."}, status=status.HTTP_400_BAD_REQUEST
-        )
+    if request.user.has_usable_password():
+        if not current:
+            return Response(
+                {"detail": "current_password is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not request.user.check_password(current):
+            return Response(
+                {"detail": "Current password is incorrect."}, status=status.HTTP_400_BAD_REQUEST
+            )
     if len(new) < 6:
         return Response(
             {"detail": "Password must be at least 6 characters."},
@@ -236,7 +242,7 @@ def password_change(request):
     request.user.set_password(new)
     request.user.save(update_fields=["password"])
     cache.delete(f"user:profile:{request.user.pk}")
-    return Response({"detail": "Password changed successfully."})
+    return Response({"detail": "Password updated successfully."})
 
 
 # ── Avatar ─────────────────────────────────────────────────────────────────────
@@ -357,17 +363,17 @@ def delete_account(request):
     Soft-delete the requesting user's account.
     Body must include ``password`` and ``confirmation = "DELETE MY ACCOUNT"``.
     """
-    password = request.data.get("password", "")
     confirmation = request.data.get("confirmation", "")
-
-    if not request.user.check_password(password):
-        return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
-
     if confirmation != "DELETE MY ACCOUNT":
         return Response(
             {"detail": "Send confirmation = 'DELETE MY ACCOUNT' to proceed."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    if request.user.has_usable_password():
+        password = request.data.get("password", "")
+        if not request.user.check_password(password):
+            return Response({"detail": "Incorrect password."}, status=status.HTTP_400_BAD_REQUEST)
 
     request.user.delete()  # soft delete via overridden model method
     return Response({"detail": "Your account has been scheduled for deletion."})
