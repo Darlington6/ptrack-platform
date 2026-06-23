@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { leaderboardApi, type LeaderboardPeriod } from '../api/endpoints/leaderboard';
 import type { LeaderboardEntry } from '../types';
@@ -34,6 +36,7 @@ function Avatar({ name, className = '' }: { name: string; className?: string }) 
 }
 
 export default function Leaderboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [period, setPeriod] = useState<LeaderboardPeriod>('week');
   const [sectorOnly, setSectorOnly] = useState(true);
@@ -54,7 +57,12 @@ export default function Leaderboard() {
 
   return (
     <div className="px-4 pt-4 pb-24 space-y-5">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leaderboard</h1>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leaderboard</h1>
+      </div>
 
       {/* Period tabs */}
       <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 gap-1">

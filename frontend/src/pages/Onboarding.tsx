@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -6,25 +6,25 @@ import client from '../api/client';
 
 const SLIDES = [
   {
-    bg: 'bg-green-50 dark:bg-green-950',
+    bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
     icon: '👋',
     title: 'Welcome to pTrack!',
     body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
   },
   {
-    bg: 'bg-amber-50 dark:bg-amber-950',
+    bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
     icon: '⭐',
     title: 'Earn points for every action',
     body: 'Report waste (+10 pts), log recycling (+15 pts), get verified (+5 bonus). Points unlock rewards and badges.',
   },
   {
-    bg: 'bg-blue-50 dark:bg-blue-950',
+    bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
     icon: '🏆',
     title: 'Climb the leaderboard',
     body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
   },
   {
-    bg: 'bg-purple-50 dark:bg-purple-950',
+    bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
     icon: '🚀',
     title: 'Ready to get started?',
     body: 'Start your first report and earn 10 points right now. Kigali is counting on you!',
@@ -35,8 +35,25 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [slide, setSlide] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function resetTimer() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setSlide((s) => (s + 1) % SLIDES.length);
+    }, 3000);
+  }
+
+  useEffect(() => {
+    resetTimer();
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function finishOnboarding() {
+    if (timerRef.current) clearInterval(timerRef.current);
     try {
       await client.patch('/auth/me/', { has_completed_onboarding: true });
       if (user) {
@@ -49,6 +66,7 @@ export default function Onboarding() {
   }
 
   function handleNext() {
+    resetTimer();
     if (slide < SLIDES.length - 1) {
       setSlide((s) => s + 1);
     } else {
@@ -56,11 +74,13 @@ export default function Onboarding() {
     }
   }
 
-  const currentSlide = SLIDES[slide] ?? SLIDES[0];
+  // slide is always in [0, SLIDES.length-1]
+  const currentSlide = SLIDES[slide]!;
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center px-6 transition-colors duration-500 ${currentSlide.bg}`}
+      className="min-h-screen flex flex-col items-center justify-center px-6"
+      style={{ background: currentSlide.bg, transition: 'background 0.5s ease' }}
     >
       {/* Icon */}
       <span className="text-6xl mb-8 select-none" aria-hidden="true">

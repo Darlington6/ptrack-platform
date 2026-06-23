@@ -160,7 +160,7 @@ export default function ReportWaste() {
   }
 
   return (
-    <div className="pb-24 max-w-lg mx-auto">
+    <div className="pb-24 max-w-2xl mx-auto">
       {showConsent && (
         <GeoConsentModal
           onAllow={() => {
@@ -225,7 +225,7 @@ export default function ReportWaste() {
               />
             </GoogleMap>
           </div>
-          {/* Address bar */}
+          {/* Address row */}
           <div className="mt-1.5 flex items-center justify-between gap-2">
             <p className="text-xs text-gray-500 dark:text-slate-400 truncate flex-1">{address}</p>
             <button

@@ -1,4 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import type { CommunityStats, CommunityTrends } from '../api/types';
@@ -24,6 +26,7 @@ function KpiCard({ value, label, icon }: { value: string | number; label: string
 }
 
 export default function CommunityImpact() {
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: statsData } = useQuery({
@@ -54,8 +57,13 @@ export default function CommunityImpact() {
   return (
     <div className="px-4 pt-4 pb-24 space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Community Impact</h1>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
+        <div className="flex items-center gap-3 mb-0.5">
+          <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Community Impact</h1>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 pl-8">
           {user?.sector ?? 'Kimironko'} · All time
         </p>
       </div>

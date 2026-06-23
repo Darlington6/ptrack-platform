@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { notificationsApi } from '../../api/endpoints/notifications';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
 function greetingIcon(): string {
   const h = new Date().getHours();
@@ -14,6 +15,7 @@ function greetingIcon(): string {
 
 export function Navbar() {
   const { user } = useAuth();
+  const networkStatus = useNetworkStatus();
   const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
 
   const { data: unreadCount = 0 } = useQuery({
@@ -32,7 +34,7 @@ export function Navbar() {
 
       <div className="flex items-center gap-3">
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
-          Hi, {firstName} 👋{greetingIcon()}
+          Hi, {firstName} {greetingIcon()}
         </span>
 
         <NavLink to="/notifications" className="relative p-1.5">
@@ -49,6 +51,7 @@ export function Navbar() {
             src={user?.profile_picture}
             name={user?.full_name ?? user?.username ?? 'U'}
             size="sm"
+            statusDot={networkStatus}
           />
         </NavLink>
       </div>

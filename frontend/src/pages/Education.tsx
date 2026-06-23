@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Clock } from 'lucide-react';
+import { Clock, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { educationApi } from '../api/endpoints/education';
 import type { Article } from '../api/types';
@@ -43,6 +43,7 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
 }
 
 export default function Education() {
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const lang = (i18n.language?.startsWith('rw') ? 'rw' : 'en') as 'en' | 'rw';
   const [category, setCategory] = useState('All');
@@ -57,7 +58,12 @@ export default function Education() {
 
   return (
     <div className="px-4 pt-4 pb-24 space-y-4">
-      <h1 className="text-xl font-bold text-gray-900 dark:text-white">Learn</h1>
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Learn</h1>
+      </div>
 
       {/* Category filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1">

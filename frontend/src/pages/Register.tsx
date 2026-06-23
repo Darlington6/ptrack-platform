@@ -70,6 +70,7 @@ export default function Register() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -314,6 +315,17 @@ export default function Register() {
             </div>
             {errors.confirm_password && (
               <p className="text-xs text-red-500 mt-1">{errors.confirm_password.message}</p>
+            )}
+            {!errors.confirm_password && watch('confirm_password') && passwordValue && (
+              <p
+                className={`text-xs mt-1 ${
+                  watch('confirm_password') === passwordValue ? 'text-green-600' : 'text-red-500'
+                }`}
+              >
+                {watch('confirm_password') === passwordValue
+                  ? '✓ Passwords match'
+                  : '✗ Passwords do not match'}
+              </p>
             )}
           </div>
 

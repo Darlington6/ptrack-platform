@@ -2,9 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
+import { authApi } from '../../api/endpoints/auth';
 import client from '../../api/client';
 import type { User } from '../../types';
 
@@ -39,6 +40,19 @@ export default function AccountSettings() {
       toast.error('Failed to save changes.');
     }
   }
+
+  async function handleResendEmail() {
+    try {
+      await authApi.sendVerification('email', 'register_verify');
+      toast.success('Verification email sent!');
+    } catch {
+      toast.error('Failed to send verification email.');
+    }
+  }
+
+  const isPhoneUser = user?.email?.startsWith('phone_');
+  const showEmail = !isPhoneUser;
+  const showPhone = !!user?.phone_number;
 
   return (
     <div className="pb-24 px-4">
@@ -79,37 +93,72 @@ export default function AccountSettings() {
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
-          >
-            Email
-          </label>
-          <input
-            id="email"
-            type="text"
-            disabled
-            value={user?.email?.startsWith('phone_') ? '—' : (user?.email ?? '')}
-            className={`${INPUT_CLS} opacity-60 cursor-not-allowed`}
-          />
-        </div>
+        {showEmail && (
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
+              Email
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="email"
+                type="text"
+                disabled
+                value={user?.email ?? ''}
+                className={`${INPUT_CLS} opacity-60 cursor-not-allowed flex-1`}
+              />
+              {user?.email_verified ? (
+                <span className="flex items-center gap-1 text-xs font-medium text-green-600 whitespace-nowrap">
+                  <CheckCircle size={13} /> Verified
+                </span>
+              ) : (
+                <span className="text-xs font-medium text-amber-600 whitespace-nowrap">
+                  Unverified
+                </span>
+              )}
+            </div>
+            {!user?.email_verified && (
+              <button
+                type="button"
+                onClick={() => void handleResendEmail()}
+                className="text-xs text-green-600 hover:underline mt-1"
+              >
+                Resend verification email
+              </button>
+            )}
+          </div>
+        )}
 
-        <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
-          >
-            Phone
-          </label>
-          <input
-            id="phone"
-            type="text"
-            disabled
-            value={user?.phone_number ?? '—'}
-            className={`${INPUT_CLS} opacity-60 cursor-not-allowed`}
-          />
-        </div>
+        {showPhone && (
+          <div>
+            <label
+              htmlFor="phone"
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
+              Phone
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="phone"
+                type="text"
+                disabled
+                value={user?.phone_number ?? ''}
+                className={`${INPUT_CLS} opacity-60 cursor-not-allowed flex-1`}
+              />
+              {user?.phone_verified ? (
+                <span className="flex items-center gap-1 text-xs font-medium text-green-600 whitespace-nowrap">
+                  <CheckCircle size={13} /> Verified
+                </span>
+              ) : (
+                <span className="text-xs font-medium text-amber-600 whitespace-nowrap">
+                  Unverified
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <button
           type="submit"

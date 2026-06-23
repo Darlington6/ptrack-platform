@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronDown, Mail, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface FaqItem {
@@ -139,6 +140,7 @@ function AccordionItem({
 }
 
 export default function HelpFAQ() {
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isRw = i18n.language?.startsWith('rw');
   const faqs = isRw ? FAQ_RW : FAQ_EN;
@@ -147,10 +149,15 @@ export default function HelpFAQ() {
   return (
     <div className="px-4 pt-4 pb-24 space-y-6 max-w-lg mx-auto">
       <div>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-          {isRw ? 'Inkunga & Ibibazo Bikunze Kubazwa' : 'Help & FAQ'}
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
+        <div className="flex items-center gap-3 mb-0.5">
+          <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
+            <ArrowLeft size={20} />
+          </button>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            {isRw ? 'Inkunga & Ibibazo Bikunze Kubazwa' : 'Help & FAQ'}
+          </h1>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1 pl-8">
           {isRw ? "Inzanubwo z'ibibazo bikunze kubazwa" : 'Answers to frequently asked questions'}
         </p>
       </div>
