@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const schema = z
   .object({
-    current_password: z.string().min(1, 'Required'),
+    current_password: z.string().optional(),
     new_password: z.string().min(8, 'Minimum 8 characters'),
     confirm_password: z.string(),
   })
@@ -30,22 +30,23 @@ export default function SecuritySettings() {
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [unlinking, setUnlinking] = useState(false);
 
+  const hasPassword = !!user?.has_usable_password;
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
+  } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
     try {
-      await authApi.changePassword(data.current_password, data.new_password);
-      toast.success('Password changed.');
+      await authApi.changePassword(data.current_password ?? '', data.new_password);
+      toast.success(hasPassword ? 'Password changed.' : 'Password set successfully.');
       reset();
+      if (!hasPassword) await refreshUser();
     } catch {
-      toast.error('Incorrect current password.');
+      toast.error(hasPassword ? 'Incorrect current password.' : 'Failed to set password.');
     }
   }
 
@@ -90,10 +91,47 @@ export default function SecuritySettings() {
         <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Security</h1>
       </div>
 
+      {/* Password section */}
+      <div className="mb-2">
+        <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">
+          {hasPassword ? 'Change password' : 'Set a password'}
+        </h2>
+        {!hasPassword && (
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
+            You signed in with Google. Set a password to also be able to log in with your email.
+          </p>
+        )}
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        {hasPassword && (
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+              Current password
+            </label>
+            <div className="relative">
+              <input
+                type={show.current ? 'text' : 'password'}
+                autoComplete="current-password"
+                {...register('current_password')}
+                className={INPUT_CLS}
+              />
+              <button
+                type="button"
+                onClick={() => setShow((s) => ({ ...s, current: !s.current }))}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+              >
+                {show.current ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+            {errors.current_password && (
+              <p className="text-xs text-red-500 mt-1">{errors.current_password.message}</p>
+            )}
+          </div>
+        )}
+
         {(
           [
-            { name: 'current_password', label: 'Current password', key: 'current' as const },
             { name: 'new_password', label: 'New password', key: 'new' as const },
             { name: 'confirm_password', label: 'Confirm new password', key: 'confirm' as const },
           ] as const
@@ -126,11 +164,11 @@ export default function SecuritySettings() {
           disabled={isSubmitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
         >
-          {isSubmitting ? 'Saving…' : 'Change password'}
+          {isSubmitting ? 'Saving…' : hasPassword ? 'Change password' : 'Set password'}
         </button>
       </form>
 
-      {/* ── Connected accounts ─────────────────────────────────────────── */}
+      {/* Connected accounts */}
       <div className="mt-8">
         <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">
           Connected accounts
