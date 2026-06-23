@@ -322,7 +322,9 @@ export default function Register() {
                   watch('confirm_password') === passwordValue ? 'text-green-600' : 'text-red-500'
                 }`}
               >
-                {watch('confirm_password') === passwordValue ? '✓ Passwords match' : '✗ Passwords do not match'}
+                {watch('confirm_password') === passwordValue
+                  ? '✓ Passwords match'
+                  : '✗ Passwords do not match'}
               </p>
             )}
           </div>
