@@ -92,15 +92,9 @@ export default function Notifications() {
     }
   }, []);
 
-  // Auto-mark all as read when the page opens, then zero the bell count.
   useEffect(() => {
-    void fetchNotifications().then(() => {
-      void notificationsApi.markAllRead().then(() => {
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-        void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
-      });
-    });
-  }, [fetchNotifications, qc]);
+    void fetchNotifications();
+  }, [fetchNotifications]);
 
   // Infinite scroll
   useEffect(() => {
@@ -124,6 +118,10 @@ export default function Notifications() {
         await notificationsApi.markRead(n.id);
         setNotifications((prev) =>
           prev.map((item) => (item.id === n.id ? { ...item, is_read: true } : item))
+        );
+        // Decrement bell count immediately — no refresh needed
+        void qc.setQueryData<number>(['notifications', 'unread'], (prev) =>
+          Math.max(0, (prev ?? 1) - 1)
         );
       } catch {
         // silent

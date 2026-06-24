@@ -134,8 +134,8 @@ CACHES = {
     }
 }
 
-# Use Redis for Django sessions too
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# cached_db: writes to both Redis and the DB — survives Redis being unavailable locally
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_CACHE_ALIAS = "default"
 
 # ── Authentication ────────────────────────────────────────────────────────────

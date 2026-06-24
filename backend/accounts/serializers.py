@@ -78,6 +78,13 @@ class UserSerializer(serializers.ModelSerializer):
             "auth_method",
         ]
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Django staff/superuser accounts should always appear as admin role
+        if instance.is_staff or instance.is_superuser:
+            data["role"] = "admin"
+        return data
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     # 'email' accepts either an email address or a phone number — we normalise
