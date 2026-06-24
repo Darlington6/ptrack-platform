@@ -111,6 +111,10 @@ export default function ReportWaste() {
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
+    if (!image) {
+      toast.error('Please add a photo of the waste before submitting.');
+      return;
+    }
     setLoading(true);
     try {
       const payload = {
@@ -139,6 +143,7 @@ export default function ReportWaste() {
       try {
         const res = await client.post('/reports/', data, {
           headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 15000,
         });
         await refreshUser();
         toast.success(

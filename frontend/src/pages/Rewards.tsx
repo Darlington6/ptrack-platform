@@ -34,13 +34,7 @@ const REWARD_ICONS: Record<string, string> = {
   streak_bonus: '🔥',
 };
 
-function BadgeCard({
-  badge,
-  currentPoints,
-}: {
-  badge: BadgeDefinition;
-  currentPoints: number;
-}) {
+function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPoints: number }) {
   const earned = currentPoints >= badge.required_points;
   const pct = Math.min((currentPoints / badge.required_points) * 100, 100);
 
@@ -54,9 +48,7 @@ function BadgeCard({
     >
       <div className="relative w-fit">
         <span className="text-3xl">{badge.icon || '🏅'}</span>
-        {!earned && (
-          <span className="absolute -bottom-1 -right-1 text-xs">🔒</span>
-        )}
+        {!earned && <span className="absolute -bottom-1 -right-1 text-xs">🔒</span>}
       </div>
       <div>
         <p className="text-sm font-bold text-gray-900 dark:text-slate-100 leading-tight">
@@ -98,8 +90,7 @@ export default function Rewards() {
 
   const { data: leaderboardData } = useQuery({
     queryKey: ['leaderboard', 'rewards'],
-    queryFn: () =>
-      client.get<Array<{ id: number; rank: number }>>('/leaderboard/?period=all'),
+    queryFn: () => client.get<Array<{ id: number; rank: number }>>('/leaderboard/?period=all'),
     staleTime: 5 * 60_000,
   });
 
@@ -127,7 +118,7 @@ export default function Rewards() {
   const nextBadge = badges.find((b) => b.required_points > points);
   const nextBadgePts = nextBadge ? nextBadge.required_points - points : 0;
   const prevThreshold = nextBadge
-    ? badges.filter((b) => b.required_points <= points).slice(-1)[0]?.required_points ?? 0
+    ? (badges.filter((b) => b.required_points <= points).slice(-1)[0]?.required_points ?? 0)
     : points;
   const progressPct = nextBadge
     ? Math.min(((points - prevThreshold) / (nextBadge.required_points - prevThreshold)) * 100, 100)

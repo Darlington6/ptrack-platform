@@ -12,6 +12,7 @@ import type { User } from '../../types';
 const schema = z.object({
   full_name: z.string().min(2, 'Required'),
   bio: z.string().max(200).optional(),
+  weekly_goal: z.number().int().min(1).max(20),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -28,7 +29,11 @@ export default function AccountSettings() {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { full_name: user?.full_name ?? '', bio: user?.bio ?? '' },
+    defaultValues: {
+      full_name: user?.full_name ?? '',
+      bio: user?.bio ?? '',
+      weekly_goal: user?.weekly_goal ?? 3,
+    },
   });
 
   async function onSubmit(data: FormData) {
@@ -159,6 +164,29 @@ export default function AccountSettings() {
             </div>
           </div>
         )}
+
+        <div>
+          <label
+            htmlFor="weekly_goal"
+            className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+          >
+            Weekly goal
+          </label>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
+            How many waste reports you aim to submit each week
+          </p>
+          <select
+            id="weekly_goal"
+            {...register('weekly_goal', { valueAsNumber: true })}
+            className={`${INPUT_CLS} bg-white dark:bg-slate-700`}
+          >
+            {[1, 2, 3, 5, 7, 10, 14, 20].map((n) => (
+              <option key={n} value={n}>
+                {n} {n === 1 ? 'report' : 'reports'} per week
+              </option>
+            ))}
+          </select>
+        </div>
 
         <button
           type="submit"

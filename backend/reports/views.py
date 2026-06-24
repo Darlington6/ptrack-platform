@@ -25,6 +25,15 @@ from rest_framework.response import Response
 from accounts.throttles import MapBboxThrottle, RecyclingLogThrottle, ReportSubmitThrottle
 from core.pagination import FeedCursorPagination, StandardPagination
 
+
+class RewardsPagination(FeedCursorPagination):
+    ordering = "-date_earned"
+
+
+class RecyclingPagination(FeedCursorPagination):
+    ordering = "-date"
+
+
 from .models import BadgeDefinition, RecyclingActivity, Reward, WasteReport
 from .permissions import IsAdminRole
 from .serializers import (
@@ -219,7 +228,7 @@ def recycling_list_create(request):
     """
     if request.method == "GET":
         qs = RecyclingActivity.objects.filter(user=request.user)
-        paginator = FeedCursorPagination()
+        paginator = RecyclingPagination()
         page = paginator.paginate_queryset(qs, request)
         if page is not None:
             return paginator.get_paginated_response(
@@ -352,7 +361,7 @@ def my_rewards(request):
     """Return all rewards earned by the current user with cursor pagination."""
     rewards = Reward.objects.filter(user=request.user)
 
-    paginator = FeedCursorPagination()
+    paginator = RewardsPagination()
     page = paginator.paginate_queryset(rewards, request)
     if page is not None:
         return paginator.get_paginated_response(

@@ -70,10 +70,16 @@ export async function enqueueReport(
     retry_count: 0,
     last_error: '',
   });
-  // Register background sync if the API is available
+  // Register background sync — guard with a timeout so an updating SW
+  // doesn't hang navigator.serviceWorker.ready when offline.
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
-    const reg = await navigator.serviceWorker.ready;
-    await reg.sync.register('sync-reports');
+    try {
+      const timeout = new Promise<null>((res) => setTimeout(() => res(null), 2000));
+      const reg = await Promise.race([navigator.serviceWorker.ready, timeout]);
+      if (reg) await (reg as ServiceWorkerRegistration).sync.register('sync-reports');
+    } catch {
+      // Background sync unavailable — the queue is still saved; flushQueue() picks it up on reconnect
+    }
   }
 }
 
