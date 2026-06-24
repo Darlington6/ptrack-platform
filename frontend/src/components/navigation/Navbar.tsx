@@ -25,6 +25,7 @@ export function Navbar() {
       return (res.data.unread_count as number | undefined) ?? 0;
     },
     staleTime: 30_000,
+    refetchInterval: 60_000,
     enabled: !!user,
   });
 

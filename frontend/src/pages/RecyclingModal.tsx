@@ -40,6 +40,7 @@ export default function RecyclingModal({ onClose }: Props) {
       toast.success('+15 points! Recycling activity logged.');
       void qc.invalidateQueries({ queryKey: ['rewards'] });
       void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       onClose();
     } catch {
       await enqueueRecycling(payload);

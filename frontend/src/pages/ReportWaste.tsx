@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import client from '../api/client';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -46,6 +47,7 @@ export default function ReportWaste() {
   const navigate = useNavigate();
   const location = useLocation();
   const { refreshUser } = useAuth();
+  const qc = useQueryClient();
 
   const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIMIRONKO);
   const [address, setAddress] = useState('Kimironko, Kigali');
@@ -146,6 +148,7 @@ export default function ReportWaste() {
           timeout: 15000,
         });
         await refreshUser();
+        void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
         toast.success(
           `Report submitted! +10 pts — Balance: ${String(res.data.new_points_balance ?? '')} pts`
         );

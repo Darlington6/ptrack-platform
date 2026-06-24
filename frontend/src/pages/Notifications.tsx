@@ -1,6 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Info, Trophy, Flame, BarChart2, Users, Shield, Bell, ArrowLeft } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  Info,
+  Trophy,
+  Flame,
+  BarChart2,
+  Users,
+  Shield,
+  Bell,
+  ArrowLeft,
+  MapPin,
+  Recycle,
+  CheckCircle,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { notificationsApi } from '../api/endpoints/notifications';
@@ -13,6 +26,9 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   weekly_digest: BarChart2,
   community: Users,
   admin: Shield,
+  report: MapPin,
+  recycling: Recycle,
+  verification: CheckCircle,
 };
 
 type FilterKey = 'all' | 'unread' | 'streak_warning' | 'badge_earned' | 'community';
@@ -50,6 +66,7 @@ function timeAgo(iso: string): string {
 
 export default function Notifications() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(true);
@@ -75,9 +92,15 @@ export default function Notifications() {
     }
   }, []);
 
+  // Auto-mark all as read when the page opens, then zero the bell count.
   useEffect(() => {
-    void fetchNotifications();
-  }, [fetchNotifications]);
+    void fetchNotifications().then(() => {
+      void notificationsApi.markAllRead().then(() => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+        void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+      });
+    });
+  }, [fetchNotifications, qc]);
 
   // Infinite scroll
   useEffect(() => {

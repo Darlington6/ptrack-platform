@@ -77,10 +77,7 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
       <QueryClientProvider client={queryClient}>
-        <APIProvider
-          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''}
-          libraries={['visualization']}
-        >
+        <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''} libraries={[]}>
           <BrowserRouter>
             <AuthProvider>
               <UpdateBanner />
