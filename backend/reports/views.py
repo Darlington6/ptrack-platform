@@ -23,7 +23,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from accounts.throttles import MapBboxThrottle, RecyclingLogThrottle, ReportSubmitThrottle
+from core.notifications import notify
 from core.pagination import FeedCursorPagination, StandardPagination
+from push.helpers import send_push
 
 from .models import BadgeDefinition, RecyclingActivity, Reward, WasteReport
 from .permissions import IsAdminRole
@@ -36,6 +38,15 @@ from .serializers import (
 )
 
 User = get_user_model()
+
+
+class RewardsPagination(FeedCursorPagination):
+    ordering = "-date_earned"
+
+
+class RecyclingPagination(FeedCursorPagination):
+    ordering = "-date"
+
 
 _LEADERBOARD_CACHE_KEY = "leaderboard:top20"
 _LEADERBOARD_CACHE_TTL = 300  # 5 minutes
@@ -138,6 +149,20 @@ def reports_list_create(request):
     request.user.points += 10
     request.user.save(update_fields=["points"])
 
+    notify(
+        request.user,
+        "report",
+        "Report received! 📍",
+        "Your waste report is under review. +10 pts added.",
+        f"/reports/{report.pk}",
+    )
+    send_push(
+        request.user,
+        "Report received! 📍",
+        "Your waste report is under review — +10 pts added.",
+        f"/reports/{report.pk}",
+    )
+
     # Invalidate caches affected by a new report
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(_COMMUNITY_STATS_CACHE_KEY)
@@ -188,6 +213,20 @@ def report_verify(request, pk):
     report.user.points += 5
     report.user.save(update_fields=["points"])
 
+    notify(
+        report.user,
+        "verification",
+        "Report verified! ✅",
+        "An admin verified your waste report. +5 bonus pts added.",
+        f"/reports/{report.pk}",
+    )
+    send_push(
+        report.user,
+        "Report verified! ✅",
+        "An admin verified your waste report — +5 bonus pts.",
+        f"/reports/{report.pk}",
+    )
+
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{report.user.pk}")
 
@@ -219,7 +258,7 @@ def recycling_list_create(request):
     """
     if request.method == "GET":
         qs = RecyclingActivity.objects.filter(user=request.user)
-        paginator = FeedCursorPagination()
+        paginator = RecyclingPagination()
         page = paginator.paginate_queryset(qs, request)
         if page is not None:
             return paginator.get_paginated_response(
@@ -244,6 +283,20 @@ def recycling_list_create(request):
     Reward.objects.create(user=request.user, points_earned=15, reward_type="recycling_logged")
     request.user.points += 15
     request.user.save(update_fields=["points"])
+
+    notify(
+        request.user,
+        "recycling",
+        "Recycling logged! ♻️",
+        "Your recycling activity was recorded. +15 pts added.",
+        "/rewards",
+    )
+    send_push(
+        request.user,
+        "Recycling logged! ♻️",
+        "Recycling activity recorded — +15 pts added.",
+        "/rewards",
+    )
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{request.user.pk}")
@@ -352,7 +405,7 @@ def my_rewards(request):
     """Return all rewards earned by the current user with cursor pagination."""
     rewards = Reward.objects.filter(user=request.user)
 
-    paginator = FeedCursorPagination()
+    paginator = RewardsPagination()
     page = paginator.paginate_queryset(rewards, request)
     if page is not None:
         return paginator.get_paginated_response(

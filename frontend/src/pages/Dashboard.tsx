@@ -61,9 +61,9 @@ export default function Dashboard() {
     staleTime: 5 * 60_000,
   });
 
-  const rawRewards = rewardsData?.data?.results;
+  // The /rewards/me/ endpoint returns cursor-paginated { next, previous, results: { total_points, rewards } }
   const rewardsPayload =
-    rawRewards && rawRewards.length > 0 ? (rawRewards[0] as unknown as RewardsResponse) : null;
+    (rewardsData?.data as unknown as { results?: RewardsResponse })?.results ?? null;
   const rewards: Reward[] = rewardsPayload?.rewards?.slice(0, 5) ?? [];
 
   const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;

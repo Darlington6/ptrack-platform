@@ -3,6 +3,7 @@ import { X, Recycle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import client from '../api/client';
+import { enqueueRecycling } from '../lib/offlineQueue';
 
 const ACTIVITY_TYPES = [
   { value: 'drop_off', label: 'Drop-off at centre' },
@@ -27,14 +28,23 @@ export default function RecyclingModal({ onClose }: Props) {
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
+    const payload = { activity_type: activityType, note: note || undefined };
     try {
-      await client.post('/recycling/', { activity_type: activityType, note: note || undefined });
+      if (!navigator.onLine) {
+        await enqueueRecycling(payload);
+        toast.success("Saved offline — will sync automatically when you're back online.");
+        onClose();
+        return;
+      }
+      await client.post('/recycling/', payload);
       toast.success('+15 points! Recycling activity logged.');
       void qc.invalidateQueries({ queryKey: ['rewards'] });
       void qc.invalidateQueries({ queryKey: ['dashboard'] });
       onClose();
     } catch {
-      toast.error('Failed to log activity. Please try again.');
+      await enqueueRecycling(payload);
+      toast.success("Saved — will sync when you're back online.");
+      onClose();
     } finally {
       setLoading(false);
     }

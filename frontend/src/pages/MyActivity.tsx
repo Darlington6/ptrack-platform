@@ -52,10 +52,10 @@ export default function MyActivity() {
     setLoading(true);
     try {
       const res = await client.get<{
-        rewards?: Reward[];
+        results?: { rewards?: Reward[]; total_points?: number };
         next: string | null;
       }>(rewardsCursor);
-      const rawRewards: Reward[] = res.data.rewards ?? [];
+      const rawRewards: Reward[] = res.data.results?.rewards ?? [];
       const newItems: ActivityItem[] = rawRewards.map((r) => ({
         id: `reward-${r.id}`,
         type: 'reward',
@@ -76,8 +76,9 @@ export default function MyActivity() {
           (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
         );
       });
-      setRewardsCursor(res.data.next);
-      if (!res.data.next) setHasMore(false);
+      const nextCursor = (res.data as unknown as { next?: string | null }).next ?? null;
+      setRewardsCursor(nextCursor);
+      if (!nextCursor) setHasMore(false);
     } catch {
       setHasMore(false);
     } finally {
