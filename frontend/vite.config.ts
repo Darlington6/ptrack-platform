@@ -12,7 +12,7 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      devOptions: { enabled: false },
+      devOptions: { enabled: true, type: 'module' },
       injectManifest: {
         injectionPoint: 'self.__WB_MANIFEST',
         // Exclude large assets that bloat the precache
