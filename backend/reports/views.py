@@ -149,19 +149,21 @@ def reports_list_create(request):
     request.user.points += 10
     request.user.save(update_fields=["points"])
 
-    notify(
-        request.user,
-        "report",
-        "Report received! 📍",
-        "Your waste report is under review. +10 pts added.",
-        f"/reports/{report.pk}",
-    )
-    send_push(
-        request.user,
-        "Report received! 📍",
-        "Your waste report is under review — +10 pts added.",
-        f"/reports/{report.pk}",
-    )
+    _prefs = getattr(request.user, "notification_preferences", {}) or {}
+    if _prefs.get("report_notifications", True):
+        notify(
+            request.user,
+            "report",
+            "Report received! 📍",
+            "Your waste report is under review. +10 pts added.",
+            f"/reports/{report.pk}",
+        )
+        send_push(
+            request.user,
+            "Report received! 📍",
+            "Your waste report is under review — +10 pts added.",
+            f"/reports/{report.pk}",
+        )
 
     # Invalidate caches affected by a new report
     cache.delete(_LEADERBOARD_CACHE_KEY)
@@ -213,19 +215,21 @@ def report_verify(request, pk):
     report.user.points += 5
     report.user.save(update_fields=["points"])
 
-    notify(
-        report.user,
-        "verification",
-        "Report verified! ✅",
-        "An admin verified your waste report. +5 bonus pts added.",
-        f"/reports/{report.pk}",
-    )
-    send_push(
-        report.user,
-        "Report verified! ✅",
-        "An admin verified your waste report — +5 bonus pts.",
-        f"/reports/{report.pk}",
-    )
+    _vprefs = getattr(report.user, "notification_preferences", {}) or {}
+    if _vprefs.get("verification_notifications", True):
+        notify(
+            report.user,
+            "verification",
+            "Report verified! ✅",
+            "An admin verified your waste report. +5 bonus pts added.",
+            f"/reports/{report.pk}",
+        )
+        send_push(
+            report.user,
+            "Report verified! ✅",
+            "An admin verified your waste report — +5 bonus pts.",
+            f"/reports/{report.pk}",
+        )
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{report.user.pk}")
@@ -284,19 +288,21 @@ def recycling_list_create(request):
     request.user.points += 15
     request.user.save(update_fields=["points"])
 
-    notify(
-        request.user,
-        "recycling",
-        "Recycling logged! ♻️",
-        "Your recycling activity was recorded. +15 pts added.",
-        "/rewards",
-    )
-    send_push(
-        request.user,
-        "Recycling logged! ♻️",
-        "Recycling activity recorded — +15 pts added.",
-        "/rewards",
-    )
+    _rprefs = getattr(request.user, "notification_preferences", {}) or {}
+    if _rprefs.get("recycling_notifications", True):
+        notify(
+            request.user,
+            "recycling",
+            "Recycling logged! ♻️",
+            "Your recycling activity was recorded. +15 pts added.",
+            "/rewards",
+        )
+        send_push(
+            request.user,
+            "Recycling logged! ♻️",
+            "Recycling activity recorded — +15 pts added.",
+            "/rewards",
+        )
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{request.user.pk}")

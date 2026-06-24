@@ -7,10 +7,25 @@ import type { User } from '../../types';
 import { useWebPush } from '../../hooks/useWebPush';
 
 const PREFS = [
+  {
+    key: 'report_notifications',
+    label: 'Waste report updates',
+    desc: 'Confirm when your report is received or verified',
+  },
+  {
+    key: 'recycling_notifications',
+    label: 'Recycling activity',
+    desc: 'Confirm when a recycling log is recorded',
+  },
+  {
+    key: 'verification_notifications',
+    label: 'Verification bonus',
+    desc: 'Alert when an admin verifies your report (+5 pts)',
+  },
+  { key: 'badge_earned', label: 'Badge earned', desc: 'Celebrate when you earn a badge' },
   { key: 'streak_reminders', label: 'Streak reminders', desc: 'Get reminded to keep your streak' },
   { key: 'weekly_digest', label: 'Weekly digest', desc: 'Summary of your activity each week' },
   { key: 'community_updates', label: 'Community updates', desc: 'News from your sector' },
-  { key: 'badge_earned', label: 'Badge earned', desc: 'Celebrate when you earn a badge' },
 ] as const;
 
 export default function NotificationSettings() {
