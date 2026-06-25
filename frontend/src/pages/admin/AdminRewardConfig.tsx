@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, X, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { PointConfiguration, BadgeDefinition } from '../../api/types';
 
 type Tab = 'points' | 'badges';
@@ -296,6 +297,7 @@ function BadgesTab() {
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; badge?: BadgeDefinition } | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<BadgeDefinition | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'badges'],
@@ -406,9 +408,7 @@ function BadgesTab() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(`Delete badge "${b.name}"?`)) remove.mutate(b.id);
-                        }}
+                        onClick={() => setDeleteTarget(b)}
                         className="text-red-400 hover:text-red-600"
                         title="Delete"
                       >
@@ -443,6 +443,20 @@ function BadgesTab() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete badge?"
+        message={`"${deleteTarget?.name ?? ''}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (deleteTarget) remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }

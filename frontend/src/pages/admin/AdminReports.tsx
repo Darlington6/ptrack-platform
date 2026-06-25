@@ -5,7 +5,22 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import client from '../../api/client';
 import type { WasteReport } from '../../api/types';
+
+async function downloadCsv(url: string, filename: string) {
+  try {
+    const res = await client.get(url, { responseType: 'blob' });
+    const href = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(href);
+  } catch {
+    toast.error('Export failed — please try again');
+  }
+}
 
 const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -97,9 +112,7 @@ export default function AdminReports() {
     if (search) p['search'] = search;
     if (dateFrom) p['date_from'] = dateFrom;
     if (dateTo) p['date_to'] = dateTo;
-    const path = adminApi.reports.exportUrl(p);
-    const base = (import.meta.env.VITE_API_BASE_URL as string) ?? '';
-    window.open(`${base}/api/v1${path}`, '_blank');
+    void downloadCsv(adminApi.reports.exportUrl(p), 'reports.csv');
   }
 
   const actions = (

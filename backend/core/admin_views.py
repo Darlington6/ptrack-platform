@@ -625,6 +625,39 @@ def admin_users_list(request):
 
 @extend_schema(
     tags=["admin-users"],
+    responses={200: OpenApiResponse(description="CSV file download")},
+    summary="Export all users as CSV (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def admin_users_export(request):
+    qs = (
+        User.objects.annotate(report_count_ann=Count("reports"))
+        .order_by("-date_joined")
+    )
+    header = ["id", "email", "full_name", "role", "sector", "points", "is_active", "email_verified", "created_at"]
+
+    def rows():
+        for u in qs.iterator():
+            yield [
+                u.id,
+                u.email,
+                u.full_name,
+                u.role,
+                u.sector,
+                u.points,
+                u.is_active,
+                u.email_verified,
+                u.date_joined.isoformat(),
+            ]
+
+    response = StreamingHttpResponse(_csv_stream(header, rows()), content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="users.csv"'
+    return response
+
+
+@extend_schema(
+    tags=["admin-users"],
     request=AdminUserSerializer,
     responses={200: AdminUserSerializer},
     summary="Update a user (role / is_active) (admin only)",

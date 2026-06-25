@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { RecyclingCentre } from '../../api/types';
 
 const ALL_MATERIALS = [
@@ -262,6 +263,7 @@ export default function AdminCentres() {
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; centre?: RecyclingCentre } | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<RecyclingCentre | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'centres'],
@@ -395,9 +397,7 @@ export default function AdminCentres() {
                           <Pencil size={15} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm(`Delete "${c.name}"?`)) remove.mutate(c.id);
-                          }}
+                          onClick={() => setDeleteTarget(c)}
                           className="text-red-400 hover:text-red-600"
                           title="Delete"
                         >
@@ -436,6 +436,20 @@ export default function AdminCentres() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete centre?"
+        message={`"${deleteTarget?.name ?? ''}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (deleteTarget) remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }

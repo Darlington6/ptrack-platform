@@ -1,10 +1,26 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShieldCheck, ShieldOff, UserX, UserCheck, X, ChevronRight } from 'lucide-react';
+import { ShieldCheck, ShieldOff, UserX, UserCheck, X, ChevronRight, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import client from '../../api/client';
 import type { AdminUser } from '../../api/endpoints/admin';
+
+async function downloadCsv(url: string, filename: string) {
+  try {
+    const res = await client.get(url, { responseType: 'blob' });
+    const href = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(href);
+  } catch {
+    toast.error('Export failed — please try again');
+  }
+}
 
 const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
@@ -15,6 +31,7 @@ const SECTORS = ['Kimironko', 'Gasabo', 'Kicukiro', 'Nyarugenge'];
 
 function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void }) {
   const qc = useQueryClient();
+  const [confirmSuspend, setConfirmSuspend] = useState(false);
 
   const promote = useMutation({
     mutationFn: () => adminApi.users.update(user.id, { role: 'admin' }),
@@ -119,9 +136,7 @@ function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void })
             )}
             {user.is_active ? (
               <button
-                onClick={() => {
-                  if (confirm(`Suspend ${user.full_name}?`)) suspend.mutate();
-                }}
+                onClick={() => setConfirmSuspend(true)}
                 disabled={suspend.isPending}
                 className="w-full flex items-center justify-center gap-2 py-2.5 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-60"
               >
@@ -139,6 +154,17 @@ function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void })
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        open={confirmSuspend}
+        title="Suspend user?"
+        message={`${user.full_name} will lose access until restored.`}
+        confirmLabel="Suspend"
+        danger
+        loading={suspend.isPending}
+        onConfirm={() => { suspend.mutate(); setConfirmSuspend(false); }}
+        onCancel={() => setConfirmSuspend(false)}
+      />
     </div>
   );
 }
@@ -167,9 +193,18 @@ export default function AdminUsers() {
 
   const users: AdminUser[] = data?.data ?? [];
 
+  const exportActions = (
+    <button
+      onClick={() => void downloadCsv('/admin/users/export.csv', 'users.csv')}
+      className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800"
+    >
+      <Download size={14} /> Export CSV
+    </button>
+  );
+
   return (
     <>
-      <AdminPageShell title={`Users (${users.length})`}>
+      <AdminPageShell title={`Users (${users.length})`} actions={exportActions}>
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">

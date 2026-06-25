@@ -5,7 +5,7 @@ import client from '../../api/client';
 
 interface HealthStatus {
   status: 'ok' | 'degraded' | 'error';
-  database: string;
+  db: string;
   cache: string;
   version: string;
 }
@@ -14,7 +14,7 @@ export default function AdminSettings() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['admin', 'health'],
     queryFn: () => client.get<HealthStatus>('/health/'),
-    staleTime: 30_000,
+    staleTime: 0,
     retry: 1,
   });
 
@@ -53,7 +53,7 @@ export default function AdminSettings() {
               <>
                 {[
                   { label: 'API', value: health.status === 'ok' ? 'Healthy' : health.status },
-                  { label: 'Database', value: health.database },
+                  { label: 'Database', value: health.db },
                   { label: 'Cache / Redis', value: health.cache },
                   { label: 'Version', value: health.version },
                 ].map(({ label, value }) => (

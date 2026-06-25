@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Map, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
-import { Locate } from 'lucide-react';
+import { Locate, MapPin } from 'lucide-react';
 import { reportsApi } from '../api/endpoints/reports';
 import type { WasteReport, ReportStatus } from '../api/types';
 
@@ -180,11 +180,11 @@ export default function MapView() {
   }
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100dvh - 128px)' }}>
+    <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-700 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
         <h1 className="text-base font-semibold text-gray-800 dark:text-slate-100">
-          Waste Map
+          Waste Reports Near You
           {loading && <span className="ml-2 text-xs text-gray-400 font-normal">Loading…</span>}
         </h1>
         <button
@@ -195,25 +195,8 @@ export default function MapView() {
         </button>
       </div>
 
-      {/* Filter chips */}
-      <div className="flex gap-2 px-4 py-2 overflow-x-auto bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-        {FILTERS.map((f) => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value)}
-            className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              filter === f.value
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Map */}
-      <div className="flex-1">
+      {/* Map — fixed height */}
+      <div className="flex-shrink-0" style={{ height: '45%' }}>
         <Map
           mapId={MAP_ID ?? null}
           defaultCenter={KIMIRONKO}
@@ -231,18 +214,76 @@ export default function MapView() {
         </Map>
       </div>
 
-      {/* Legend */}
-      <div className="px-4 py-2 flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800">
-        {(['pending', 'verified', 'resolved'] as ReportStatus[]).map((s) => (
-          <span key={s} className="flex items-center gap-1.5 capitalize">
-            <span
-              className="w-2.5 h-2.5 rounded-full inline-block"
-              style={{ background: STATUS_COLOR[s] }}
-            />
-            {s}
+      {/* Status filter chips + legend */}
+      <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
+        <div className="flex gap-2 px-4 py-2 overflow-x-auto">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                filter === f.value
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+          <span className="ml-auto flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">
+            {(['pending', 'verified', 'resolved'] as ReportStatus[]).map((s) => (
+              <span key={s} className="flex items-center gap-1 capitalize">
+                <span className="w-2 h-2 rounded-full inline-block" style={{ background: STATUS_COLOR[s] }} />
+                {s}
+              </span>
+            ))}
           </span>
-        ))}
-        <span className="ml-auto">{reports.length} reports</span>
+        </div>
+      </div>
+
+      {/* Reports list */}
+      <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 pb-6">
+        {reports.length === 0 && !loading && (
+          <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+            <MapPin size={32} className="text-gray-300 dark:text-slate-600 mb-2" />
+            <p className="text-sm text-gray-500 dark:text-slate-400">No reports in this area.</p>
+          </div>
+        )}
+        <div className="divide-y divide-gray-100 dark:divide-slate-800">
+          {reports.map((r) => (
+            <Link
+              key={r.id}
+              to={`/reports/${r.id}`}
+              className="flex items-start gap-3 px-4 py-3 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              <span
+                className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: STATUS_COLOR[r.status] ?? '#94a3b8' }}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 dark:text-slate-100 capitalize">
+                  {r.waste_type.replace('_', ' ')}
+                </p>
+                {r.description && (
+                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{r.description}</p>
+                )}
+                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                  {new Date(r.created_at).toLocaleDateString('en-GB')} —{' '}
+                  {r.user_detail?.full_name ?? 'Citizen'}
+                </p>
+              </div>
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize flex-shrink-0"
+                style={{
+                  background: `${STATUS_COLOR[r.status]}22`,
+                  color: STATUS_COLOR[r.status],
+                }}
+              >
+                {r.status}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

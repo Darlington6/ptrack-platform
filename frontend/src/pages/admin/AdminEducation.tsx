@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import MDEditor from '@uiw/react-md-editor';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { Article } from '../../api/types';
 
 type ArticleForm = {
@@ -198,13 +199,15 @@ function ArticleModal({
 export default function AdminEducation() {
   const qc = useQueryClient();
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; article?: Article } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Article | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'education'],
     queryFn: () => adminApi.education.list(),
     staleTime: 2 * 60_000,
   });
-  const articles: Article[] = data?.data ?? [];
+  const articles: Article[] =
+    (data?.data as unknown as { results: Article[] })?.results ?? (data?.data as unknown as Article[]) ?? [];
 
   function invalidate() {
     void qc.invalidateQueries({ queryKey: ['admin', 'education'] });
@@ -354,9 +357,7 @@ export default function AdminEducation() {
                           <Pencil size={15} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm(`Delete "${a.title_en}"?`)) remove.mutate(a.slug);
-                          }}
+                          onClick={() => setDeleteTarget(a)}
                           className="text-red-400 hover:text-red-600"
                           title="Delete"
                         >
@@ -397,6 +398,20 @@ export default function AdminEducation() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete article?"
+        message={`"${deleteTarget?.title_en ?? ''}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (deleteTarget) remove.mutate(deleteTarget.slug);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }
