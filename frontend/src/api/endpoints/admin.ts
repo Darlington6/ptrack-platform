@@ -143,7 +143,9 @@ export const adminApi = {
         headers: { 'Content-Type': 'multipart/form-data' },
       }),
     update: (slug: string, data: FormData | Partial<Article>) =>
-      client.patch<Article>(`/admin/education/articles/${slug}/`, data),
+      client.patch<Article>(`/admin/education/articles/${slug}/`, data, {
+        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+      }),
     delete: (slug: string) => client.delete(`/admin/education/articles/${slug}/delete/`),
   },
 
