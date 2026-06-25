@@ -631,11 +631,18 @@ def admin_users_list(request):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def admin_users_export(request):
-    qs = (
-        User.objects.annotate(report_count_ann=Count("reports"))
-        .order_by("-date_joined")
-    )
-    header = ["id", "email", "full_name", "role", "sector", "points", "is_active", "email_verified", "created_at"]
+    qs = User.objects.annotate(report_count_ann=Count("reports")).order_by("-date_joined")
+    header = [
+        "id",
+        "email",
+        "full_name",
+        "role",
+        "sector",
+        "points",
+        "is_active",
+        "email_verified",
+        "created_at",
+    ]
 
     def rows():
         for u in qs.iterator():
