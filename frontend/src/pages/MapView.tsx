@@ -233,7 +233,10 @@ export default function MapView() {
           <span className="ml-auto flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">
             {(['pending', 'verified', 'resolved'] as ReportStatus[]).map((s) => (
               <span key={s} className="flex items-center gap-1 capitalize">
-                <span className="w-2 h-2 rounded-full inline-block" style={{ background: STATUS_COLOR[s] }} />
+                <span
+                  className="w-2 h-2 rounded-full inline-block"
+                  style={{ background: STATUS_COLOR[s] }}
+                />
                 {s}
               </span>
             ))}
@@ -265,7 +268,9 @@ export default function MapView() {
                   {r.waste_type.replace('_', ' ')}
                 </p>
                 {r.description && (
-                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{r.description}</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                    {r.description}
+                  </p>
                 )}
                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                   {new Date(r.created_at).toLocaleDateString('en-GB')} —{' '}

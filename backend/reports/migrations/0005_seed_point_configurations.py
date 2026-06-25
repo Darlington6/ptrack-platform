@@ -1,6 +1,5 @@
 from django.db import migrations
 
-
 DEFAULTS = [
     ("report_submitted", 10, "Points awarded when a citizen submits a waste report"),
     ("recycling_logged", 15, "Points awarded when a citizen logs a recycling activity"),
@@ -23,7 +22,6 @@ def unseed_point_configs(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("reports", "0004_wastereport_thumbnail"),
     ]

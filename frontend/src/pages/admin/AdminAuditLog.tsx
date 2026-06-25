@@ -125,10 +125,7 @@ export default function AdminAuditLog() {
     if (dateFrom) p['date_from'] = dateFrom;
     if (dateTo) p['date_to'] = dateTo;
     const qs = new URLSearchParams(p).toString();
-    void downloadCsv(
-      `/admin/audit-logs/export.csv${qs ? '?' + qs : ''}`,
-      'audit_logs.csv'
-    );
+    void downloadCsv(`/admin/audit-logs/export.csv${qs ? '?' + qs : ''}`, 'audit_logs.csv');
   }
 
   const actions = (

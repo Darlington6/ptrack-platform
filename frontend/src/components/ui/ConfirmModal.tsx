@@ -51,9 +51,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={loading}
             className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 ${
-              danger
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-amber-600 hover:bg-amber-700'
+              danger ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'
             }`}
           >
             {loading ? 'Please wait…' : confirmLabel}

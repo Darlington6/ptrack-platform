@@ -162,7 +162,10 @@ function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void })
         confirmLabel="Suspend"
         danger
         loading={suspend.isPending}
-        onConfirm={() => { suspend.mutate(); setConfirmSuspend(false); }}
+        onConfirm={() => {
+          suspend.mutate();
+          setConfirmSuspend(false);
+        }}
         onCancel={() => setConfirmSuspend(false)}
       />
     </div>

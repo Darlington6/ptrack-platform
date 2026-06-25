@@ -207,7 +207,9 @@ export default function AdminEducation() {
     staleTime: 2 * 60_000,
   });
   const articles: Article[] =
-    (data?.data as unknown as { results: Article[] })?.results ?? (data?.data as unknown as Article[]) ?? [];
+    (data?.data as unknown as { results: Article[] })?.results ??
+    (data?.data as unknown as Article[]) ??
+    [];
 
   function invalidate() {
     void qc.invalidateQueries({ queryKey: ['admin', 'education'] });
