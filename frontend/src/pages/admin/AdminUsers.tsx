@@ -71,7 +71,12 @@ function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative w-96 bg-white dark:bg-slate-900 h-full overflow-y-auto border-l border-gray-200 dark:border-slate-700 shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">User Profile</h2>

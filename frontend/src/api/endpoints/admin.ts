@@ -137,9 +137,9 @@ export const adminApi = {
   },
 
   education: {
-    list: () => client.get<Article[]>('/education/articles/'),
+    list: () => client.get('/admin/education/articles/'),
     create: (data: FormData) =>
-      client.post<Article>('/admin/education/articles/', data, {
+      client.post<Article>('/admin/education/articles/create/', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       }),
     update: (slug: string, data: FormData | Partial<Article>) =>

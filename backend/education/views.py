@@ -72,6 +72,22 @@ def article_detail(request, slug):
 
 @extend_schema(
     tags=["admin-education"],
+    responses={200: ArticleDetailSerializer(many=True)},
+    summary="List all articles including unpublished (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def admin_article_list(request):
+    qs = Article.objects.all().order_by("-created_at")
+    paginator = StandardPagination()
+    page = paginator.paginate_queryset(qs, request)
+    if page is not None:
+        return paginator.get_paginated_response(ArticleDetailSerializer(page, many=True).data)
+    return Response(ArticleDetailSerializer(qs, many=True).data)
+
+
+@extend_schema(
+    tags=["admin-education"],
     request=ArticleDetailSerializer,
     responses={201: ArticleDetailSerializer},
     summary="Create an article (admin only)",

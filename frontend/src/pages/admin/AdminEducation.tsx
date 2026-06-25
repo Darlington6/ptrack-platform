@@ -72,7 +72,12 @@ function ArticleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl my-8">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
