@@ -52,6 +52,8 @@ function BadgeModal({
   saving: boolean;
 }) {
   const [form, setForm] = useState<BadgeForm>(initial);
+  // When editing an existing badge, don't overwrite the slug from the name
+  const [slugEdited, setSlugEdited] = useState(!!initial.name);
 
   function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -82,7 +84,19 @@ function BadgeModal({
               </label>
               <input
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  if (slugEdited) {
+                    setForm((f) => ({ ...f, name }));
+                  } else {
+                    const slug = name
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, '');
+                    setForm((f) => ({ ...f, name, slug }));
+                  }
+                }}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -93,7 +107,10 @@ function BadgeModal({
               </label>
               <input
                 value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                onChange={(e) => {
+                  setSlugEdited(true);
+                  setForm((f) => ({ ...f, slug: e.target.value }));
+                }}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono"
               />
