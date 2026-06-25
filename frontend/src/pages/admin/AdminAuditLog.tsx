@@ -1,14 +1,35 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, X, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import client from '../../api/client';
 import type { AuditLog } from '../../api/types';
+
+async function downloadCsv(url: string, filename: string) {
+  try {
+    const res = await client.get(url, { responseType: 'blob' });
+    const href = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(href);
+  } catch {
+    toast.error('Export failed — please try again');
+  }
+}
 
 function LogDrawer({ log, onClose }: { log: AuditLog; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative w-[500px] bg-white dark:bg-slate-900 h-full overflow-y-auto border-l border-gray-200 dark:border-slate-700 shadow-xl flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -109,8 +130,7 @@ export default function AdminAuditLog() {
     if (dateFrom) p['date_from'] = dateFrom;
     if (dateTo) p['date_to'] = dateTo;
     const qs = new URLSearchParams(p).toString();
-    const base = (import.meta.env.VITE_API_BASE_URL as string) ?? '';
-    window.open(`${base}/api/v1/admin/audit-logs/export.csv${qs ? '?' + qs : ''}`, '_blank');
+    void downloadCsv(`/admin/audit-logs/export.csv${qs ? '?' + qs : ''}`, 'audit_logs.csv');
   }
 
   const actions = (

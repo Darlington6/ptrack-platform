@@ -137,13 +137,15 @@ export const adminApi = {
   },
 
   education: {
-    list: () => client.get<Article[]>('/education/articles/'),
+    list: () => client.get('/admin/education/articles/'),
     create: (data: FormData) =>
-      client.post<Article>('/admin/education/articles/', data, {
+      client.post<Article>('/admin/education/articles/create/', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       }),
     update: (slug: string, data: FormData | Partial<Article>) =>
-      client.patch<Article>(`/admin/education/articles/${slug}/`, data),
+      client.patch<Article>(`/admin/education/articles/${slug}/`, data, {
+        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
+      }),
     delete: (slug: string) => client.delete(`/admin/education/articles/${slug}/delete/`),
   },
 

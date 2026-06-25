@@ -65,5 +65,6 @@ urlpatterns = [
     ),
     # User management
     path("admin/users/", v.admin_users_list, name="admin-users-list"),
+    path("admin/users/export.csv", v.admin_users_export, name="admin-users-export"),
     path("admin/users/<int:pk>/", v.admin_user_detail, name="admin-user-detail"),
 ]

@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, X, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { PointConfiguration, BadgeDefinition } from '../../api/types';
 
 type Tab = 'points' | 'badges';
@@ -52,6 +53,8 @@ function BadgeModal({
   saving: boolean;
 }) {
   const [form, setForm] = useState<BadgeForm>(initial);
+  // When editing an existing badge, don't overwrite the slug from the name
+  const [slugEdited, setSlugEdited] = useState(!!initial.name);
 
   function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -64,7 +67,12 @@ function BadgeModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -82,7 +90,19 @@ function BadgeModal({
               </label>
               <input
                 value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  if (slugEdited) {
+                    setForm((f) => ({ ...f, name }));
+                  } else {
+                    const slug = name
+                      .toLowerCase()
+                      .trim()
+                      .replace(/[^a-z0-9]+/g, '-')
+                      .replace(/^-+|-+$/g, '');
+                    setForm((f) => ({ ...f, name, slug }));
+                  }
+                }}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -93,7 +113,10 @@ function BadgeModal({
               </label>
               <input
                 value={form.slug}
-                onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
+                onChange={(e) => {
+                  setSlugEdited(true);
+                  setForm((f) => ({ ...f, slug: e.target.value }));
+                }}
                 required
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono"
               />
@@ -279,6 +302,7 @@ function BadgesTab() {
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; badge?: BadgeDefinition } | null>(
     null
   );
+  const [deleteTarget, setDeleteTarget] = useState<BadgeDefinition | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'badges'],
@@ -389,9 +413,7 @@ function BadgesTab() {
                         <Pencil size={15} />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm(`Delete badge "${b.name}"?`)) remove.mutate(b.id);
-                        }}
+                        onClick={() => setDeleteTarget(b)}
                         className="text-red-400 hover:text-red-600"
                         title="Delete"
                       >
@@ -426,6 +448,20 @@ function BadgesTab() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete badge?"
+        message={`"${deleteTarget?.name ?? ''}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (deleteTarget) remove.mutate(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }

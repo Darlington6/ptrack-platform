@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import MDEditor from '@uiw/react-md-editor';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { Article } from '../../api/types';
 
 type ArticleForm = {
@@ -22,12 +23,18 @@ const EMPTY_FORM: ArticleForm = {
   title_rw: '',
   body_en: '',
   body_rw: '',
-  category: 'general',
+  category: 'recycling',
   is_published: false,
   cover_image: null,
 };
 
-const CATEGORIES = ['general', 'recycling', 'composting', 'hazardous', 'reduce_reuse'];
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: 'recycling', label: 'Recycling' },
+  { value: 'waste_reduction', label: 'Waste Reduction' },
+  { value: 'climate', label: 'Climate' },
+  { value: 'policy', label: 'Policy' },
+  { value: 'community', label: 'Community' },
+];
 
 function articleToForm(a: Article): ArticleForm {
   return {
@@ -65,7 +72,12 @@ function ArticleModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 cursor-default"
+        onClick={onClose}
+      />
       <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl my-8">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -139,8 +151,8 @@ function ArticleModal({
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c.replace('_', ' ')}
+                  <option key={c.value} value={c.value}>
+                    {c.label}
                   </option>
                 ))}
               </select>
@@ -198,13 +210,17 @@ function ArticleModal({
 export default function AdminEducation() {
   const qc = useQueryClient();
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; article?: Article } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Article | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'education'],
     queryFn: () => adminApi.education.list(),
     staleTime: 2 * 60_000,
   });
-  const articles: Article[] = data?.data ?? [];
+  const articles: Article[] =
+    (data?.data as unknown as { results: Article[] })?.results ??
+    (data?.data as unknown as Article[]) ??
+    [];
 
   function invalidate() {
     void qc.invalidateQueries({ queryKey: ['admin', 'education'] });
@@ -354,9 +370,7 @@ export default function AdminEducation() {
                           <Pencil size={15} />
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirm(`Delete "${a.title_en}"?`)) remove.mutate(a.slug);
-                          }}
+                          onClick={() => setDeleteTarget(a)}
                           className="text-red-400 hover:text-red-600"
                           title="Delete"
                         >
@@ -397,6 +411,20 @@ export default function AdminEducation() {
           }}
         />
       )}
+
+      <ConfirmModal
+        open={!!deleteTarget}
+        title="Delete article?"
+        message={`"${deleteTarget?.title_en ?? ''}" will be permanently deleted.`}
+        confirmLabel="Delete"
+        danger
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (deleteTarget) remove.mutate(deleteTarget.slug);
+          setDeleteTarget(null);
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   );
 }

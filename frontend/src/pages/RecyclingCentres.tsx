@@ -8,7 +8,17 @@ import type { RecyclingCentre } from '../api/types';
 
 const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
-const MATERIALS = ['All', 'PET', 'HDPE', 'Glass', 'Paper', 'Metal', 'Electronics'];
+const MATERIALS = [
+  'All',
+  'Plastic bottles',
+  'Cardboard',
+  'Glass',
+  'Metal',
+  'E-waste',
+  'Organic',
+  'Paper',
+  'Textiles',
+];
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;

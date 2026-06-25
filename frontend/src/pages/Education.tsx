@@ -6,7 +6,14 @@ import { useTranslation } from 'react-i18next';
 import { educationApi } from '../api/endpoints/education';
 import type { Article } from '../api/types';
 
-const CATEGORIES = ['All', 'Plastic', 'Recycling', 'Health', 'Policy', 'Tips'];
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: 'All', label: 'All' },
+  { value: 'recycling', label: 'Recycling' },
+  { value: 'waste_reduction', label: 'Waste Reduction' },
+  { value: 'climate', label: 'Climate' },
+  { value: 'policy', label: 'Policy' },
+  { value: 'community', label: 'Community' },
+];
 
 function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' }) {
   const title = lang === 'rw' && article.title_rw ? article.title_rw : article.title_en;
@@ -69,15 +76,15 @@ export default function Education() {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => (
           <button
-            key={c}
-            onClick={() => setCategory(c)}
+            key={c.value}
+            onClick={() => setCategory(c.value)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              category === c
+              category === c.value
                 ? 'bg-green-600 text-white'
                 : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
             }`}
           >
-            {c}
+            {c.label}
           </button>
         ))}
       </div>
