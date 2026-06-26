@@ -99,6 +99,18 @@ def _csv_stream(header, rows):
         yield writer.writerow(row)
 
 
+def _log_export(request, filename: str) -> None:
+    from .models import AuditLog
+
+    AuditLog.objects.create(
+        actor=request.user,
+        action=f"GET {request.path}",
+        metadata={"export_file": filename, "query_string": request.META.get("QUERY_STRING", "")},
+        ip_address=_get_client_ip(request),
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+    )
+
+
 # ── Analytics ──────────────────────────────────────────────────────────────────
 
 
@@ -322,6 +334,7 @@ def audit_log_detail(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def audit_log_export(request):
+    _log_export(request, "audit_logs.csv")
     qs = AuditLog.objects.select_related("actor").all().order_by("-created_at")
 
     header = ["id", "actor_email", "action", "target_type", "target_id", "ip_address", "created_at"]
@@ -403,6 +416,7 @@ def reports_bulk_reject(request):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def reports_export(request):
+    _log_export(request, "reports.csv")
     qs = WasteReport.objects.select_related("user").order_by("-created_at")
 
     header = [
@@ -638,6 +652,7 @@ def admin_users_list(request):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def admin_users_export(request):
+    _log_export(request, "users.csv")
     qs = User.objects.annotate(report_count_ann=Count("reports")).order_by("-date_joined")
     header = [
         "id",
