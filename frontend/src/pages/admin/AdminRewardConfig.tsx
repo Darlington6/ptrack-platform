@@ -331,10 +331,14 @@ function PointsTab() {
           <p className="text-xs font-semibold text-gray-600 dark:text-slate-400">New point event</p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="new-event-name"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
                 Event name
               </label>
               <input
+                id="new-event-name"
                 placeholder="e.g. cleanup_logged"
                 value={newForm.event}
                 onChange={(e) => setNewForm((f) => ({ ...f, event: e.target.value }))}
@@ -342,8 +346,14 @@ function PointsTab() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Points</label>
+              <label
+                htmlFor="new-event-points"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
+                Points
+              </label>
               <input
+                id="new-event-points"
                 type="number"
                 min={0}
                 value={newForm.points}
@@ -354,10 +364,14 @@ function PointsTab() {
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="new-event-description"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
                 Description
               </label>
               <input
+                id="new-event-description"
                 placeholder="What earns these points?"
                 value={newForm.description}
                 onChange={(e) => setNewForm((f) => ({ ...f, description: e.target.value }))}

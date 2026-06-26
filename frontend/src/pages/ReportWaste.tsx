@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import client from '../api/client';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -48,6 +48,13 @@ export default function ReportWaste() {
   const location = useLocation();
   const { refreshUser } = useAuth();
   const qc = useQueryClient();
+
+  const { data: pointConfigs } = useQuery<Record<string, number>>({
+    queryKey: ['point-configs'],
+    queryFn: () => client.get<Record<string, number>>('/point-configs/').then((r) => r.data),
+    staleTime: 60_000,
+  });
+  const reportPts = pointConfigs?.['report_submitted'] ?? 10;
 
   const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIMIRONKO);
   const [address, setAddress] = useState('Kimironko, Kigali');
@@ -149,8 +156,10 @@ export default function ReportWaste() {
         });
         await refreshUser();
         void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+        const pts = (res.data as { points_earned?: number }).points_earned ?? 10;
+        const bal = (res.data as { new_points_balance?: number }).new_points_balance;
         toast.success(
-          `Report submitted! +10 pts — Balance: ${String(res.data.new_points_balance ?? '')} pts`
+          `Report submitted! +${pts} pts${bal !== undefined ? ` — Balance: ${bal} pts` : ''}`
         );
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
@@ -301,8 +310,8 @@ export default function ReportWaste() {
         </Button>
 
         <p className="text-center text-sm text-gray-500 dark:text-slate-400">
-          You'll earn <span className="font-semibold text-green-600">+10 points</span> for this
-          report
+          You'll earn <span className="font-semibold text-green-600">+{reportPts} points</span> for
+          this report
         </p>
       </form>
     </div>

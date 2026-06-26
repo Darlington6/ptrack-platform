@@ -24,6 +24,7 @@ from rest_framework.response import Response
 
 from reports.models import BadgeDefinition, PointConfiguration, Reward, WasteReport
 from reports.permissions import IsAdminRole
+from reports.utils import bust_points_cache, get_points
 
 from .models import AuditLog
 from .pagination import FeedCursorPagination
@@ -348,12 +349,15 @@ def reports_bulk_verify(request):
 
     reports = WasteReport.objects.filter(pk__in=ids, status="pending")
     count = reports.count()
+    bonus_pts = get_points("verification_bonus", fallback=5)
 
     for report in reports.select_related("user"):
         report.status = "verified"
         report.save(update_fields=["status"])
-        Reward.objects.create(user=report.user, points_earned=5, reward_type="verification_bonus")
-        report.user.points += 5
+        Reward.objects.create(
+            user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
+        )
+        report.user.points += bonus_pts
         report.user.save(update_fields=["points"])
         cache.delete(f"user:profile:{report.user.pk}")
 
@@ -442,6 +446,7 @@ def point_config_list_create(request):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         obj = serializer.save()
+        bust_points_cache(obj.event)
         return Response(PointConfigSerializer(obj).data, status=status.HTTP_201_CREATED)
     return Response(PointConfigSerializer(PointConfiguration.objects.all(), many=True).data)
 
@@ -476,6 +481,7 @@ def point_config_detail(request, pk):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
+        bust_points_cache(obj.event)
         return Response(serializer.data)
 
     return Response(PointConfigSerializer(obj).data)

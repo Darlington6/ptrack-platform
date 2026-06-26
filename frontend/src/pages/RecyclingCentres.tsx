@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -179,15 +179,6 @@ export default function RecyclingCentres() {
   });
 
   const centres: RecyclingCentre[] = data?.data ?? [];
-
-  // Auto-request geolocation on mount so distance shows without clicking "Near me"
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setUserPos({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      () => null // user denied — silent
-    );
-  }, []);
 
   function requestLocation() {
     navigator.geolocation.getCurrentPosition((pos) =>
