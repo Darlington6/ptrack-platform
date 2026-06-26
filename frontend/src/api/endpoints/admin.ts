@@ -150,7 +150,7 @@ export const adminApi = {
   },
 
   centres: {
-    list: () => client.get<RecyclingCentre[]>('/recycling-centres/'),
+    list: () => client.get<RecyclingCentre[]>('/admin/recycling-centres/all/'),
     create: (data: Partial<RecyclingCentre>) =>
       client.post<RecyclingCentre>('/admin/recycling-centres/', data),
     update: (id: number, data: Partial<RecyclingCentre>) =>

@@ -10,9 +10,9 @@ const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const STATUS_COLOR: Record<ReportStatus, string> = {
-  pending: '#ef4444',
-  verified: '#f59e0b',
-  resolved: '#16a34a',
+  pending: '#f59e0b', // amber-500
+  verified: '#16a34a', // green-600
+  resolved: '#60a5fa', // blue-400
 };
 
 const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [

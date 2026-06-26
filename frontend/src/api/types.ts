@@ -94,6 +94,8 @@ export interface RecyclingCentre {
   operating_hours: Record<string, string>;
   contact_phone?: string;
   contact_email?: string;
+  open_time?: string | null; // "HH:MM:SS" — Africa/Kigali (UTC+2)
+  close_time?: string | null; // "HH:MM:SS" — Africa/Kigali (UTC+2)
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -153,7 +155,7 @@ export interface AuditLog {
 
 export interface PointConfiguration {
   id: number;
-  event: 'report_submitted' | 'recycling_logged' | 'verification_bonus';
+  event: string;
   points: number;
   description: string;
   updated_at: string;

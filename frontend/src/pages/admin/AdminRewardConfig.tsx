@@ -208,9 +208,14 @@ function BadgeModal({
   );
 }
 
+type NewPointForm = { event: string; description: string; points: number };
+const EMPTY_POINT: NewPointForm = { event: '', description: '', points: 10 };
+
 function PointsTab() {
   const qc = useQueryClient();
   const [edits, setEdits] = useState<Record<number, number>>({});
+  const [addOpen, setAddOpen] = useState(false);
+  const [newForm, setNewForm] = useState<NewPointForm>(EMPTY_POINT);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'points'],
@@ -228,6 +233,22 @@ function PointsTab() {
       setEdits({});
     },
     onError: () => toast.error('Failed to save'),
+  });
+
+  const create = useMutation({
+    mutationFn: (f: NewPointForm) =>
+      adminApi.configurations.points.create({
+        event: f.event.toLowerCase().trim().replace(/\s+/g, '_'),
+        description: f.description,
+        points: f.points,
+      }),
+    onSuccess: () => {
+      toast.success('Point event added');
+      void qc.invalidateQueries({ queryKey: ['admin', 'points'] });
+      setAddOpen(false);
+      setNewForm(EMPTY_POINT);
+    },
+    onError: () => toast.error('Failed to add point event'),
   });
 
   if (isLoading)
@@ -296,6 +317,74 @@ function PointsTab() {
           </tbody>
         </table>
       </div>
+
+      {/* Add new point event */}
+      {!addOpen ? (
+        <button
+          onClick={() => setAddOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-gray-300 dark:border-slate-600 text-gray-500 dark:text-slate-400 rounded-lg text-sm hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+        >
+          <Plus size={14} /> Add point event
+        </button>
+      ) : (
+        <div className="bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-600 dark:text-slate-400">New point event</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+                Event name
+              </label>
+              <input
+                placeholder="e.g. cleanup_logged"
+                value={newForm.event}
+                onChange={(e) => setNewForm((f) => ({ ...f, event: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">Points</label>
+              <input
+                type="number"
+                min={0}
+                value={newForm.points}
+                onChange={(e) =>
+                  setNewForm((f) => ({ ...f, points: parseInt(e.target.value) || 0 }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-gray-500 dark:text-slate-400 mb-1">
+                Description
+              </label>
+              <input
+                placeholder="What earns these points?"
+                value={newForm.description}
+                onChange={(e) => setNewForm((f) => ({ ...f, description: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => create.mutate(newForm)}
+              disabled={!newForm.event || create.isPending}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60"
+            >
+              <Save size={13} /> Save
+            </button>
+            <button
+              onClick={() => {
+                setAddOpen(false);
+                setNewForm(EMPTY_POINT);
+              }}
+              className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-500 dark:text-slate-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

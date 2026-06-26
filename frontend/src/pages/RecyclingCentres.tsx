@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   MapPin,
   Phone,
+  Mail,
   Clock,
   ExternalLink,
   List,
@@ -44,6 +45,27 @@ function formatDist(km: number): string {
   return km < 1 ? `${(km * 1000).toFixed(0)} m away` : `${km.toFixed(1)} km away`;
 }
 
+// Africa/Kigali is always UTC+2 (no DST)
+function isOpenNow(centre: RecyclingCentre): boolean | null {
+  if (!centre.open_time || !centre.close_time) return null;
+  const kigaliOffsetMs = 2 * 60 * 60 * 1000;
+  const nowUtcMs = Date.now();
+  const nowKigali = new Date(nowUtcMs + kigaliOffsetMs);
+  const hhmm = (t: string) => {
+    const [h, m] = t.split(':').map(Number);
+    return (h ?? 0) * 60 + (m ?? 0);
+  };
+  const nowMin = nowKigali.getUTCHours() * 60 + nowKigali.getUTCMinutes();
+  return nowMin >= hhmm(centre.open_time) && nowMin < hhmm(centre.close_time);
+}
+
+function formatTime(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  const ampm = (h ?? 0) >= 12 ? 'pm' : 'am';
+  const h12 = (h ?? 0) % 12 || 12;
+  return m ? `${h12}:${String(m).padStart(2, '0')}${ampm}` : `${h12}${ampm}`;
+}
+
 function CentreCard({
   centre,
   userLat,
@@ -58,6 +80,12 @@ function CentreCard({
       ? haversineKm(userLat, userLon, centre.latitude, centre.longitude)
       : null;
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${centre.latitude},${centre.longitude}`;
+  const openStatus = isOpenNow(centre);
+
+  const hoursLabel =
+    centre.open_time && centre.close_time
+      ? `${formatTime(centre.open_time)} – ${formatTime(centre.close_time)}`
+      : (centre.operating_hours['weekdays'] ?? null);
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 space-y-3">
@@ -66,9 +94,15 @@ function CentreCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{centre.name}</h3>
-            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-              Open
-            </span>
+            {openStatus === null ? null : openStatus ? (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                Open
+              </span>
+            ) : (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
+                Closed
+              </span>
+            )}
           </div>
           {dist !== null && (
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{formatDist(dist)}</p>
@@ -80,21 +114,26 @@ function CentreCard({
         />
       </div>
 
-      {/* Address / hours / phone */}
+      {/* Address / hours / phone / email */}
       <div className="space-y-1.5">
         {centre.address && (
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
             <MapPin size={11} className="flex-shrink-0" /> {centre.address}
           </p>
         )}
-        {centre.operating_hours['weekdays'] && (
+        {hoursLabel && (
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-            <Clock size={11} className="flex-shrink-0" /> {centre.operating_hours['weekdays']}
+            <Clock size={11} className="flex-shrink-0" /> {hoursLabel}
           </p>
         )}
         {centre.contact_phone && (
           <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5 font-medium">
             <Phone size={11} className="flex-shrink-0" /> {centre.contact_phone}
+          </p>
+        )}
+        {centre.contact_email && (
+          <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5 font-medium">
+            <Mail size={11} className="flex-shrink-0" /> {centre.contact_email}
           </p>
         )}
       </div>
@@ -140,6 +179,15 @@ export default function RecyclingCentres() {
   });
 
   const centres: RecyclingCentre[] = data?.data ?? [];
+
+  // Auto-request geolocation on mount so distance shows without clicking "Near me"
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserPos({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => null // user denied — silent
+    );
+  }, []);
 
   function requestLocation() {
     navigator.geolocation.getCurrentPosition((pos) =>
