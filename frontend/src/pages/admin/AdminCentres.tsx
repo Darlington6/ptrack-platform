@@ -32,6 +32,7 @@ type FormState = {
   contact_email: string;
   open_time: string;
   close_time: string;
+  timezone: string;
   is_active: boolean;
 };
 
@@ -47,6 +48,7 @@ const EMPTY_FORM: FormState = {
   contact_email: '',
   open_time: '',
   close_time: '',
+  timezone: 'Africa/Kigali',
   is_active: true,
 };
 
@@ -63,6 +65,7 @@ function centreToForm(c: RecyclingCentre): FormState {
     contact_email: c.contact_email ?? '',
     open_time: c.open_time ? c.open_time.slice(0, 5) : '',
     close_time: c.close_time ? c.close_time.slice(0, 5) : '',
+    timezone: c.timezone || 'Africa/Kigali',
     is_active: c.is_active,
   };
 }
@@ -231,6 +234,20 @@ function CentreModal({
                 onChange={(e) => setForm((f) => ({ ...f, close_time: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+                Timezone
+              </label>
+              <select
+                value={form.timezone}
+                onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                {Intl.supportedValuesOf('timeZone').map((tz) => (
+                  <option key={tz} value={tz}>{tz}</option>
+                ))}
+              </select>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { notificationsApi } from '../../api/endpoints/notifications';
@@ -37,6 +38,15 @@ export function Navbar() {
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
           Hi, {firstName} {greetingIcon()}
         </span>
+
+        {user?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+          >
+            <LayoutDashboard size={12} /> Admin Panel
+          </NavLink>
+        )}
 
         <NavLink to="/notifications" className="relative p-1.5">
           <span className="text-xl">🔔</span>

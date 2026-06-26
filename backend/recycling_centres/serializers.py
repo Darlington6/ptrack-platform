@@ -20,6 +20,7 @@ class RecyclingCentreSerializer(serializers.ModelSerializer):
             "contact_email",
             "open_time",
             "close_time",
+            "timezone",
             "is_active",
         ]
         read_only_fields = ["id"]

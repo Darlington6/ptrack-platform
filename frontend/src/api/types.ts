@@ -94,8 +94,9 @@ export interface RecyclingCentre {
   operating_hours: Record<string, string>;
   contact_phone?: string;
   contact_email?: string;
-  open_time?: string | null; // "HH:MM:SS" — Africa/Kigali (UTC+2)
-  close_time?: string | null; // "HH:MM:SS" — Africa/Kigali (UTC+2)
+  open_time?: string | null;
+  close_time?: string | null;
+  timezone: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

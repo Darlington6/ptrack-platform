@@ -45,17 +45,22 @@ function formatDist(km: number): string {
   return km < 1 ? `${(km * 1000).toFixed(0)} m away` : `${km.toFixed(1)} km away`;
 }
 
-// Africa/Kigali is always UTC+2 (no DST)
 function isOpenNow(centre: RecyclingCentre): boolean | null {
   if (!centre.open_time || !centre.close_time) return null;
-  const kigaliOffsetMs = 2 * 60 * 60 * 1000;
-  const nowUtcMs = Date.now();
-  const nowKigali = new Date(nowUtcMs + kigaliOffsetMs);
+  const tz = centre.timezone || 'Africa/Kigali';
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: tz,
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).formatToParts(new Date());
+  const h = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0');
+  const m = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0');
+  const nowMin = h * 60 + m;
   const hhmm = (t: string) => {
-    const [h, m] = t.split(':').map(Number);
-    return (h ?? 0) * 60 + (m ?? 0);
+    const [th, tm] = t.split(':').map(Number);
+    return (th ?? 0) * 60 + (tm ?? 0);
   };
-  const nowMin = nowKigali.getUTCHours() * 60 + nowKigali.getUTCMinutes();
   return nowMin >= hhmm(centre.open_time) && nowMin < hhmm(centre.close_time);
 }
 

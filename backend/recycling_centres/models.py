@@ -14,9 +14,11 @@ class RecyclingCentre(models.Model):
     operating_hours = models.JSONField(default=dict)
     contact_phone = models.CharField(max_length=20, blank=True)
     contact_email = models.EmailField(blank=True)
-    # Structured hours for open/closed detection (Africa/Kigali = UTC+2, no DST)
+    # Structured hours for open/closed detection
     open_time = models.TimeField(null=True, blank=True)
     close_time = models.TimeField(null=True, blank=True)
+    # IANA timezone name — used by frontend to compute Open/Closed correctly
+    timezone = models.CharField(max_length=60, default="Africa/Kigali")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -27,7 +27,7 @@ from reports.permissions import IsAdminRole
 from reports.utils import bust_points_cache, get_points
 
 from .models import AuditLog
-from .pagination import FeedCursorPagination
+from .pagination import FeedCursorPagination, StandardPagination
 
 User = get_user_model()
 
@@ -621,24 +621,13 @@ def admin_users_list(request):
     if has_activity == "true":
         qs = qs.filter(report_count_ann__gt=0)
 
-    users = list(
-        qs.values(
-            "id",
-            "username",
-            "email",
-            "full_name",
-            "phone_number",
-            "sector",
-            "role",
-            "points",
-            "is_active",
-            "email_verified",
-            "current_streak",
-            "created_at",
-            report_count=Count("reports"),
-        )
-    )
-    return Response(users)
+    paginator = StandardPagination()
+    page = paginator.paginate_queryset(qs, request)
+    items = page if page is not None else list(qs)
+    data = AdminUserSerializer(items, many=True).data
+    if page is not None:
+        return paginator.get_paginated_response(data)
+    return Response(data)
 
 
 @extend_schema(

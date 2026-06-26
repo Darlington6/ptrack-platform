@@ -183,9 +183,10 @@ export default function AdminUsers() {
   const [sector, setSector] = useState('');
   const [verified, setVerified] = useState('');
   const [hasActivity, setHasActivity] = useState('');
+  const [page, setPage] = useState(1);
   const [drawer, setDrawer] = useState<AdminUser | null>(null);
 
-  const params = {
+  const filters = {
     ...(search && { search }),
     ...(role && { role }),
     ...(sector && { sector }),
@@ -193,13 +194,26 @@ export default function AdminUsers() {
     ...(hasActivity && { has_activity: hasActivity }),
   };
 
+  // Reset to page 1 when filters change
+  function setFilter<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setPage(1);
+    };
+  }
+
+  const params = { ...filters, page };
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'users', params],
     queryFn: () => adminApi.users.list(params),
     staleTime: 30_000,
   });
 
-  const users: AdminUser[] = data?.data ?? [];
+  const users: AdminUser[] = data?.data?.results ?? [];
+  const totalCount: number = data?.data?.count ?? 0;
+  const hasNext = !!data?.data?.next;
+  const hasPrev = !!data?.data?.previous;
 
   const exportActions = (
     <button
@@ -212,7 +226,7 @@ export default function AdminUsers() {
 
   return (
     <>
-      <AdminPageShell title={`Users (${users.length})`} actions={exportActions}>
+      <AdminPageShell title={`Users (${totalCount})`} actions={exportActions}>
         <div className="space-y-4">
           {/* Filters */}
           <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
@@ -220,12 +234,12 @@ export default function AdminUsers() {
               type="text"
               placeholder="Search name / email / phone…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => setFilter(setSearch)(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 w-56"
             />
             <select
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => setFilter(setRole)(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">All roles</option>
@@ -234,7 +248,7 @@ export default function AdminUsers() {
             </select>
             <select
               value={sector}
-              onChange={(e) => setSector(e.target.value)}
+              onChange={(e) => setFilter(setSector)(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">All sectors</option>
@@ -246,7 +260,7 @@ export default function AdminUsers() {
             </select>
             <select
               value={verified}
-              onChange={(e) => setVerified(e.target.value)}
+              onChange={(e) => setFilter(setVerified)(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">Any verification</option>
@@ -255,7 +269,7 @@ export default function AdminUsers() {
             </select>
             <select
               value={hasActivity}
-              onChange={(e) => setHasActivity(e.target.value)}
+              onChange={(e) => setFilter(setHasActivity)(e.target.value)}
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">Any activity</option>
@@ -361,6 +375,31 @@ export default function AdminUsers() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {(hasPrev || hasNext) && (
+            <div className="flex items-center justify-between px-1">
+              <span className="text-sm text-gray-500 dark:text-slate-400">
+                Page {page} · {totalCount} total
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => p - 1)}
+                  disabled={!hasPrev}
+                  className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={!hasNext}
+                  className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </AdminPageShell>
       {drawer && <UserDrawer user={drawer} onClose={() => setDrawer(null)} />}
