@@ -17,7 +17,10 @@ export function useNetworkStatus() {
       }
       try {
         const start = Date.now();
-        await fetch('/api/v1/health/', { method: 'GET', signal: AbortSignal.timeout(5000) });
+        const base = import.meta.env.VITE_API_BASE_URL
+          ? `${import.meta.env.VITE_API_BASE_URL as string}/api/v1`
+          : '/api/v1';
+        await fetch(`${base}/health/`, { method: 'GET', signal: AbortSignal.timeout(5000) });
         const ms = Date.now() - start;
         setStatus(ms > 2000 ? 'poor' : 'online');
       } catch {
