@@ -214,33 +214,31 @@ export default function MapView() {
         </Map>
       </div>
 
-      {/* Status filter chips + legend */}
+      {/* Status filter chips */}
       <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-        <div className="flex gap-2 px-4 py-2 overflow-x-auto">
-          {FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                filter === f.value
-                  ? 'bg-green-600 text-white'
-                  : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
-          <span className="ml-auto flex items-center gap-3 text-xs text-gray-400 dark:text-slate-500 whitespace-nowrap">
-            {(['pending', 'verified', 'resolved'] as ReportStatus[]).map((s) => (
-              <span key={s} className="flex items-center gap-1 capitalize">
-                <span
-                  className="w-2 h-2 rounded-full inline-block"
-                  style={{ background: STATUS_COLOR[s] }}
-                />
-                {s}
-              </span>
-            ))}
-          </span>
+        <div className="flex gap-2 px-4 py-2.5 overflow-x-auto">
+          {FILTERS.map((f) => {
+            const color = f.value !== 'all' ? STATUS_COLOR[f.value] : undefined;
+            return (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                  filter === f.value
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
+                }`}
+              >
+                {color && (
+                  <span
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                    style={{ background: filter === f.value ? 'white' : color }}
+                  />
+                )}
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -252,12 +250,12 @@ export default function MapView() {
             <p className="text-sm text-gray-500 dark:text-slate-400">No reports in this area.</p>
           </div>
         )}
-        <div className="divide-y divide-gray-100 dark:divide-slate-800">
+        <div className="space-y-2 px-3 pt-3">
           {reports.map((r) => (
             <Link
               key={r.id}
               to={`/reports/${r.id}`}
-              className="flex items-start gap-3 px-4 py-3 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-start gap-3 px-4 py-3.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               <span
                 className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0"

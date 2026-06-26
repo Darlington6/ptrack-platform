@@ -3,7 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { educationApi } from '../api/endpoints/education';
+import { Spinner } from '../components/ui/Spinner';
 import type { Article } from '../api/types';
 
 export default function EducationArticle() {
@@ -39,7 +42,7 @@ export default function EducationArticle() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -110,10 +113,9 @@ export default function EducationArticle() {
           </p>
         </div>
 
-        <div
-          className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-slate-300 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: body }}
-        />
+        <div className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-slate-300 leading-relaxed prose-a:text-green-600 prose-a:underline prose-strong:text-gray-900 dark:prose-strong:text-white">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+        </div>
       </div>
     </div>
   );

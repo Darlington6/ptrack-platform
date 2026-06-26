@@ -261,8 +261,11 @@ function PointsTab() {
               const dirty = edited !== undefined && edited !== c.points;
               return (
                 <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/40">
-                  <td className="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">
-                    {c.event}
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-slate-200">
+                    {c.event
+                      .split('_')
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(' ')}
                   </td>
                   <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{c.description}</td>
                   <td className="px-4 py-3">
