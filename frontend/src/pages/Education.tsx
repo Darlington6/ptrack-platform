@@ -36,7 +36,10 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
       )}
       <div className="flex-1 p-3 min-w-0">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
-          {article.category.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+          {article.category
+            .split('_')
+            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ')}
         </span>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 line-clamp-2">
           {title}

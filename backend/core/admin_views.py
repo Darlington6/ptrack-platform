@@ -102,11 +102,13 @@ def _csv_stream(header, rows):
 def _log_export(request, filename: str) -> None:
     from .models import AuditLog
 
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
     AuditLog.objects.create(
         actor=request.user,
         action=f"GET {request.path}",
         metadata={"export_file": filename, "query_string": request.META.get("QUERY_STRING", "")},
-        ip_address=_get_client_ip(request),
+        ip_address=ip,
         user_agent=request.META.get("HTTP_USER_AGENT", ""),
     )
 
