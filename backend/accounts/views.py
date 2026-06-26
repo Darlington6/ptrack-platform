@@ -661,14 +661,25 @@ def password_reset_request(request):
         user = User.objects.filter(phone_number=identifier).first()
 
     if user:
-        code = _store_otp(user, "password_reset")
+        from .otp import create_verification_code
+
+        code = create_verification_code(user, "email", "password_reset")
         if "@" in identifier:
             try:
-                from utils.email_service import send_verification_email
+                from core.email import send_email
 
-                send_verification_email(user.email, code)
+                send_email(
+                    user.email,
+                    "Your pTrack password reset code",
+                    "password_reset",
+                    {"user": user, "code": code},
+                )
             except Exception:
-                pass
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Password reset email failed for %s", identifier
+                )
         else:
             import logging
 
@@ -712,7 +723,9 @@ def password_reset_confirm(request):
             {"detail": "Invalid code or identifier."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    if not _verify_otp(user, "password_reset", code):
+    from .otp import verify_code
+
+    if not verify_code(user, "email", "password_reset", code):
         return Response({"detail": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
 
     user.set_password(new_password)

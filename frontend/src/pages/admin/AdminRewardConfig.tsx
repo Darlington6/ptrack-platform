@@ -85,10 +85,14 @@ function BadgeModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-name"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Name *
               </label>
               <input
+                id="badge-name"
                 value={form.name}
                 onChange={(e) => {
                   const name = e.target.value;
@@ -108,10 +112,14 @@ function BadgeModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-slug"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Slug *
               </label>
               <input
+                id="badge-slug"
                 value={form.slug}
                 onChange={(e) => {
                   setSlugEdited(true);
@@ -122,30 +130,42 @@ function BadgeModal({
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-description"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Description
               </label>
               <input
+                id="badge-description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-icon"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Icon (emoji)
               </label>
               <input
+                id="badge-icon"
                 value={form.icon}
                 onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-xl"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-required-points"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Required points
               </label>
               <input
+                id="badge-required-points"
                 type="number"
                 min={0}
                 value={form.required_points}
@@ -156,10 +176,14 @@ function BadgeModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-type"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Badge type
               </label>
               <select
+                id="badge-type"
                 value={form.badge_type}
                 onChange={(e) => setForm((f) => ({ ...f, badge_type: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -208,9 +232,14 @@ function BadgeModal({
   );
 }
 
+type NewPointForm = { event: string; description: string; points: number };
+const EMPTY_POINT: NewPointForm = { event: '', description: '', points: 10 };
+
 function PointsTab() {
   const qc = useQueryClient();
   const [edits, setEdits] = useState<Record<number, number>>({});
+  const [addOpen, setAddOpen] = useState(false);
+  const [newForm, setNewForm] = useState<NewPointForm>(EMPTY_POINT);
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'points'],
@@ -228,6 +257,22 @@ function PointsTab() {
       setEdits({});
     },
     onError: () => toast.error('Failed to save'),
+  });
+
+  const create = useMutation({
+    mutationFn: (f: NewPointForm) =>
+      adminApi.configurations.points.create({
+        event: f.event.toLowerCase().trim().replace(/\s+/g, '_'),
+        description: f.description,
+        points: f.points,
+      }),
+    onSuccess: () => {
+      toast.success('Point event added');
+      void qc.invalidateQueries({ queryKey: ['admin', 'points'] });
+      setAddOpen(false);
+      setNewForm(EMPTY_POINT);
+    },
+    onError: () => toast.error('Failed to add point event'),
   });
 
   if (isLoading)
@@ -261,8 +306,11 @@ function PointsTab() {
               const dirty = edited !== undefined && edited !== c.points;
               return (
                 <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/40">
-                  <td className="px-4 py-3 font-mono text-xs text-blue-600 dark:text-blue-400">
-                    {c.event}
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-slate-200">
+                    {c.event
+                      .split('_')
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join(' ')}
                   </td>
                   <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{c.description}</td>
                   <td className="px-4 py-3">
@@ -293,6 +341,88 @@ function PointsTab() {
           </tbody>
         </table>
       </div>
+
+      {/* Add new point event */}
+      {!addOpen ? (
+        <button
+          onClick={() => setAddOpen(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-gray-300 dark:border-slate-600 text-gray-500 dark:text-slate-400 rounded-lg text-sm hover:border-green-500 hover:text-green-600 dark:hover:text-green-400 transition-colors"
+        >
+          <Plus size={14} /> Add point event
+        </button>
+      ) : (
+        <div className="bg-gray-50 dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-slate-700 p-4 space-y-3">
+          <p className="text-xs font-semibold text-gray-600 dark:text-slate-400">New point event</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="new-event-name"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
+                Event name
+              </label>
+              <input
+                id="new-event-name"
+                placeholder="e.g. cleanup_logged"
+                value={newForm.event}
+                onChange={(e) => setNewForm((f) => ({ ...f, event: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-mono bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="new-event-points"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
+                Points
+              </label>
+              <input
+                id="new-event-points"
+                type="number"
+                min={0}
+                value={newForm.points}
+                onChange={(e) =>
+                  setNewForm((f) => ({ ...f, points: parseInt(e.target.value) || 0 }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div className="col-span-2">
+              <label
+                htmlFor="new-event-description"
+                className="block text-xs text-gray-500 dark:text-slate-400 mb-1"
+              >
+                Description
+              </label>
+              <input
+                id="new-event-description"
+                placeholder="What earns these points?"
+                value={newForm.description}
+                onChange={(e) => setNewForm((f) => ({ ...f, description: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => create.mutate(newForm)}
+              disabled={!newForm.event || create.isPending}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60"
+            >
+              <Save size={13} /> Save
+            </button>
+            <button
+              onClick={() => {
+                setAddOpen(false);
+                setNewForm(EMPTY_POINT);
+              }}
+              className="px-3 py-1.5 border border-gray-200 dark:border-slate-700 rounded-lg text-sm text-gray-500 dark:text-slate-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -33,6 +33,9 @@ class Article(models.Model):
             self.slug = slugify(self.title_en)[:120]
         if self.is_published and not self.published_at:
             self.published_at = timezone.now()
+        # Recalculate reading time from English body (200 words/min average)
+        word_count = len(self.body_en.split()) if self.body_en else 0
+        self.reading_time_minutes = max(1, round(word_count / 200))
         super().save(*args, **kwargs)
 
     def __str__(self):

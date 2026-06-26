@@ -110,6 +110,21 @@ def centre_detail(request, pk):
     return Response(RecyclingCentreSerializer(centre).data)
 
 
+# ── Admin: list all (active + inactive) ───────────────────────────────────────
+
+
+@extend_schema(
+    tags=["admin-recycling-centres"],
+    responses={200: RecyclingCentreSerializer(many=True)},
+    summary="List all recycling centres including inactive (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def admin_centre_list(request):
+    centres = RecyclingCentre.objects.all().order_by("name")
+    return Response(RecyclingCentreSerializer(centres, many=True).data)
+
+
 # ── Admin: CRUD ────────────────────────────────────────────────────────────────
 
 

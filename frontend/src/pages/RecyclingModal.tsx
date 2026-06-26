@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { X, Recycle } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import client from '../api/client';
 import { enqueueRecycling } from '../lib/offlineQueue';
 
@@ -25,6 +26,14 @@ export default function RecyclingModal({ onClose }: Props) {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const { data: pointConfigs } = useQuery<Record<string, number>>({
+    queryKey: ['point-configs'],
+    queryFn: () => client.get<Record<string, number>>('/point-configs/').then((r) => r.data),
+    staleTime: 60_000,
+  });
+
+  const recyclingPts = pointConfigs?.['recycling_logged'] ?? 15;
+
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     setLoading(true);
@@ -36,13 +45,22 @@ export default function RecyclingModal({ onClose }: Props) {
         onClose();
         return;
       }
-      await client.post('/recycling/', payload);
-      toast.success('+15 points! Recycling activity logged.');
+      const res = await client.post<{ points_earned?: number }>('/recycling/', payload);
+      const earned = res.data.points_earned ?? recyclingPts;
+      toast.success(`+${earned} points! Recycling activity logged.`);
       void qc.invalidateQueries({ queryKey: ['rewards'] });
       void qc.invalidateQueries({ queryKey: ['dashboard'] });
       void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       onClose();
-    } catch {
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 429) {
+        const msg =
+          (err.response.data as { detail?: string }).detail ??
+          "You've already logged a recycling activity today. Come back tomorrow!";
+        toast.error(msg);
+        setLoading(false);
+        return;
+      }
       await enqueueRecycling(payload);
       toast.success("Saved — will sync when you're back online.");
       onClose();
@@ -75,10 +93,14 @@ export default function RecyclingModal({ onClose }: Props) {
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+            <label
+              htmlFor="recycling-activity-type"
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
               Activity Type
             </label>
             <select
+              id="recycling-activity-type"
               value={activityType}
               onChange={(e) => setActivityType(e.target.value)}
               className={`${INPUT_CLS} bg-white dark:bg-slate-700`}
@@ -92,10 +114,14 @@ export default function RecyclingModal({ onClose }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+            <label
+              htmlFor="recycling-note"
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
               Note <span className="font-normal text-gray-400">(optional)</span>
             </label>
             <textarea
+              id="recycling-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
@@ -106,7 +132,7 @@ export default function RecyclingModal({ onClose }: Props) {
 
           <div className="bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-2.5 flex items-center justify-between">
             <span className="text-sm text-gray-700 dark:text-slate-300">Points earned</span>
-            <span className="text-base font-bold text-green-600">+15 pts</span>
+            <span className="text-base font-bold text-green-600">+{recyclingPts} pts</span>
           </div>
 
           <button

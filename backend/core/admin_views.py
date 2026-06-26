@@ -24,9 +24,10 @@ from rest_framework.response import Response
 
 from reports.models import BadgeDefinition, PointConfiguration, Reward, WasteReport
 from reports.permissions import IsAdminRole
+from reports.utils import bust_points_cache, get_points
 
 from .models import AuditLog
-from .pagination import FeedCursorPagination
+from .pagination import FeedCursorPagination, StandardPagination
 
 User = get_user_model()
 
@@ -96,6 +97,20 @@ def _csv_stream(header, rows):
     yield writer.writerow(header)
     for row in rows:
         yield writer.writerow(row)
+
+
+def _log_export(request, filename: str) -> None:
+    from .models import AuditLog
+
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+    AuditLog.objects.create(
+        actor=request.user,
+        action=f"GET {request.path}",
+        metadata={"export_file": filename, "query_string": request.META.get("QUERY_STRING", "")},
+        ip_address=ip,
+        user_agent=request.META.get("HTTP_USER_AGENT", ""),
+    )
 
 
 # ── Analytics ──────────────────────────────────────────────────────────────────
@@ -279,6 +294,18 @@ def audit_log_list(request):
     if action:
         qs = qs.filter(action__icontains=action)
 
+    target_type = request.query_params.get("target_type")
+    if target_type:
+        qs = qs.filter(target_type__icontains=target_type)
+
+    date_from = request.query_params.get("date_from")
+    if date_from:
+        qs = qs.filter(created_at__date__gte=date_from)
+
+    date_to = request.query_params.get("date_to")
+    if date_to:
+        qs = qs.filter(created_at__date__lte=date_to)
+
     paginator = FeedCursorPagination()
     page = paginator.paginate_queryset(qs, request)
     if page is not None:
@@ -309,6 +336,7 @@ def audit_log_detail(request, pk):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def audit_log_export(request):
+    _log_export(request, "audit_logs.csv")
     qs = AuditLog.objects.select_related("actor").all().order_by("-created_at")
 
     header = ["id", "actor_email", "action", "target_type", "target_id", "ip_address", "created_at"]
@@ -348,12 +376,15 @@ def reports_bulk_verify(request):
 
     reports = WasteReport.objects.filter(pk__in=ids, status="pending")
     count = reports.count()
+    bonus_pts = get_points("verification_bonus", fallback=5)
 
     for report in reports.select_related("user"):
         report.status = "verified"
         report.save(update_fields=["status"])
-        Reward.objects.create(user=report.user, points_earned=5, reward_type="verification_bonus")
-        report.user.points += 5
+        Reward.objects.create(
+            user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
+        )
+        report.user.points += bonus_pts
         report.user.save(update_fields=["points"])
         cache.delete(f"user:profile:{report.user.pk}")
 
@@ -387,6 +418,7 @@ def reports_bulk_reject(request):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def reports_export(request):
+    _log_export(request, "reports.csv")
     qs = WasteReport.objects.select_related("user").order_by("-created_at")
 
     header = [
@@ -442,6 +474,7 @@ def point_config_list_create(request):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         obj = serializer.save()
+        bust_points_cache(obj.event)
         return Response(PointConfigSerializer(obj).data, status=status.HTTP_201_CREATED)
     return Response(PointConfigSerializer(PointConfiguration.objects.all(), many=True).data)
 
@@ -476,6 +509,7 @@ def point_config_detail(request, pk):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
+        bust_points_cache(obj.event)
         return Response(serializer.data)
 
     return Response(PointConfigSerializer(obj).data)
@@ -603,24 +637,13 @@ def admin_users_list(request):
     if has_activity == "true":
         qs = qs.filter(report_count_ann__gt=0)
 
-    users = list(
-        qs.values(
-            "id",
-            "username",
-            "email",
-            "full_name",
-            "phone_number",
-            "sector",
-            "role",
-            "points",
-            "is_active",
-            "email_verified",
-            "current_streak",
-            "created_at",
-            report_count=Count("reports"),
-        )
-    )
-    return Response(users)
+    paginator = StandardPagination()
+    page = paginator.paginate_queryset(qs, request)
+    items = page if page is not None else list(qs)
+    data = AdminUserSerializer(items, many=True).data
+    if page is not None:
+        return paginator.get_paginated_response(data)
+    return Response(data)
 
 
 @extend_schema(
@@ -631,6 +654,7 @@ def admin_users_list(request):
 @api_view(["GET"])
 @permission_classes([IsAdminRole])
 def admin_users_export(request):
+    _log_export(request, "users.csv")
     qs = User.objects.annotate(report_count_ann=Count("reports")).order_by("-date_joined")
     header = [
         "id",

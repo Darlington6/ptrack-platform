@@ -6,13 +6,7 @@ from accounts.managers import AllObjectsManager, SoftDeleteManager
 
 
 class PointConfiguration(models.Model):
-    EVENT_CHOICES = [
-        ("report_submitted", "Report Submitted"),
-        ("recycling_logged", "Recycling Logged"),
-        ("verification_bonus", "Verification Bonus"),
-    ]
-
-    event = models.CharField(max_length=30, choices=EVENT_CHOICES, unique=True)
+    event = models.CharField(max_length=60, unique=True)
     points = models.IntegerField()
     description = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)

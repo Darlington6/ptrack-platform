@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle, XCircle, Activity } from 'lucide-react';
+import { CheckCircle, XCircle, Activity, RefreshCw } from 'lucide-react';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import client from '../../api/client';
 
@@ -11,7 +11,7 @@ interface HealthStatus {
 }
 
 export default function AdminSettings() {
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ['admin', 'health'],
     queryFn: () => client.get<HealthStatus>('/health/'),
     staleTime: 0,
@@ -34,9 +34,11 @@ export default function AdminSettings() {
             </div>
             <button
               onClick={() => void refetch()}
-              className="text-xs text-green-600 dark:text-green-400 hover:underline"
+              disabled={isFetching}
+              className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 hover:underline disabled:opacity-60"
             >
-              Refresh
+              <RefreshCw size={12} className={isFetching ? 'animate-spin' : ''} />
+              {isFetching ? 'Checking…' : 'Refresh'}
             </button>
           </div>
           <div className="p-5 space-y-3">

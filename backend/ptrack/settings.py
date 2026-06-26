@@ -312,6 +312,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
 
 # ── Content Security Policy ───────────────────────────────────────────────────
+# Swagger UI loads assets from jsDelivr CDN; exempt docs paths from CSP
+CSP_EXCLUDE_URL_PREFIXES = ("/api/v1/docs", "/api/v1/schema")
+
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'",

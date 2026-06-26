@@ -179,7 +179,23 @@ export default function Profile() {
             You've helped prevent ~<span className="font-bold">{impact.plastic_kg}kg</span> of
             plastic from reaching Kigali's drainage.
           </p>
-          <button className="mt-3 text-xs font-medium text-green-600 flex items-center gap-1 hover:underline">
+          <button
+            onClick={() => {
+              const text = `I've helped prevent ~${impact.plastic_kg}kg of plastic from reaching Kigali's drainage using pTrack!`;
+              if (navigator.share) {
+                void navigator.share({
+                  title: 'My pTrack Impact',
+                  text,
+                  url: window.location.origin,
+                });
+              } else {
+                void navigator.clipboard
+                  .writeText(text)
+                  .then(() => toast.success('Impact copied to clipboard!'));
+              }
+            }}
+            className="mt-3 text-xs font-medium text-green-600 flex items-center gap-1 hover:underline"
+          >
             <Share2 size={12} /> Share my impact
           </button>
         </div>

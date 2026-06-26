@@ -107,7 +107,10 @@ export default function AdminAuditLog() {
   });
 
   const logs: AuditLog[] = data?.data?.results ?? [];
-  const nextCursor: string | null = data?.data?.next ?? null;
+  // DRF cursor pagination returns a full URL in `next`; we only need the token
+  const nextCursor: string | null = data?.data?.next
+    ? new URL(data.data.next).searchParams.get('cursor')
+    : null;
   const hasPrev = cursorHistory.length > 0;
 
   function goNext() {

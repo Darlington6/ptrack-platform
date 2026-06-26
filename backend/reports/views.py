@@ -36,6 +36,7 @@ from .serializers import (
     RewardSerializer,
     WasteReportSerializer,
 )
+from .utils import get_points
 
 User = get_user_model()
 
@@ -145,8 +146,9 @@ def reports_list_create(request):
 
     report = serializer.save(user=request.user)
 
-    Reward.objects.create(user=request.user, points_earned=10, reward_type="report_submitted")
-    request.user.points += 10
+    pts = get_points("report_submitted", fallback=10)
+    Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")
+    request.user.points += pts
     request.user.save(update_fields=["points"])
 
     _prefs = getattr(request.user, "notification_preferences", {}) or {}
@@ -155,13 +157,13 @@ def reports_list_create(request):
             request.user,
             "report",
             "Report received! 📍",
-            "Your waste report is under review. +10 pts added.",
+            f"Your waste report is under review. +{pts} pts added.",
             f"/reports/{report.pk}",
         )
         send_push(
             request.user,
             "Report received! 📍",
-            "Your waste report is under review — +10 pts added.",
+            f"Your waste report is under review — +{pts} pts added.",
             f"/reports/{report.pk}",
         )
 
@@ -171,7 +173,11 @@ def reports_list_create(request):
     cache.delete(f"user:profile:{request.user.pk}")
 
     return Response(
-        {**WasteReportSerializer(report).data, "new_points_balance": request.user.points},
+        {
+            **WasteReportSerializer(report).data,
+            "points_earned": pts,
+            "new_points_balance": request.user.points,
+        },
         status=status.HTTP_201_CREATED,
     )
 
@@ -211,8 +217,11 @@ def report_verify(request, pk):
     report.status = "verified"
     report.save(update_fields=["status"])
 
-    Reward.objects.create(user=report.user, points_earned=5, reward_type="verification_bonus")
-    report.user.points += 5
+    bonus_pts = get_points("verification_bonus", fallback=5)
+    Reward.objects.create(
+        user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
+    )
+    report.user.points += bonus_pts
     report.user.save(update_fields=["points"])
 
     _vprefs = getattr(report.user, "notification_preferences", {}) or {}
@@ -220,14 +229,14 @@ def report_verify(request, pk):
         notify(
             report.user,
             "verification",
-            "Report verified! ✅",
-            "An admin verified your waste report. +5 bonus pts added.",
+            "Report verified!",
+            f"An admin verified your waste report. +{bonus_pts} bonus pts added.",
             f"/reports/{report.pk}",
         )
         send_push(
             report.user,
             "Report verified! ✅",
-            "An admin verified your waste report — +5 bonus pts.",
+            f"An admin verified your waste report — +{bonus_pts} bonus pts.",
             f"/reports/{report.pk}",
         )
 
@@ -278,14 +287,23 @@ def recycling_list_create(request):
             status=status.HTTP_429_TOO_MANY_REQUESTS,
         )
 
+    # One recycling log per user per day
+    today = timezone.now().date()
+    if RecyclingActivity.objects.filter(user=request.user, date__date=today).exists():
+        return Response(
+            {"detail": "You've already logged a recycling activity today. Come back tomorrow!"},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
     serializer = RecyclingActivitySerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    activity = serializer.save(user=request.user, points_awarded=15)
+    pts = get_points("recycling_logged", fallback=15)
+    activity = serializer.save(user=request.user, points_awarded=pts)
 
-    Reward.objects.create(user=request.user, points_earned=15, reward_type="recycling_logged")
-    request.user.points += 15
+    Reward.objects.create(user=request.user, points_earned=pts, reward_type="recycling_logged")
+    request.user.points += pts
     request.user.save(update_fields=["points"])
 
     _rprefs = getattr(request.user, "notification_preferences", {}) or {}
@@ -294,13 +312,13 @@ def recycling_list_create(request):
             request.user,
             "recycling",
             "Recycling logged! ♻️",
-            "Your recycling activity was recorded. +15 pts added.",
+            f"Your recycling activity was recorded. +{pts} pts added.",
             "/rewards",
         )
         send_push(
             request.user,
             "Recycling logged! ♻️",
-            "Recycling activity recorded — +15 pts added.",
+            f"Recycling activity recorded — +{pts} pts added.",
             "/rewards",
         )
 
@@ -308,7 +326,11 @@ def recycling_list_create(request):
     cache.delete(f"user:profile:{request.user.pk}")
 
     return Response(
-        {**RecyclingActivitySerializer(activity).data, "new_points_balance": request.user.points},
+        {
+            **RecyclingActivitySerializer(activity).data,
+            "points_earned": pts,
+            "new_points_balance": request.user.points,
+        },
         status=status.HTTP_201_CREATED,
     )
 
@@ -379,6 +401,18 @@ def leaderboard(request):
             cache.set(_LEADERBOARD_CACHE_KEY, data, timeout=_LEADERBOARD_CACHE_TTL)
 
     return Response(data)
+
+
+# ── Point configs (citizen-readable) ──────────────────────────────────────────
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def point_configs(request):
+    """Return event→points mapping so the UI can show accurate values dynamically."""
+    from .models import PointConfiguration
+
+    return Response({c.event: c.points for c in PointConfiguration.objects.all()})
 
 
 # ── Badges (public) ────────────────────────────────────────────────────────────

@@ -110,7 +110,8 @@ export const adminApi = {
       sector?: string;
       verified?: string;
       has_activity?: string;
-    }) => client.get<AdminUser[]>('/admin/users/', { params }),
+      page?: number;
+    }) => client.get<PaginatedResponse<AdminUser>>('/admin/users/', { params }),
     detail: (id: number) => client.get<AdminUser>(`/admin/users/${id}/`),
     update: (id: number, data: { role?: string; is_active?: boolean }) =>
       client.patch<AdminUser>(`/admin/users/${id}/`, data),
@@ -150,7 +151,7 @@ export const adminApi = {
   },
 
   centres: {
-    list: () => client.get<RecyclingCentre[]>('/recycling-centres/'),
+    list: () => client.get<RecyclingCentre[]>('/admin/recycling-centres/all/'),
     create: (data: Partial<RecyclingCentre>) =>
       client.post<RecyclingCentre>('/admin/recycling-centres/', data),
     update: (id: number, data: Partial<RecyclingCentre>) =>
