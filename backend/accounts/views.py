@@ -664,11 +664,20 @@ def password_reset_request(request):
         code = _store_otp(user, "password_reset")
         if "@" in identifier:
             try:
-                from utils.email_service import send_verification_email
+                from core.email import send_email
 
-                send_verification_email(user.email, code)
+                send_email(
+                    user.email,
+                    "Your pTrack password reset code",
+                    "password_reset",
+                    {"user": user, "code": code},
+                )
             except Exception:
-                pass
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Password reset email failed for %s", identifier
+                )
         else:
             import logging
 

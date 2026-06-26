@@ -102,7 +102,10 @@ export default function EducationArticle() {
 
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
-            {article.category}
+            {article.category
+              .split('_')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')}
           </span>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mt-1 leading-snug">
             {title}

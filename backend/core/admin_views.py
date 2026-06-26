@@ -280,6 +280,18 @@ def audit_log_list(request):
     if action:
         qs = qs.filter(action__icontains=action)
 
+    target_type = request.query_params.get("target_type")
+    if target_type:
+        qs = qs.filter(target_type__icontains=target_type)
+
+    date_from = request.query_params.get("date_from")
+    if date_from:
+        qs = qs.filter(created_at__date__gte=date_from)
+
+    date_to = request.query_params.get("date_to")
+    if date_to:
+        qs = qs.filter(created_at__date__lte=date_to)
+
     paginator = FeedCursorPagination()
     page = paginator.paginate_queryset(qs, request)
     if page is not None:

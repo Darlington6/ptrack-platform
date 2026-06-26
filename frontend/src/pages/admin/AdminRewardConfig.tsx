@@ -85,10 +85,14 @@ function BadgeModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-name"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Name *
               </label>
               <input
+                id="badge-name"
                 value={form.name}
                 onChange={(e) => {
                   const name = e.target.value;
@@ -108,10 +112,14 @@ function BadgeModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-slug"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Slug *
               </label>
               <input
+                id="badge-slug"
                 value={form.slug}
                 onChange={(e) => {
                   setSlugEdited(true);
@@ -122,30 +130,42 @@ function BadgeModal({
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-description"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Description
               </label>
               <input
+                id="badge-description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-icon"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Icon (emoji)
               </label>
               <input
+                id="badge-icon"
                 value={form.icon}
                 onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-xl"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-required-points"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Required points
               </label>
               <input
+                id="badge-required-points"
                 type="number"
                 min={0}
                 value={form.required_points}
@@ -156,10 +176,14 @@ function BadgeModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="badge-type"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Badge type
               </label>
               <select
+                id="badge-type"
                 value={form.badge_type}
                 onChange={(e) => setForm((f) => ({ ...f, badge_type: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
