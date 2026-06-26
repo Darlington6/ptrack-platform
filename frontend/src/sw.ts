@@ -1,7 +1,7 @@
 /// <reference lib="WebWorker" />
 
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
@@ -44,6 +44,15 @@ self.addEventListener('fetch', (event) => {
 // ── Precaching ────────────────────────────────────────────────────────────────
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
+
+// ── SPA navigation fallback ───────────────────────────────────────────────────
+// Without this, navigating to /dashboard or /admin while offline falls through
+// to the network (which is down) instead of serving index.html from precache.
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+    denylist: [/^\/api\//],
+  })
+);
 
 // ── B: Images — CacheFirst, 100 entries, 30 days ─────────────────────────────
 registerRoute(
