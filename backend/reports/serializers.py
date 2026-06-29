@@ -16,6 +16,7 @@ class WasteReportSerializer(serializers.ModelSerializer):
             "user_detail",
             "latitude",
             "longitude",
+            "sector",
             "image",
             "thumbnail",
             "description",
@@ -23,7 +24,7 @@ class WasteReportSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
-        read_only_fields = ["id", "user", "status", "thumbnail", "created_at"]
+        read_only_fields = ["id", "user", "sector", "status", "thumbnail", "created_at"]
 
 
 class RewardSerializer(serializers.ModelSerializer):

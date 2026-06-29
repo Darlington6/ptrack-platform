@@ -34,6 +34,11 @@ urlpatterns = [
         v.analytics_kpis,
         name="admin-analytics-kpis",
     ),
+    path(
+        "admin/analytics/funnel/",
+        v.analytics_funnel,
+        name="admin-analytics-funnel",
+    ),
     # Audit logs
     path("admin/audit-logs/", v.audit_log_list, name="admin-audit-log-list"),
     path("admin/audit-logs/export.csv", v.audit_log_export, name="admin-audit-log-export"),

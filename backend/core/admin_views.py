@@ -158,12 +158,11 @@ def analytics_by_sector(request):
     data = cache.get(cache_key)
     if data is None:
         rows = (
-            WasteReport.objects.select_related("user")
-            .values("user__sector")
+            WasteReport.objects.values("sector")
             .annotate(count=Count("id"))
             .order_by("-count")
         )
-        data = [{"sector": r["user__sector"] or "Unknown", "count": r["count"]} for r in rows]
+        data = [{"sector": r["sector"] or "Unknown", "count": r["count"]} for r in rows]
         cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
     return Response(data)
 
@@ -267,6 +266,43 @@ def analytics_kpis(request):
             .count(),
             "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
         }
+        cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["admin-analytics"],
+    responses={200: OpenApiResponse(description="Engagement funnel: real citizen counts")},
+    summary="Engagement funnel (admin only)",
+)
+@api_view(["GET"])
+@permission_classes([IsAdminRole])
+def analytics_funnel(request):
+    cache_key = "admin:analytics:funnel"
+    data = cache.get(cache_key)
+    if data is None:
+        total = User.objects.filter(role="citizen").count()
+        with_report = (
+            User.objects.filter(role="citizen", reports__isnull=False).distinct().count()
+        )
+        with_verified = (
+            User.objects.filter(
+                role="citizen", reports__status__in=["verified", "resolved"]
+            )
+            .distinct()
+            .count()
+        )
+        with_streak = User.objects.filter(role="citizen", current_streak__gte=7).count()
+
+        def pct(n):
+            return round(n / total * 100) if total else 0
+
+        data = [
+            {"label": "Registered users", "count": total, "pct": 100},
+            {"label": "Submitted ≥1 report", "count": with_report, "pct": pct(with_report)},
+            {"label": "Had a report verified", "count": with_verified, "pct": pct(with_verified)},
+            {"label": "Streak ≥7 days", "count": with_streak, "pct": pct(with_streak)},
+        ]
         cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
     return Response(data)
 

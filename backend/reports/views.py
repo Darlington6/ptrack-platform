@@ -159,7 +159,10 @@ def reports_list_create(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    report = serializer.save(user=request.user)
+    from .utils import coords_to_sector
+    lat = float(request.data.get("latitude", 0))
+    lng = float(request.data.get("longitude", 0))
+    report = serializer.save(user=request.user, sector=coords_to_sector(lat, lng))
 
     pts = get_points("report_submitted", fallback=5)
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")

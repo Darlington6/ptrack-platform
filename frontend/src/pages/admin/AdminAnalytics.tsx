@@ -18,7 +18,7 @@ import {
 } from 'recharts';
 import { Download } from 'lucide-react';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
-import { adminApi } from '../../api/endpoints/admin';
+import { adminApi, type AnalyticsFunnelStep } from '../../api/endpoints/admin';
 
 const DONUT_COLORS = ['#16a34a', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
 
@@ -52,10 +52,17 @@ export default function AdminAnalytics() {
     staleTime: 5 * 60_000,
   });
 
+  const { data: funnelData } = useQuery({
+    queryKey: ['admin', 'analytics', 'funnel'],
+    queryFn: () => adminApi.analytics.funnel(),
+    staleTime: 5 * 60_000,
+  });
+
   const weeklyReports = timeData?.data?.weeks ?? [];
   const bySector = sectorData?.data ?? [];
   const byType = typeData?.data ?? [];
   const topUsers = topData?.data ?? [];
+  const funnelSteps: AnalyticsFunnelStep[] = funnelData?.data ?? [];
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -223,30 +230,31 @@ export default function AdminAnalytics() {
             Engagement Funnel
           </h2>
           <div className="space-y-3">
-            {[
-              { label: 'Registered users', value: 100 },
-              { label: 'Users who submitted ≥1 report', value: 72 },
-              { label: 'Users with verified report', value: 55 },
-              { label: 'Users with streak ≥7 days', value: 30 },
-            ].map((step) => (
+            {funnelSteps.map((step: AnalyticsFunnelStep) => (
               <div key={step.label}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-gray-600 dark:text-slate-300">{step.label}</span>
                   <span className="font-semibold text-gray-800 dark:text-slate-100">
-                    {step.value}%
+                    {step.count.toLocaleString()}
+                    <span className="ml-1.5 text-xs font-normal text-gray-400 dark:text-slate-500">
+                      ({step.pct}%)
+                    </span>
                   </span>
                 </div>
                 <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-green-500 rounded-full"
-                    style={{ width: `${step.value}%` }}
+                    className="h-full bg-green-500 rounded-full transition-all duration-500"
+                    style={{ width: `${step.pct}%` }}
                   />
                 </div>
               </div>
             ))}
+            {funnelSteps.length === 0 && (
+              <p className="text-sm text-gray-400 dark:text-slate-500">No data yet.</p>
+            )}
           </div>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-3">
-            Funnel percentages are relative to total registered users (illustrative).
+            Percentages relative to total registered citizens.
           </p>
         </div>
       </div>

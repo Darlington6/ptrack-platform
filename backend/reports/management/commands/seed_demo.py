@@ -421,6 +421,7 @@ class Command(BaseCommand):
                     latitude=lat,
                     longitude=lng,
                     defaults={
+                        "sector": sector,
                         "waste_type": random.choice(WASTE_TYPES),
                         "description": random.choice(descriptions),
                         "status": random.choice(statuses),
