@@ -157,11 +157,7 @@ def analytics_by_sector(request):
     cache_key = "admin:analytics:by_sector"
     data = cache.get(cache_key)
     if data is None:
-        rows = (
-            WasteReport.objects.values("sector")
-            .annotate(count=Count("id"))
-            .order_by("-count")
-        )
+        rows = WasteReport.objects.values("sector").annotate(count=Count("id")).order_by("-count")
         data = [{"sector": r["sector"] or "Unknown", "count": r["count"]} for r in rows]
         cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
     return Response(data)
@@ -282,13 +278,9 @@ def analytics_funnel(request):
     data = cache.get(cache_key)
     if data is None:
         total = User.objects.filter(role="citizen").count()
-        with_report = (
-            User.objects.filter(role="citizen", reports__isnull=False).distinct().count()
-        )
+        with_report = User.objects.filter(role="citizen", reports__isnull=False).distinct().count()
         with_verified = (
-            User.objects.filter(
-                role="citizen", reports__status__in=["verified", "resolved"]
-            )
+            User.objects.filter(role="citizen", reports__status__in=["verified", "resolved"])
             .distinct()
             .count()
         )

@@ -160,6 +160,7 @@ def reports_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     from .utils import coords_to_sector
+
     lat = float(request.data.get("latitude", 0))
     lng = float(request.data.get("longitude", 0))
     report = serializer.save(user=request.user, sector=coords_to_sector(lat, lng))
