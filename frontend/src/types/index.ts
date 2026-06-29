@@ -1,6 +1,6 @@
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
-export type ReportStatus = 'pending' | 'verified' | 'resolved';
+export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
 export type ActivityType = 'drop_off' | 'pickup' | 'exchange' | 'other';
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'rw';

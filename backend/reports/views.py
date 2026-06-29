@@ -146,7 +146,7 @@ def reports_list_create(request):
 
     report = serializer.save(user=request.user)
 
-    pts = get_points("report_submitted", fallback=10)
+    pts = get_points("report_submitted", fallback=5)
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")
     request.user.points += pts
     request.user.save(update_fields=["points"])
@@ -217,7 +217,7 @@ def report_verify(request, pk):
     report.status = "verified"
     report.save(update_fields=["status"])
 
-    bonus_pts = get_points("verification_bonus", fallback=5)
+    bonus_pts = get_points("verification_bonus", fallback=10)
     Reward.objects.create(
         user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
     )
@@ -273,6 +273,37 @@ def report_reject(request, pk):
             "verification",
             "Report rejected",
             f"An admin reviewed and rejected your waste report.{detail}",
+            f"/reports/{report.pk}",
+        )
+
+    return Response(WasteReportSerializer(report).data)
+
+
+@extend_schema(
+    tags=["reports"],
+    request=None,
+    responses={200: WasteReportSerializer},
+    summary="Mark a report as resolved (admin only)",
+)
+@api_view(["PATCH"])
+@permission_classes([IsAdminRole])
+def report_resolve(request, pk):
+    """Mark a verified report as resolved (waste physically collected/cleaned up)."""
+    try:
+        report = WasteReport.objects.select_related("user").get(pk=pk)
+    except WasteReport.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    report.status = "resolved"
+    report.save(update_fields=["status"])
+
+    _rprefs = getattr(report.user, "notification_preferences", {}) or {}
+    if _rprefs.get("verification_notifications", True):
+        notify(
+            report.user,
+            "verification",
+            "Report resolved!",
+            "Great news! The waste you reported has been collected and resolved.",
             f"/reports/{report.pk}",
         )
 

@@ -26,10 +26,11 @@ const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   verified: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   resolved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
 const WASTE_TYPES = ['bottles', 'bags', 'mixed', 'other'];
-const STATUSES = ['pending', 'verified', 'resolved'];
+const STATUSES = ['pending', 'verified', 'resolved', 'rejected'];
 
 export default function AdminReports() {
   const qc = useQueryClient();

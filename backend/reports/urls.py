@@ -7,6 +7,7 @@ urlpatterns = [
     path("reports/<int:pk>/", views.report_detail, name="report-detail"),
     path("reports/<int:pk>/verify/", views.report_verify, name="report-verify"),
     path("reports/<int:pk>/reject/", views.report_reject, name="report-reject"),
+    path("reports/<int:pk>/resolve/", views.report_resolve, name="report-resolve"),
     path("recycling/", views.recycling_list_create, name="recycling-list-create"),
     path("leaderboard/", views.leaderboard, name="leaderboard"),
     path("rewards/me/", views.my_rewards, name="my-rewards"),
