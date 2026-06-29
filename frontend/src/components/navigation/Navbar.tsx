@@ -1,8 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { useRef, useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset } from 'lucide-react';
+import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { notificationsApi } from '../../api/endpoints/notifications';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
@@ -16,9 +18,21 @@ function GreetingIcon() {
 }
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const networkStatus = useNetworkStatus();
   const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['notifications', 'unread'],
@@ -58,14 +72,64 @@ export function Navbar() {
           )}
         </NavLink>
 
-        <NavLink to="/profile">
-          <Avatar
-            src={user?.profile_picture}
-            name={user?.full_name ?? user?.username ?? 'U'}
-            size="sm"
-            statusDot={networkStatus}
-          />
-        </NavLink>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="hover:opacity-80 transition-opacity"
+            aria-label="Profile menu"
+          >
+            <Avatar
+              src={user?.profile_picture}
+              name={user?.full_name ?? user?.username ?? 'U'}
+              size="sm"
+              statusDot={networkStatus}
+            />
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
+                  {user?.full_name ?? user?.username}
+                </p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{user?.email}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  navigate('/profile');
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                <User size={15} />
+                Profile
+              </button>
+              <button
+                onClick={() => {
+                  setMenuOpen(false);
+                  setConfirmLogout(true);
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              >
+                <LogOut size={15} />
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+
+        <ConfirmModal
+          open={confirmLogout}
+          title="Log out?"
+          message="You will be returned to the login page."
+          confirmLabel="Log out"
+          intent="warning"
+          onConfirm={() => {
+            logout();
+            navigate('/');
+          }}
+          onCancel={() => setConfirmLogout(false)}
+        />
       </div>
     </header>
   );
