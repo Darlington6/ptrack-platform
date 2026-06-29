@@ -49,6 +49,12 @@ self.addEventListener('fetch', (event) => {
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
+// Claim all open clients immediately after activation so the new SW takes
+// effect without requiring a manual reload on every tab.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 // ── SPA navigation fallback ───────────────────────────────────────────────────
 // Without this, navigating to /dashboard or /admin while offline falls through
 // to the network (which is down) instead of serving index.html from precache.
