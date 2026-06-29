@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
-import { ConfirmModal } from '../ui/ConfirmModal';
+import { ConfirmDialog } from '../feedback/ConfirmDialog';
 import { notificationsApi } from '../../api/endpoints/notifications';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
@@ -118,17 +118,16 @@ export function Navbar() {
           )}
         </div>
 
-        <ConfirmModal
-          open={confirmLogout}
-          title="Log out?"
-          message="You will be returned to the login page."
-          confirmLabel="Log out"
-          intent="warning"
+        <ConfirmDialog
+          isOpen={confirmLogout}
+          onClose={() => setConfirmLogout(false)}
           onConfirm={() => {
             logout();
             navigate('/');
           }}
-          onCancel={() => setConfirmLogout(false)}
+          title="Logout"
+          message="Are you sure you want to log out?"
+          confirmLabel="Logout"
         />
       </div>
     </header>
