@@ -33,32 +33,42 @@ export function BottomNav() {
 
     // Flush the queue and then re-read the count so the badge clears promptly.
     const flushAndCheck = () => {
-      void flushQueue().then(({ reports, recycling }) => {
+      void flushQueue().then(({ reports, recycling, rejectedRecycling }) => {
         void checkQueue();
-        const total = reports + recycling;
-        if (total > 0) {
+        if (reports + recycling > 0) {
           const parts: string[] = [];
           if (reports > 0) parts.push(`${reports} report${reports > 1 ? 's' : ''}`);
           if (recycling > 0)
             parts.push(`${recycling} recycling activit${recycling > 1 ? 'ies' : 'y'}`);
           toast.success(`Synced: ${parts.join(' and ')} submitted!`);
-          // Refresh the notifications bell so the new count appears immediately.
           void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
           void qc.invalidateQueries({ queryKey: ['dashboard'] });
+        }
+        if (rejectedRecycling > 0) {
+          toast.error(
+            "You've already logged a recycling activity today. The saved entry has been removed."
+          );
         }
       });
     };
 
     const onOnline = flushAndCheck;
     const onFlushed = (e: Event) => {
-      const { reports = 0, recycling = 0 } =
-        (e as CustomEvent<{ reports: number; recycling: number }>).detail ?? {};
+      const {
+        reports = 0,
+        recycling = 0,
+        rejectedRecycling = 0,
+      } = (e as CustomEvent<{ reports: number; recycling: number; rejectedRecycling: number }>)
+        .detail ?? {};
       void checkQueue();
-      // Only show toast here if triggered by background sync (not the online handler above).
-      // The online handler already shows it via the flushQueue() promise chain.
       if (reports + recycling > 0) {
         void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
         void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      }
+      if (rejectedRecycling > 0) {
+        toast.error(
+          "You've already logged a recycling activity today. The saved entry has been removed."
+        );
       }
     };
     const onSwMessage = (e: MessageEvent) => {

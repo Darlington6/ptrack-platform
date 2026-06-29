@@ -83,6 +83,17 @@ export async function enqueueReport(
   }
 }
 
+const RECYCLING_DATE_KEY = 'ptrack-recycling-logged-date';
+function todayStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+export function hasLoggedRecyclingToday(): boolean {
+  return localStorage.getItem(RECYCLING_DATE_KEY) === todayStr();
+}
+export function markRecyclingLoggedToday(): void {
+  localStorage.setItem(RECYCLING_DATE_KEY, todayStr());
+}
+
 export async function enqueueRecycling(payload: Record<string, unknown>): Promise<void> {
   const db = await getDB();
   await db.add('pending_recycling', {
@@ -110,14 +121,19 @@ const BASE_API = import.meta.env.VITE_API_BASE_URL
 // Prevents concurrent flushes from double-submitting the same queued item.
 let _flushing = false;
 
-export async function flushQueue(): Promise<{ reports: number; recycling: number }> {
-  if (_flushing) return { reports: 0, recycling: 0 };
+export async function flushQueue(): Promise<{
+  reports: number;
+  recycling: number;
+  rejectedRecycling: number;
+}> {
+  if (_flushing) return { reports: 0, recycling: 0, rejectedRecycling: 0 };
   _flushing = true;
   let syncedReports = 0;
   let syncedRecycling = 0;
+  let rejectedRecycling = 0;
   try {
     const token = useAuthStore.getState().accessToken;
-    if (!token) return { reports: 0, recycling: 0 };
+    if (!token) return { reports: 0, recycling: 0, rejectedRecycling: 0 };
 
     const db = await getDB();
 
@@ -173,7 +189,12 @@ export async function flushQueue(): Promise<{ reports: number; recycling: number
         });
         if (response.ok) {
           await db.delete('pending_recycling', activity.id);
+          markRecyclingLoggedToday();
           syncedRecycling++;
+        } else if (response.status === 429) {
+          // Already logged today - drop from queue instead of retrying forever
+          await db.delete('pending_recycling', activity.id);
+          rejectedRecycling++;
         } else {
           await db.put('pending_recycling', {
             ...activity,
@@ -193,11 +214,11 @@ export async function flushQueue(): Promise<{ reports: number; recycling: number
     _flushing = false;
     window.dispatchEvent(
       new CustomEvent('queue-flushed', {
-        detail: { reports: syncedReports, recycling: syncedRecycling },
+        detail: { reports: syncedReports, recycling: syncedRecycling, rejectedRecycling },
       })
     );
   }
-  return { reports: syncedReports, recycling: syncedRecycling };
+  return { reports: syncedReports, recycling: syncedRecycling, rejectedRecycling };
 }
 
 export async function getQueueStats(): Promise<{ reports: number; recycling: number }> {

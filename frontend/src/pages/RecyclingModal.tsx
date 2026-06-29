@@ -4,7 +4,11 @@ import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import client from '../api/client';
-import { enqueueRecycling } from '../lib/offlineQueue';
+import {
+  enqueueRecycling,
+  hasLoggedRecyclingToday,
+  markRecyclingLoggedToday,
+} from '../lib/offlineQueue';
 
 const ACTIVITY_TYPES = [
   { value: 'drop_off', label: 'Drop-off at centre' },
@@ -40,12 +44,19 @@ export default function RecyclingModal({ onClose }: Props) {
     const payload = { activity_type: activityType, note: note || undefined };
     try {
       if (!navigator.onLine) {
+        if (hasLoggedRecyclingToday()) {
+          toast.error("You've already logged a recycling activity today. Come back tomorrow!");
+          setLoading(false);
+          return;
+        }
         await enqueueRecycling(payload);
+        markRecyclingLoggedToday();
         toast.success("Saved offline — will sync automatically when you're back online.");
         onClose();
         return;
       }
       const res = await client.post<{ points_earned?: number }>('/recycling/', payload);
+      markRecyclingLoggedToday();
       const earned = res.data.points_earned ?? recyclingPts;
       toast.success(`+${earned} points! Recycling activity logged.`);
       void qc.invalidateQueries({ queryKey: ['rewards'] });
