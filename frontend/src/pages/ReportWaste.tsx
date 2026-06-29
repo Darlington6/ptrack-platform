@@ -11,7 +11,7 @@ import { ImageUpload } from '../components/ImageUpload';
 import { GeoConsentModal, getGeoConsent, saveGeoConsent } from '../components/GeoConsentModal';
 import { useDebounce } from '../hooks/useDebounce';
 import axios from 'axios';
-import { enqueueReport, flushQueue } from '../lib/offlineQueue';
+import { enqueueReport } from '../lib/offlineQueue';
 
 const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
@@ -109,14 +109,7 @@ export default function ReportWaste() {
       });
     }
 
-    // Flush any queued reports that failed while offline
-    void flushQueue();
-
-    // Also flush whenever the window comes back online
-    const onOnline = () => void flushQueue();
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Flushing is handled globally by BottomNav so the queue syncs on any page.
   }, []);
 
   async function handleSubmit(e: { preventDefault(): void }) {
