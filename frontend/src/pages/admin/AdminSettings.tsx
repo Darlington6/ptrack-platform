@@ -54,22 +54,27 @@ export default function AdminSettings() {
             {health && (
               <>
                 {[
-                  { label: 'API', value: health.status === 'ok' ? 'Healthy' : health.status },
-                  { label: 'Database', value: health.db },
-                  { label: 'Cache / Redis', value: health.cache },
-                  { label: 'Version', value: health.version },
-                ].map(({ label, value }) => (
+                  {
+                    label: 'API',
+                    value: health.status === 'ok' ? 'Healthy' : health.status,
+                    isStatus: true,
+                  },
+                  { label: 'Database', value: health.db, isStatus: true },
+                  { label: 'Cache / Redis', value: health.cache, isStatus: true },
+                  { label: 'Version', value: health.version, isStatus: false },
+                ].map(({ label, value, isStatus }) => (
                   <div key={label} className="flex items-center justify-between">
                     <span className="text-sm text-gray-600 dark:text-slate-300">{label}</span>
                     <div className="flex items-center gap-1.5">
-                      {value === 'Healthy' || value === 'ok' || value === 'connected' ? (
-                        <CheckCircle
-                          size={14}
-                          className="text-green-600 dark:text-green-400 flex-shrink-0"
-                        />
-                      ) : (
-                        <XCircle size={14} className="text-red-400 flex-shrink-0" />
-                      )}
+                      {isStatus &&
+                        (value === 'Healthy' || value === 'ok' || value === 'connected' ? (
+                          <CheckCircle
+                            size={14}
+                            className="text-green-600 dark:text-green-400 flex-shrink-0"
+                          />
+                        ) : (
+                          <XCircle size={14} className="text-red-400 flex-shrink-0" />
+                        ))}
                       <span className="text-sm font-medium text-gray-800 dark:text-slate-200">
                         {value}
                       </span>

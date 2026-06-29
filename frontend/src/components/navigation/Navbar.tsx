@@ -1,17 +1,18 @@
 import { NavLink } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LayoutDashboard } from 'lucide-react';
+import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { notificationsApi } from '../../api/endpoints/notifications';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
-function greetingIcon(): string {
+function GreetingIcon() {
   const h = new Date().getHours();
-  if (h < 6 || h >= 21) return '🌙';
-  if (h < 12) return '🌅';
-  if (h < 17) return '☀️';
-  return '🌆';
+  const cls = 'inline-block align-middle ml-0.5';
+  if (h < 6 || h >= 21) return <Moon size={15} className={`${cls} text-indigo-400`} />;
+  if (h < 12) return <Sunrise size={15} className={`${cls} text-orange-400`} />;
+  if (h < 17) return <Sun size={15} className={`${cls} text-amber-400`} />;
+  return <Sunset size={15} className={`${cls} text-orange-500`} />;
 }
 
 export function Navbar() {
@@ -36,7 +37,7 @@ export function Navbar() {
 
       <div className="flex items-center gap-3">
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
-          Hi, {firstName} {greetingIcon()}
+          Hi, {firstName} <GreetingIcon />
         </span>
 
         {user?.role === 'admin' && (
@@ -49,7 +50,7 @@ export function Navbar() {
         )}
 
         <NavLink to="/notifications" className="relative p-1.5">
-          <span className="text-xl">🔔</span>
+          <Bell size={20} className="text-gray-600 dark:text-slate-400" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5">
               {unreadCount > 9 ? '9+' : unreadCount}

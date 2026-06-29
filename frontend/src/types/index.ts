@@ -1,6 +1,6 @@
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
-export type ReportStatus = 'pending' | 'verified' | 'resolved';
+export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
 export type ActivityType = 'drop_off' | 'pickup' | 'exchange' | 'other';
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'rw';
@@ -102,7 +102,15 @@ export interface LeaderboardEntry {
 
 export interface Notification {
   id: number;
-  category: 'system' | 'badge_earned' | 'streak_warning' | 'weekly_digest' | 'community' | 'admin';
+  category:
+    | 'system'
+    | 'badge_earned'
+    | 'streak_warning'
+    | 'weekly_digest'
+    | 'community'
+    | 'admin'
+    | 'verification'
+    | 'rejection';
   title: string;
   body: string;
   action_url: string;

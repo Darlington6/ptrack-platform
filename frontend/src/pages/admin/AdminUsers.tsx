@@ -27,7 +27,18 @@ const ROLE_BADGE: Record<string, string> = {
   citizen: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400',
 };
 
-const SECTORS = ['Kimironko', 'Gasabo', 'Kicukiro', 'Nyarugenge'];
+const SECTORS = [
+  'Kimironko',
+  'Kacyiru',
+  'Remera',
+  'Kinyinya',
+  'Gisozi',
+  'Ndera',
+  'Nduba',
+  'Rusororo',
+  'Jabana',
+  'Bumbogo',
+];
 
 function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void }) {
   const qc = useQueryClient();

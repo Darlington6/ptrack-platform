@@ -46,6 +46,7 @@ class WasteReport(models.Model):
         ("pending", "Pending"),
         ("verified", "Verified"),
         ("resolved", "Resolved"),
+        ("rejected", "Rejected"),
     ]
 
     user = models.ForeignKey(

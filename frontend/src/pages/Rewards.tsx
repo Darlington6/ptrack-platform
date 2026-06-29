@@ -1,5 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { MapPin, Recycle, CheckCircle, Flame, Lock, Star, Lightbulb } from 'lucide-react';
+import { type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { badgesApi } from '../api/endpoints/badges';
 import client from '../api/client';
@@ -27,11 +29,11 @@ const REWARD_LABELS: Record<string, string> = {
   streak_bonus: 'Streak bonus',
 };
 
-const REWARD_ICONS: Record<string, string> = {
-  report_submitted: '📍',
-  recycling_logged: '♻️',
-  verification_bonus: '✅',
-  streak_bonus: '🔥',
+const REWARD_ICONS: Record<string, ReactNode> = {
+  report_submitted: <MapPin size={14} className="text-green-600" />,
+  recycling_logged: <Recycle size={14} className="text-green-600" />,
+  verification_bonus: <CheckCircle size={14} className="text-green-600" />,
+  streak_bonus: <Flame size={14} className="text-orange-500" />,
 };
 
 function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPoints: number }) {
@@ -48,7 +50,11 @@ function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPo
     >
       <div className="relative w-fit">
         <span className="text-3xl">{badge.icon || '🏅'}</span>
-        {!earned && <span className="absolute -bottom-1 -right-1 text-xs">🔒</span>}
+        {!earned && (
+          <span className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full leading-none">
+            <Lock size={11} className="text-gray-400 dark:text-slate-500" />
+          </span>
+        )}
       </div>
       <div>
         <p className="text-sm font-bold text-gray-900 dark:text-slate-100 leading-tight">
@@ -200,8 +206,8 @@ export default function Rewards() {
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700">
             {allRewards.slice(0, 10).map((r) => (
               <div key={r.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="text-lg w-7 text-center flex-shrink-0">
-                  {REWARD_ICONS[r.reward_type] ?? '⭐'}
+                <span className="w-7 flex-shrink-0 flex items-center justify-center">
+                  {REWARD_ICONS[r.reward_type] ?? <Star size={14} className="text-amber-500" />}
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
@@ -232,7 +238,7 @@ export default function Rewards() {
 
       {/* Coming soon */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-start gap-2">
-        <span className="text-base mt-0.5">💡</span>
+        <Lightbulb size={16} className="flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
           <span className="font-bold">Coming soon:</span> Redeem points for airtime, local business
           vouchers, and eco-products.

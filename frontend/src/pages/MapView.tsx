@@ -13,6 +13,7 @@ const STATUS_COLOR: Record<ReportStatus, string> = {
   pending: '#f59e0b', // amber-500
   verified: '#16a34a', // green-600
   resolved: '#60a5fa', // blue-400
+  rejected: '#ef4444', // red-500
 };
 
 const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [
@@ -20,6 +21,7 @@ const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [
   { label: 'Pending', value: 'pending' },
   { label: 'Verified', value: 'verified' },
   { label: 'Resolved', value: 'resolved' },
+  { label: 'Rejected', value: 'rejected' },
 ];
 
 interface BBox {
@@ -172,6 +174,11 @@ export default function MapView() {
     },
     [fetchReports]
   );
+
+  // Re-fetch when filter changes without waiting for a map move event
+  useEffect(() => {
+    if (bboxRef.current) void fetchReports(bboxRef.current);
+  }, [fetchReports]);
 
   function recentre() {
     navigator.geolocation.getCurrentPosition((pos) => {

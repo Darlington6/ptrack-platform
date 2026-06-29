@@ -1,6 +1,6 @@
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
-export type ReportStatus = 'pending' | 'verified' | 'resolved';
+export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
 export type ActivityType = 'drop_off' | 'pickup' | 'exchange' | 'other';
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'rw';
@@ -120,7 +120,15 @@ export interface Article {
 
 export interface Notification {
   id: number;
-  category: 'system' | 'badge_earned' | 'streak_warning' | 'weekly_digest' | 'community' | 'admin';
+  category:
+    | 'system'
+    | 'badge_earned'
+    | 'streak_warning'
+    | 'weekly_digest'
+    | 'community'
+    | 'admin'
+    | 'verification'
+    | 'rejection';
   title: string;
   body: string;
   action_url: string;
@@ -224,6 +232,7 @@ export interface AdminAnalyticsKpis {
   verified_reports: number;
   reports_this_week: number;
   reports_this_month: number;
+  reports_last_90d: number;
   total_citizens: number;
   active_citizens_30d: number;
   total_points_awarded: number;

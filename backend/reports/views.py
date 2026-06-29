@@ -13,7 +13,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -91,11 +91,26 @@ def reports_list_create(request):
     """
     if request.method == "GET":
         qs = WasteReport.objects.select_related("user").all()
-        status_filter = request.query_params.get("status")
-        if status_filter:
+        q = request.query_params
+        if status_filter := q.get("status"):
             qs = qs.filter(status=status_filter)
-        if request.query_params.get("user") == "me":
+        if q.get("user") == "me":
             qs = qs.filter(user=request.user)
+        if waste_type := q.get("waste_type"):
+            qs = qs.filter(waste_type=waste_type)
+        if date_from := q.get("date_from"):
+            qs = qs.filter(created_at__date__gte=date_from)
+        if date_to := q.get("date_to"):
+            qs = qs.filter(created_at__date__lte=date_to)
+        if search := q.get("search"):
+            qs = qs.filter(
+                Q(user__username__icontains=search)
+                | Q(user__email__icontains=search)
+                | Q(user__full_name__icontains=search)
+            )
+        ordering = q.get("ordering", "-created_at")
+        allowed_orderings = {"created_at", "-created_at", "status", "-status"}
+        qs = qs.order_by(ordering if ordering in allowed_orderings else "-created_at")
 
         # Bbox filter — throttled; max area ~100 km²
         north = request.query_params.get("north")
@@ -146,7 +161,7 @@ def reports_list_create(request):
 
     report = serializer.save(user=request.user)
 
-    pts = get_points("report_submitted", fallback=10)
+    pts = get_points("report_submitted", fallback=5)
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")
     request.user.points += pts
     request.user.save(update_fields=["points"])
@@ -217,7 +232,7 @@ def report_verify(request, pk):
     report.status = "verified"
     report.save(update_fields=["status"])
 
-    bonus_pts = get_points("verification_bonus", fallback=5)
+    bonus_pts = get_points("verification_bonus", fallback=10)
     Reward.objects.create(
         user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
     )
@@ -226,11 +241,13 @@ def report_verify(request, pk):
 
     _vprefs = getattr(report.user, "notification_preferences", {}) or {}
     if _vprefs.get("verification_notifications", True):
+        note = request.data.get("note", "")
+        detail = f" Note: {note}" if note else ""
         notify(
             report.user,
             "verification",
             "Report verified!",
-            f"An admin verified your waste report. +{bonus_pts} bonus pts added.",
+            f"An admin verified your waste report. +{bonus_pts} bonus pts added.{detail}",
             f"/reports/{report.pk}",
         )
         send_push(
@@ -242,6 +259,70 @@ def report_verify(request, pk):
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{report.user.pk}")
+
+    return Response(WasteReportSerializer(report).data)
+
+
+@extend_schema(
+    tags=["reports"],
+    request=None,
+    responses={200: WasteReportSerializer},
+    summary="Reject a report (admin only)",
+)
+@api_view(["PATCH"])
+@permission_classes([IsAdminRole])
+def report_reject(request, pk):
+    """Mark a report as rejected and notify the citizen."""
+    try:
+        report = WasteReport.objects.select_related("user").get(pk=pk)
+    except WasteReport.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    reason = request.data.get("reason", "")
+    report.status = "rejected"
+    report.save(update_fields=["status"])
+
+    _rprefs = getattr(report.user, "notification_preferences", {}) or {}
+    if _rprefs.get("verification_notifications", True):
+        detail = f" Reason: {reason}" if reason else ""
+        notify(
+            report.user,
+            "rejection",
+            "Report rejected",
+            f"An admin reviewed and rejected your waste report.{detail}",
+            f"/reports/{report.pk}",
+        )
+
+    return Response(WasteReportSerializer(report).data)
+
+
+@extend_schema(
+    tags=["reports"],
+    request=None,
+    responses={200: WasteReportSerializer},
+    summary="Mark a report as resolved (admin only)",
+)
+@api_view(["PATCH"])
+@permission_classes([IsAdminRole])
+def report_resolve(request, pk):
+    """Mark a verified report as resolved (waste physically collected/cleaned up)."""
+    try:
+        report = WasteReport.objects.select_related("user").get(pk=pk)
+    except WasteReport.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    report.status = "resolved"
+    report.save(update_fields=["status"])
+
+    _rprefs = getattr(report.user, "notification_preferences", {}) or {}
+    if _rprefs.get("verification_notifications", True):
+        notify(
+            report.user,
+            "verification",
+            "Report resolved!",
+            "Great news! The waste you reported has been collected and resolved.",
+            f"/reports/{report.pk}",
+        )
 
     return Response(WasteReportSerializer(report).data)
 

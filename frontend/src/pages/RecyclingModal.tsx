@@ -53,14 +53,22 @@ export default function RecyclingModal({ onClose }: Props) {
       void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       onClose();
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 429) {
-        const msg =
-          (err.response.data as { detail?: string }).detail ??
-          "You've already logged a recycling activity today. Come back tomorrow!";
-        toast.error(msg);
-        setLoading(false);
-        return;
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          const msg =
+            (err.response.data as { detail?: string }).detail ??
+            "You've already logged a recycling activity today. Come back tomorrow!";
+          toast.error(msg);
+          setLoading(false);
+          return;
+        }
+        if (err.response) {
+          toast.error('Failed to log activity. Please try again.');
+          setLoading(false);
+          return;
+        }
       }
+      // True network failure — queue for later sync
       await enqueueRecycling(payload);
       toast.success("Saved — will sync when you're back online.");
       onClose();
