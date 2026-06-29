@@ -3,10 +3,14 @@ import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ConfirmModal } from './ui/ConfirmModal';
+import { useNetworkStore } from '../stores/networkStore';
+
+const DOT_COLORS = { online: 'bg-green-500', offline: 'bg-gray-400', poor: 'bg-yellow-400' };
 
 /** Clickable admin initials avatar with a logout dropdown. */
 export function AdminAvatar() {
   const { user, logout } = useAuth();
+  const networkStatus = useNetworkStore((s) => s.status);
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -37,8 +41,13 @@ export function AdminAvatar() {
           aria-label="Admin menu"
         >
           <span className="text-sm text-gray-600 hidden sm:block">{adminName}</span>
-          <div className="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
-            {initials}
+          <div className="relative">
+            <div className="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+              {initials}
+            </div>
+            <span
+              className={`absolute bottom-0 right-0 block w-2.5 h-2.5 rounded-full border-2 border-white ${DOT_COLORS[networkStatus]}`}
+            />
           </div>
         </button>
 
