@@ -19,7 +19,7 @@ export default function DataSettings() {
 
   async function handleExport() {
     try {
-      const res = await authApi.deleteAccount('');
+      const res = await authApi.exportData();
       const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -27,8 +27,9 @@ export default function DataSettings() {
       a.download = 'ptrack-data-export.json';
       a.click();
       URL.revokeObjectURL(url);
+      toast.success('Your data has been downloaded.');
     } catch {
-      toast.info('Data export requested. You will receive an email.');
+      toast.error('Export failed. Please try again.');
     }
   }
 

@@ -94,14 +94,15 @@ registerRoute(
   })
 );
 
-// /api/v1/recycling-centres/ — CacheFirst, 1 day
+// /api/v1/recycling-centres/ — NetworkFirst so admin edits appear immediately
 registerRoute(
   ({ url, request }) =>
     request.method === 'GET' && url.pathname.startsWith('/api/v1/recycling-centres'),
-  new CacheFirst({
+  new NetworkFirst({
     cacheName: 'ptrack-recycling-centres',
+    networkTimeoutSeconds: 5,
     plugins: [
-      new ExpirationPlugin({ maxAgeSeconds: 24 * 60 * 60 }),
+      new ExpirationPlugin({ maxAgeSeconds: 60 * 60 }),
       new CacheableResponsePlugin({ statuses: [0, 200] }),
     ],
   })

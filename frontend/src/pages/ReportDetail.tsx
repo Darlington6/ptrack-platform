@@ -1,7 +1,17 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, CheckCircle, Clock, XCircle, Trash2, ShieldCheck } from 'lucide-react';
-import { Map, AdvancedMarker } from '@vis.gl/react-google-maps';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Trash2,
+  ShieldCheck,
+  Ban,
+  Navigation,
+} from 'lucide-react';
+import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
@@ -20,8 +30,13 @@ const STATUS_META = {
   },
   resolved: {
     label: 'Resolved',
-    icon: <XCircle size={14} />,
+    icon: <CheckCircle size={14} />,
     cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  },
+  rejected: {
+    label: 'Rejected',
+    icon: <XCircle size={14} />,
+    cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   },
 };
 
@@ -30,6 +45,7 @@ export default function ReportDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const [markerOpen, setMarkerOpen] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['report', id],
@@ -46,6 +62,15 @@ export default function ReportDetail() {
       void qc.invalidateQueries({ queryKey: ['report', id] });
     },
     onError: () => toast.error('Verification failed'),
+  });
+
+  const reject = useMutation({
+    mutationFn: () => client.patch(`/reports/${id}/reject/`),
+    onSuccess: () => {
+      toast.success('Report rejected');
+      void qc.invalidateQueries({ queryKey: ['report', id] });
+    },
+    onError: () => toast.error('Reject failed'),
   });
 
   const deleteReport = useMutation({
@@ -76,7 +101,7 @@ export default function ReportDetail() {
     );
   }
 
-  const status = STATUS_META[report.status] ?? STATUS_META.pending;
+  const statusMeta = STATUS_META[report.status as keyof typeof STATUS_META] ?? STATUS_META.pending;
   const isOwner =
     typeof report.user === 'number' ? report.user === user?.id : report.user.id === user?.id;
   const isAdmin = user?.role === 'admin';
@@ -85,6 +110,8 @@ export default function ReportDetail() {
     : report.user_detail?.full_name
       ? `A citizen in ${report.user_detail?.username ?? 'Kimironko'}`
       : `A citizen in ${user?.sector ?? 'Kimironko'}`;
+
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}`;
 
   return (
     <div className="pb-24">
@@ -110,9 +137,9 @@ export default function ReportDetail() {
         {/* Status + waste type */}
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${status.cls}`}
+            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${statusMeta.cls}`}
           >
-            {status.icon} {status.label}
+            {statusMeta.icon} {statusMeta.label}
           </span>
           <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 px-2.5 py-1 rounded-full font-medium capitalize">
             {report.waste_type}
@@ -149,7 +176,7 @@ export default function ReportDetail() {
           </div>
         </div>
 
-        {/* Location map — interactive, shows where waste was reported */}
+        {/* Location map — tap pin to get directions */}
         <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
           <Map
             mapId={(import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined) ?? null}
@@ -162,21 +189,52 @@ export default function ReportDetail() {
             fullscreenControl={false}
             style={{ width: '100%', height: '100%' }}
           >
-            <AdvancedMarker position={{ lat: report.latitude, lng: report.longitude }} />
+            <AdvancedMarker
+              position={{ lat: report.latitude, lng: report.longitude }}
+              onClick={() => setMarkerOpen(true)}
+            />
+            {markerOpen && (
+              <InfoWindow
+                position={{ lat: report.latitude, lng: report.longitude }}
+                onCloseClick={() => setMarkerOpen(false)}
+                pixelOffset={[0, -40]}
+              >
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm font-medium text-blue-600 whitespace-nowrap"
+                >
+                  <Navigation size={14} /> Get Directions
+                </a>
+              </InfoWindow>
+            )}
           </Map>
         </div>
 
         {/* Actions */}
         <div className="space-y-2 pt-2">
           {isAdmin && report.status === 'pending' && (
-            <button
-              onClick={() => verify.mutate()}
-              disabled={verify.isPending}
-              className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
-            >
-              <ShieldCheck size={16} />
-              {verify.isPending ? 'Verifying…' : 'Verify Report'}
-            </button>
+            <>
+              <button
+                onClick={() => verify.mutate()}
+                disabled={verify.isPending}
+                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
+              >
+                <ShieldCheck size={16} />
+                {verify.isPending ? 'Verifying…' : 'Verify Report'}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Reject this report?')) reject.mutate();
+                }}
+                disabled={reject.isPending}
+                className="w-full flex items-center justify-center gap-2 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 font-semibold py-3 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60"
+              >
+                <Ban size={16} />
+                {reject.isPending ? 'Rejecting…' : 'Reject Report'}
+              </button>
+            </>
           )}
           {isOwner && (
             <button

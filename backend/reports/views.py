@@ -246,6 +246,39 @@ def report_verify(request, pk):
     return Response(WasteReportSerializer(report).data)
 
 
+@extend_schema(
+    tags=["reports"],
+    request=None,
+    responses={200: WasteReportSerializer},
+    summary="Reject a report (admin only)",
+)
+@api_view(["PATCH"])
+@permission_classes([IsAdminRole])
+def report_reject(request, pk):
+    """Mark a report as rejected and notify the citizen."""
+    try:
+        report = WasteReport.objects.select_related("user").get(pk=pk)
+    except WasteReport.DoesNotExist:
+        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    reason = request.data.get("reason", "")
+    report.status = "rejected"
+    report.save(update_fields=["status"])
+
+    _rprefs = getattr(report.user, "notification_preferences", {}) or {}
+    if _rprefs.get("verification_notifications", True):
+        detail = f" Reason: {reason}" if reason else ""
+        notify(
+            report.user,
+            "verification",
+            "Report rejected",
+            f"An admin reviewed and rejected your waste report.{detail}",
+            f"/reports/{report.pk}",
+        )
+
+    return Response(WasteReportSerializer(report).data)
+
+
 # ── Recycling ──────────────────────────────────────────────────────────────────
 
 

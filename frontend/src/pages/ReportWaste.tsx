@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { ImageUpload } from '../components/ImageUpload';
 import { GeoConsentModal, getGeoConsent, saveGeoConsent } from '../components/GeoConsentModal';
 import { useDebounce } from '../hooks/useDebounce';
+import axios from 'axios';
 import { enqueueReport, flushQueue } from '../lib/offlineQueue';
 
 const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
@@ -163,11 +164,16 @@ export default function ReportWaste() {
         );
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
-        // Network error while online — queue for later sync
+        if (axios.isAxiosError(networkErr) && networkErr.response) {
+          // API returned an error response — don't queue, show error
+          toast.error('Failed to submit report. Please try again.');
+          setLoading(false);
+          return;
+        }
+        // True network failure — queue for offline sync
         await enqueueReport(payload, image);
         toast.success("Saved — will sync when you're back online.");
         setTimeout(() => navigate('/dashboard'), 2000);
-        void networkErr;
       }
     } catch {
       toast.error('Failed to submit report. Please try again.');
