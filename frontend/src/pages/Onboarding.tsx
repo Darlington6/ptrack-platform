@@ -1,35 +1,42 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Hand, Star, Trophy, Rocket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 
-const SLIDES = [
+interface Slide {
+  bg: string;
+  icon: ReactNode;
+  title: string;
+  body: string;
+}
+
+const SLIDES: Slide[] = [
   {
     bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
-    icon: '👋',
+    icon: <Hand size={56} className="text-green-700" />,
     title: 'Welcome to pTrack!',
     body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
   },
   {
     bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
-    icon: '⭐',
+    icon: <Star size={56} className="text-amber-500" />,
     title: 'Earn points for every action',
     body: 'Report waste (+10 pts), log recycling (+15 pts), get verified (+5 bonus). Points unlock rewards and badges.',
   },
   {
     bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
-    icon: '🏆',
+    icon: <Trophy size={56} className="text-blue-500" />,
     title: 'Climb the leaderboard',
     body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
   },
   {
     bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
-    icon: '🚀',
+    icon: <Rocket size={56} className="text-purple-600" />,
     title: 'Ready to get started?',
     body: 'Start your first report and earn 10 points right now. Kigali is counting on you!',
   },
-] as const;
+];
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -83,9 +90,9 @@ export default function Onboarding() {
       style={{ background: currentSlide.bg, transition: 'background 0.5s ease' }}
     >
       {/* Icon */}
-      <span className="text-6xl mb-8 select-none" aria-hidden="true">
+      <div className="mb-8 select-none" aria-hidden="true">
         {currentSlide.icon}
-      </span>
+      </div>
 
       {/* Text */}
       <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 text-center mb-3 leading-snug">

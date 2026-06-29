@@ -1,7 +1,16 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Recycle, Trophy, ChevronRight, Star, BookOpen } from 'lucide-react';
+import {
+  Plus,
+  Recycle,
+  Trophy,
+  ChevronRight,
+  Star,
+  BookOpen,
+  MapPin,
+  CheckCircle,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -18,10 +27,10 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const REWARD_ICONS: Record<string, string> = {
-  report_submitted: '📍',
-  recycling_logged: '♻️',
-  verification_bonus: '✅',
+const REWARD_ICONS: Record<string, ReactNode> = {
+  report_submitted: <MapPin size={14} className="text-green-600" />,
+  recycling_logged: <Recycle size={14} className="text-green-600" />,
+  verification_bonus: <CheckCircle size={14} className="text-green-600" />,
 };
 
 const REWARD_LABELS: Record<string, string> = {

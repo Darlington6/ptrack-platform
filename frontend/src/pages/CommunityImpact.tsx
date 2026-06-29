@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Recycle, Globe } from 'lucide-react';
+import { type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import type { CommunityStats, CommunityTrends } from '../api/types';
@@ -15,10 +16,18 @@ import {
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
 
-function KpiCard({ value, label, icon }: { value: string | number; label: string; icon: string }) {
+function KpiCard({
+  value,
+  label,
+  icon,
+}: {
+  value: string | number;
+  label: string;
+  icon: ReactNode;
+}) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 flex flex-col gap-1">
-      <span className="text-2xl">{icon}</span>
+      <div className="w-7 h-7 flex items-center">{icon}</div>
       <p className="text-2xl font-extrabold text-gray-900 dark:text-white tabular-nums">{value}</p>
       <p className="text-xs text-gray-500 dark:text-slate-400">{label}</p>
     </div>
@@ -70,14 +79,26 @@ export default function CommunityImpact() {
 
       {/* KPIs grid */}
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard value={stats?.total_reports ?? '—'} label="Total Reports" icon="📍" />
-        <KpiCard value={stats?.active_citizens ?? '—'} label="Active Citizens" icon="👥" />
+        <KpiCard
+          value={stats?.total_reports ?? '—'}
+          label="Total Reports"
+          icon={<MapPin size={22} className="text-green-600" />}
+        />
+        <KpiCard
+          value={stats?.active_citizens ?? '—'}
+          label="Active Citizens"
+          icon={<Users size={22} className="text-blue-500" />}
+        />
         <KpiCard
           value={stats?.total_recycling_activities ?? '—'}
           label="Recycling Activities"
-          icon="♻️"
+          icon={<Recycle size={22} className="text-green-600" />}
         />
-        <KpiCard value={plasticDisplay} label="Plastic Prevented" icon="🌍" />
+        <KpiCard
+          value={plasticDisplay}
+          label="Plastic Prevented"
+          icon={<Globe size={22} className="text-blue-500" />}
+        />
       </div>
 
       {/* Trends chart */}

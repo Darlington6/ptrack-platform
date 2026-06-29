@@ -175,6 +175,11 @@ export default function MapView() {
     [fetchReports]
   );
 
+  // Re-fetch when filter changes without waiting for a map move event
+  useEffect(() => {
+    if (bboxRef.current) void fetchReports(bboxRef.current);
+  }, [fetchReports]);
+
   function recentre() {
     navigator.geolocation.getCurrentPosition((pos) => {
       setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });

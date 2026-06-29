@@ -91,11 +91,20 @@ def reports_list_create(request):
     """
     if request.method == "GET":
         qs = WasteReport.objects.select_related("user").all()
-        status_filter = request.query_params.get("status")
-        if status_filter:
+        q = request.query_params
+        if status_filter := q.get("status"):
             qs = qs.filter(status=status_filter)
-        if request.query_params.get("user") == "me":
+        if q.get("user") == "me":
             qs = qs.filter(user=request.user)
+        if waste_type := q.get("waste_type"):
+            qs = qs.filter(waste_type=waste_type)
+        if date_from := q.get("date_from"):
+            qs = qs.filter(created_at__date__gte=date_from)
+        if date_to := q.get("date_to"):
+            qs = qs.filter(created_at__date__lte=date_to)
+        ordering = q.get("ordering", "-created_at")
+        allowed_orderings = {"created_at", "-created_at", "status", "-status"}
+        qs = qs.order_by(ordering if ordering in allowed_orderings else "-created_at")
 
         # Bbox filter — throttled; max area ~100 km²
         north = request.query_params.get("north")
@@ -226,11 +235,13 @@ def report_verify(request, pk):
 
     _vprefs = getattr(report.user, "notification_preferences", {}) or {}
     if _vprefs.get("verification_notifications", True):
+        note = request.data.get("note", "")
+        detail = f" Note: {note}" if note else ""
         notify(
             report.user,
             "verification",
             "Report verified!",
-            f"An admin verified your waste report. +{bonus_pts} bonus pts added.",
+            f"An admin verified your waste report. +{bonus_pts} bonus pts added.{detail}",
             f"/reports/{report.pk}",
         )
         send_push(

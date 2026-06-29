@@ -11,6 +11,7 @@ import {
   Ban,
   Navigation,
   PackageCheck,
+  MapPin,
 } from 'lucide-react';
 import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
@@ -51,6 +52,8 @@ export default function ReportDetail() {
   const qc = useQueryClient();
   const [markerOpen, setMarkerOpen] = useState(false);
   const [confirm, setConfirm] = useState<Confirm>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [verifyNote, setVerifyNote] = useState('');
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['report', id],
@@ -67,23 +70,30 @@ export default function ReportDetail() {
   }
 
   const verify = useMutation({
-    mutationFn: () => client.patch<WasteReport>(`/reports/${id}/verify/`),
+    mutationFn: () =>
+      client.patch<WasteReport>(`/reports/${id}/verify/`, verifyNote ? { note: verifyNote } : {}),
     onSuccess: ({ data: updated }) => {
       applyUpdate(updated);
       toast.success('Report verified — citizen awarded +10 pts');
     },
     onError: () => toast.error('Verification failed'),
-    onSettled: () => setConfirm(null),
+    onSettled: () => {
+      setConfirm(null);
+      setVerifyNote('');
+    },
   });
 
   const reject = useMutation({
-    mutationFn: () => client.patch<WasteReport>(`/reports/${id}/reject/`),
+    mutationFn: () => client.patch<WasteReport>(`/reports/${id}/reject/`, { reason: rejectReason }),
     onSuccess: ({ data: updated }) => {
       applyUpdate(updated);
       toast.success('Report rejected');
     },
     onError: () => toast.error('Reject failed'),
-    onSettled: () => setConfirm(null),
+    onSettled: () => {
+      setConfirm(null);
+      setRejectReason('');
+    },
   });
 
   const resolve = useMutation({
@@ -131,9 +141,9 @@ export default function ReportDetail() {
   const isAdmin = user?.role === 'admin';
   const reporterName = isOwner
     ? 'You'
-    : report.user_detail?.full_name
-      ? `A citizen in ${report.user_detail?.username ?? 'Kimironko'}`
-      : `A citizen in ${user?.sector ?? 'Kimironko'}`;
+    : isAdmin
+      ? (report.user_detail?.full_name ?? report.user_detail?.username ?? 'Unknown user')
+      : 'A citizen';
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}`;
 
@@ -150,7 +160,7 @@ export default function ReportDetail() {
         </div>
       ) : (
         <div className="w-full h-40 bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
-          <span className="text-4xl">📍</span>
+          <MapPin size={48} className="text-gray-400 dark:text-slate-500" />
         </div>
       )}
 
@@ -291,8 +301,26 @@ export default function ReportDetail() {
         confirmLabel="Verify"
         loading={verify.isPending}
         onConfirm={() => verify.mutate()}
-        onCancel={() => setConfirm(null)}
-      />
+        onCancel={() => {
+          setConfirm(null);
+          setVerifyNote('');
+        }}
+      >
+        <label
+          htmlFor="verify-note"
+          className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1"
+        >
+          Note for citizen <span className="font-normal text-gray-400">(optional)</span>
+        </label>
+        <textarea
+          id="verify-note"
+          rows={2}
+          value={verifyNote}
+          onChange={(e) => setVerifyNote(e.target.value)}
+          placeholder="e.g. Confirmed waste visible at this location"
+          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+        />
+      </ConfirmModal>
       <ConfirmModal
         open={confirm === 'reject'}
         intent="danger"
@@ -300,9 +328,31 @@ export default function ReportDetail() {
         message="This will mark the report as rejected and notify the citizen."
         confirmLabel="Reject"
         loading={reject.isPending}
+        confirmDisabled={rejectReason.trim() === ''}
         onConfirm={() => reject.mutate()}
-        onCancel={() => setConfirm(null)}
-      />
+        onCancel={() => {
+          setConfirm(null);
+          setRejectReason('');
+        }}
+      >
+        <label
+          htmlFor="reject-reason"
+          className="block text-xs font-medium text-gray-600 dark:text-slate-400 mb-1"
+        >
+          Reason <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          id="reject-reason"
+          rows={3}
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Explain why this report is being rejected…"
+          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+        />
+        {rejectReason.trim() === '' && (
+          <p className="text-xs text-red-500 mt-1">A reason is required to reject a report.</p>
+        )}
+      </ConfirmModal>
       <ConfirmModal
         open={confirm === 'resolve'}
         intent="warning"
