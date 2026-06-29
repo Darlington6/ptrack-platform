@@ -55,4 +55,4 @@ python-json-logger==3.3.0
 pywebpush==2.3.0
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
-google-auth==2.40.3
+google-auth==2.55.1
