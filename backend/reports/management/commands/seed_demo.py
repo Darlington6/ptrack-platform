@@ -29,8 +29,27 @@ RWANDAN_NAMES = [
 
 WASTE_TYPES = ["bottles", "bags", "mixed", "other"]
 ACTIVITY_TYPES = ["drop_off", "pickup", "exchange", "other"]
-KIMIRONKO_LAT = -1.9358
-KIMIRONKO_LNG = 30.1284
+
+# Approximate centre coordinates for each sector
+SECTOR_COORDS = {
+    "Kimironko":  (-1.9358, 30.1284),
+    "Kacyiru":    (-1.9441, 30.0619),
+    "Remera":     (-1.9547, 30.1122),
+    "Gisozi":     (-1.9212, 30.0747),
+    "Ndera":      (-1.8900, 30.1600),
+    "Kinyinya":   (-1.9000, 30.1300),
+    "Nduba":      (-1.8800, 30.0900),
+    "Rusororo":   (-1.8700, 30.1200),
+    "Jabana":     (-1.8600, 30.1000),
+    "Bumbogo":    (-1.8800, 30.0600),
+    "Nyamirambo": (-1.9803, 30.0458),
+    "Nyabugogo":  (-1.9388, 30.0499),
+    "Kiyovu":     (-1.9519, 30.0601),
+    "Gikondo":    (-1.9752, 30.0842),
+    "Kicukiro":   (-2.0025, 30.0887),
+    "Kanombe":    (-1.9685, 30.1389),
+}
+SECTORS = list(SECTOR_COORDS.keys())
 
 KIGALI_CENTRES = [
     {
@@ -360,13 +379,14 @@ class Command(BaseCommand):
         citizens = []
         for i, (first, last) in enumerate(RWANDAN_NAMES):
             email = f"{first.lower()}.{last.lower()}@example.rw"
+            sector = SECTORS[i % len(SECTORS)]
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={
                     "username": f"{first.lower()}{i + 1}",
                     "full_name": f"{first} {last}",
                     "role": "citizen",
-                    "sector": "Kimironko",
+                    "sector": sector,
                     "points": random.randint(50, 500),
                     "email_verified": True,
                     "weekly_goal": random.randint(3, 10),
@@ -379,33 +399,35 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f"  ✓ {len(citizens)} citizen users ready"))
 
-        # ── Waste reports ─────────────────────────────────────────────────────
-        statuses = ["pending", "pending", "pending", "verified", "resolved"]
+        # ── Waste reports — 3 per sector so the map has coverage everywhere ──
+        statuses = ["pending", "pending", "pending", "verified", "resolved", "rejected"]
+        descriptions = [
+            "Plastic bottles dumped near the market.",
+            "Bags left by the roadside.",
+            "Mixed plastic near drainage channel.",
+            "Abandoned plastic near school gate.",
+            "Plastic waste pile behind the bus stop.",
+            "Bottles scattered along the footpath.",
+            "",
+        ]
         report_count = 0
-        for _i in range(15):
-            user = random.choice(citizens)
-            lat = KIMIRONKO_LAT + random.uniform(-0.005, 0.005)
-            lng = KIMIRONKO_LNG + random.uniform(-0.005, 0.005)
-            report, created = WasteReport.objects.get_or_create(
-                user=user,
-                latitude=round(lat, 6),
-                longitude=round(lng, 6),
-                defaults={
-                    "waste_type": random.choice(WASTE_TYPES),
-                    "description": random.choice(
-                        [
-                            "Found plastic bottles near the market.",
-                            "Bags dumped by the roadside.",
-                            "Mixed plastic near drainage channel.",
-                            "Abandoned plastic near school gate.",
-                            "",
-                        ]
-                    ),
-                    "status": random.choice(statuses),
-                },
-            )
-            if created:
-                report_count += 1
+        for sector, (base_lat, base_lng) in SECTOR_COORDS.items():
+            for _ in range(3):
+                user = random.choice(citizens)
+                lat = round(base_lat + random.uniform(-0.004, 0.004), 6)
+                lng = round(base_lng + random.uniform(-0.004, 0.004), 6)
+                _, created = WasteReport.objects.get_or_create(
+                    user=user,
+                    latitude=lat,
+                    longitude=lng,
+                    defaults={
+                        "waste_type": random.choice(WASTE_TYPES),
+                        "description": random.choice(descriptions),
+                        "status": random.choice(statuses),
+                    },
+                )
+                if created:
+                    report_count += 1
 
         self.stdout.write(self.style.SUCCESS(f"  ✓ {report_count} waste reports created"))
 
