@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Map, Camera, Gift, User } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { flushQueue, getQueueStats } from '../../lib/offlineQueue';
 
 const NAV_ITEMS = [
@@ -13,6 +15,7 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const [pendingCount, setPendingCount] = useState(0);
+  const qc = useQueryClient();
 
   useEffect(() => {
     let mounted = true;
@@ -30,11 +33,34 @@ export function BottomNav() {
 
     // Flush the queue and then re-read the count so the badge clears promptly.
     const flushAndCheck = () => {
-      void flushQueue().then(() => void checkQueue());
+      void flushQueue().then(({ reports, recycling }) => {
+        void checkQueue();
+        const total = reports + recycling;
+        if (total > 0) {
+          const parts: string[] = [];
+          if (reports > 0) parts.push(`${reports} report${reports > 1 ? 's' : ''}`);
+          if (recycling > 0)
+            parts.push(`${recycling} recycling activit${recycling > 1 ? 'ies' : 'y'}`);
+          toast.success(`Synced: ${parts.join(' and ')} submitted!`);
+          // Refresh the notifications bell so the new count appears immediately.
+          void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+          void qc.invalidateQueries({ queryKey: ['dashboard'] });
+        }
+      });
     };
 
     const onOnline = flushAndCheck;
-    const onFlushed = () => void checkQueue();
+    const onFlushed = (e: Event) => {
+      const { reports = 0, recycling = 0 } =
+        (e as CustomEvent<{ reports: number; recycling: number }>).detail ?? {};
+      void checkQueue();
+      // Only show toast here if triggered by background sync (not the online handler above).
+      // The online handler already shows it via the flushQueue() promise chain.
+      if (reports + recycling > 0) {
+        void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+        void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      }
+    };
     const onSwMessage = (e: MessageEvent) => {
       if ((e.data as { type?: string } | null)?.type === 'FLUSH_QUEUE') {
         flushAndCheck();

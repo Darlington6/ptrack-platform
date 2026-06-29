@@ -91,6 +91,15 @@ export async function enqueueRecycling(payload: Record<string, unknown>): Promis
     retry_count: 0,
     last_error: '',
   });
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    try {
+      const timeout = new Promise<null>((res) => setTimeout(() => res(null), 2000));
+      const reg = await Promise.race([navigator.serviceWorker.ready, timeout]);
+      if (reg) await (reg as ServiceWorkerRegistration).sync.register('sync-reports');
+    } catch {
+      // Background sync unavailable — flushQueue() picks it up on reconnect
+    }
+  }
 }
 
 const MAX_RETRIES = 5;
@@ -101,12 +110,14 @@ const BASE_API = import.meta.env.VITE_API_BASE_URL
 // Prevents concurrent flushes from double-submitting the same queued item.
 let _flushing = false;
 
-export async function flushQueue(): Promise<void> {
-  if (_flushing) return;
+export async function flushQueue(): Promise<{ reports: number; recycling: number }> {
+  if (_flushing) return { reports: 0, recycling: 0 };
   _flushing = true;
+  let syncedReports = 0;
+  let syncedRecycling = 0;
   try {
     const token = useAuthStore.getState().accessToken;
-    if (!token) return;
+    if (!token) return { reports: 0, recycling: 0 };
 
     const db = await getDB();
 
@@ -130,6 +141,7 @@ export async function flushQueue(): Promise<void> {
         });
         if (response.ok) {
           await db.delete('pending_reports', report.id);
+          syncedReports++;
         } else {
           await db.put('pending_reports', {
             ...report,
@@ -161,6 +173,7 @@ export async function flushQueue(): Promise<void> {
         });
         if (response.ok) {
           await db.delete('pending_recycling', activity.id);
+          syncedRecycling++;
         } else {
           await db.put('pending_recycling', {
             ...activity,
@@ -178,9 +191,13 @@ export async function flushQueue(): Promise<void> {
     }
   } finally {
     _flushing = false;
-    // Tell BottomNav (and any other listener) to re-read the queue count.
-    window.dispatchEvent(new CustomEvent('queue-flushed'));
+    window.dispatchEvent(
+      new CustomEvent('queue-flushed', {
+        detail: { reports: syncedReports, recycling: syncedRecycling },
+      })
+    );
   }
+  return { reports: syncedReports, recycling: syncedRecycling };
 }
 
 export async function getQueueStats(): Promise<{ reports: number; recycling: number }> {
