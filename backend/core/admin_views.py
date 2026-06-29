@@ -253,12 +253,14 @@ def analytics_kpis(request):
         now = timezone.now()
         week_ago = now - timedelta(days=7)
         month_ago = now - timedelta(days=30)
+        quarter_ago = now - timedelta(days=90)
         data = {
             "total_reports": WasteReport.objects.count(),
             "pending_reports": WasteReport.objects.filter(status="pending").count(),
             "verified_reports": WasteReport.objects.filter(status="verified").count(),
             "reports_this_week": WasteReport.objects.filter(created_at__gte=week_ago).count(),
             "reports_this_month": WasteReport.objects.filter(created_at__gte=month_ago).count(),
+            "reports_last_90d": WasteReport.objects.filter(created_at__gte=quarter_ago).count(),
             "total_citizens": User.objects.filter(role="citizen").count(),
             "active_citizens_30d": User.objects.filter(reports__created_at__gte=month_ago)
             .distinct()

@@ -224,6 +224,7 @@ export interface AdminAnalyticsKpis {
   verified_reports: number;
   reports_this_week: number;
   reports_this_month: number;
+  reports_last_90d: number;
   total_citizens: number;
   active_citizens_30d: number;
   total_points_awarded: number;

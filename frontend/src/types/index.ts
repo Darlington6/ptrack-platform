@@ -102,7 +102,15 @@ export interface LeaderboardEntry {
 
 export interface Notification {
   id: number;
-  category: 'system' | 'badge_earned' | 'streak_warning' | 'weekly_digest' | 'community' | 'admin';
+  category:
+    | 'system'
+    | 'badge_earned'
+    | 'streak_warning'
+    | 'weekly_digest'
+    | 'community'
+    | 'admin'
+    | 'verification'
+    | 'rejection';
   title: string;
   body: string;
   action_url: string;

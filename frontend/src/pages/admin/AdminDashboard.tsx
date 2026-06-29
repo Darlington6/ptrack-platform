@@ -95,7 +95,11 @@ export default function AdminDashboard() {
   });
 
   const periodValue =
-    dateRange === '7' ? (kpis?.reports_this_week ?? 0) : (kpis?.reports_this_month ?? 0);
+    dateRange === '7'
+      ? (kpis?.reports_this_week ?? 0)
+      : dateRange === '30'
+        ? (kpis?.reports_this_month ?? 0)
+        : (kpis?.reports_last_90d ?? 0);
 
   return (
     <AdminPageShell title="Dashboard">

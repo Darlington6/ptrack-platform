@@ -95,10 +95,10 @@ export default function Onboarding() {
       </div>
 
       {/* Text */}
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 text-center mb-3 leading-snug">
+      <h1 className="text-2xl font-bold text-gray-900 text-center mb-3 leading-snug">
         {currentSlide.title}
       </h1>
-      <p className="text-gray-600 dark:text-slate-400 text-center text-base leading-relaxed max-w-sm">
+      <p className="text-gray-600 text-center text-base leading-relaxed max-w-sm">
         {currentSlide.body}
       </p>
 

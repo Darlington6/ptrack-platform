@@ -13,7 +13,7 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema
 from rest_framework import status
@@ -102,6 +102,12 @@ def reports_list_create(request):
             qs = qs.filter(created_at__date__gte=date_from)
         if date_to := q.get("date_to"):
             qs = qs.filter(created_at__date__lte=date_to)
+        if search := q.get("search"):
+            qs = qs.filter(
+                Q(user__username__icontains=search)
+                | Q(user__email__icontains=search)
+                | Q(user__full_name__icontains=search)
+            )
         ordering = q.get("ordering", "-created_at")
         allowed_orderings = {"created_at", "-created_at", "status", "-status"}
         qs = qs.order_by(ordering if ordering in allowed_orderings else "-created_at")
@@ -281,7 +287,7 @@ def report_reject(request, pk):
         detail = f" Reason: {reason}" if reason else ""
         notify(
             report.user,
-            "verification",
+            "rejection",
             "Report rejected",
             f"An admin reviewed and rejected your waste report.{detail}",
             f"/reports/{report.pk}",

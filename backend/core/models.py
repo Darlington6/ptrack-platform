@@ -37,6 +37,8 @@ class Notification(models.Model):
         ("weekly_digest", "Weekly Digest"),
         ("community", "Community"),
         ("admin", "Admin"),
+        ("verification", "Verification"),
+        ("rejection", "Rejection"),
     ]
 
     recipient = models.ForeignKey(
