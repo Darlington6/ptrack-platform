@@ -13,7 +13,7 @@ export function UpdateBanner() {
           () => {
             void r.update();
           },
-          60 * 60 * 1000
+          5 * 60 * 1000
         );
       }
     },
