@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Map, Camera, Gift, User } from 'lucide-react';
-import { getQueueStats } from '../../lib/offlineQueue';
+import { flushQueue, getQueueStats } from '../../lib/offlineQueue';
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: Home, label: 'Home' },
@@ -28,11 +28,16 @@ export function BottomNav() {
 
     void checkQueue();
 
-    const onOnline = () => void checkQueue();
+    // Flush the queue and then re-read the count so the badge clears promptly.
+    const flushAndCheck = () => {
+      void flushQueue().then(() => void checkQueue());
+    };
+
+    const onOnline = flushAndCheck;
     const onFlushed = () => void checkQueue();
     const onSwMessage = (e: MessageEvent) => {
       if ((e.data as { type?: string } | null)?.type === 'FLUSH_QUEUE') {
-        void checkQueue();
+        flushAndCheck();
       }
     };
 
