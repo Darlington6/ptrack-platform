@@ -85,9 +85,20 @@ export default function Notifications() {
       } else {
         setNotifications(data.results);
       }
-      setNextCursor(data.next);
+      // Backend returns a full URL like "http://…/notifications/?cursor=TOKEN"
+      // Extract only the token so we don't double-encode it as a query param.
+      if (data.next) {
+        try {
+          setNextCursor(new URL(data.next).searchParams.get('cursor'));
+        } catch {
+          setNextCursor(null);
+        }
+      } else {
+        setNextCursor(null);
+      }
     } catch {
       toast.error('Failed to load notifications.');
+      setNextCursor(null); // stop the IntersectionObserver retry loop
     } finally {
       setLoading(false);
       setLoadingMore(false);

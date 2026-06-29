@@ -334,9 +334,15 @@ export default function Register() {
             <label className={LABEL_CLS}>{t('location_sector')}</label>
             <select {...register('sector')} className={`${INPUT_CLS} bg-white dark:bg-slate-700`}>
               <option value="Kimironko">Kimironko</option>
-              <option value="Gasabo">Gasabo</option>
-              <option value="Kicukiro">Kicukiro</option>
-              <option value="Nyarugenge">Nyarugenge</option>
+              <option value="Kacyiru">Kacyiru</option>
+              <option value="Remera">Remera</option>
+              <option value="Kinyinya">Kinyinya</option>
+              <option value="Gisozi">Gisozi</option>
+              <option value="Ndera">Ndera</option>
+              <option value="Nduba">Nduba</option>
+              <option value="Rusororo">Rusororo</option>
+              <option value="Jabana">Jabana</option>
+              <option value="Bumbogo">Bumbogo</option>
             </select>
           </div>
 
