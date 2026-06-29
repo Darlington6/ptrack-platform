@@ -98,77 +98,88 @@ const BASE_API = import.meta.env.VITE_API_BASE_URL
   ? `${import.meta.env.VITE_API_BASE_URL as string}/api/v1`
   : '/api/v1';
 
+// Prevents concurrent flushes from double-submitting the same queued item.
+let _flushing = false;
+
 export async function flushQueue(): Promise<void> {
-  const token = useAuthStore.getState().accessToken;
-  if (!token) return;
+  if (_flushing) return;
+  _flushing = true;
+  try {
+    const token = useAuthStore.getState().accessToken;
+    if (!token) return;
 
-  const db = await getDB();
+    const db = await getDB();
 
-  // ── Flush pending reports ─────────────────────────────────────────────────
-  const reports = await db.getAll('pending_reports');
-  for (const report of reports) {
-    if (report.retry_count >= MAX_RETRIES || report.id == null) continue;
-    try {
-      const formData = new FormData();
-      formData.append('latitude', String(report.payload.latitude));
-      formData.append('longitude', String(report.payload.longitude));
-      formData.append('waste_type', report.payload.waste_type);
-      formData.append('description', report.payload.description);
-      if (report.blob_image) {
-        formData.append('image', report.blob_image, 'photo.webp');
-      }
-      const response = await fetch(`${BASE_API}/reports/`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      if (response.ok) {
-        await db.delete('pending_reports', report.id);
-      } else {
+    // ── Flush pending reports ───────────────────────────────────────────────
+    const reports = await db.getAll('pending_reports');
+    for (const report of reports) {
+      if (report.retry_count >= MAX_RETRIES || report.id == null) continue;
+      try {
+        const formData = new FormData();
+        formData.append('latitude', String(report.payload.latitude));
+        formData.append('longitude', String(report.payload.longitude));
+        formData.append('waste_type', report.payload.waste_type);
+        formData.append('description', report.payload.description);
+        if (report.blob_image) {
+          formData.append('image', report.blob_image, 'photo.webp');
+        }
+        const response = await fetch(`${BASE_API}/reports/`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        if (response.ok) {
+          await db.delete('pending_reports', report.id);
+        } else {
+          await db.put('pending_reports', {
+            ...report,
+            retry_count: report.retry_count + 1,
+            last_error: `HTTP ${response.status}`,
+          });
+        }
+      } catch (err) {
         await db.put('pending_reports', {
           ...report,
           retry_count: report.retry_count + 1,
-          last_error: `HTTP ${response.status}`,
+          last_error: err instanceof Error ? err.message : 'Network error',
         });
       }
-    } catch (err) {
-      await db.put('pending_reports', {
-        ...report,
-        retry_count: report.retry_count + 1,
-        last_error: err instanceof Error ? err.message : 'Network error',
-      });
     }
-  }
 
-  // ── Flush pending recycling ───────────────────────────────────────────────
-  const recycling = await db.getAll('pending_recycling');
-  for (const activity of recycling) {
-    if (activity.retry_count >= MAX_RETRIES || activity.id == null) continue;
-    try {
-      const response = await fetch(`${BASE_API}/recycling/`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(activity.payload),
-      });
-      if (response.ok) {
-        await db.delete('pending_recycling', activity.id);
-      } else {
+    // ── Flush pending recycling ─────────────────────────────────────────────
+    const recycling = await db.getAll('pending_recycling');
+    for (const activity of recycling) {
+      if (activity.retry_count >= MAX_RETRIES || activity.id == null) continue;
+      try {
+        const response = await fetch(`${BASE_API}/recycling/`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(activity.payload),
+        });
+        if (response.ok) {
+          await db.delete('pending_recycling', activity.id);
+        } else {
+          await db.put('pending_recycling', {
+            ...activity,
+            retry_count: activity.retry_count + 1,
+            last_error: `HTTP ${response.status}`,
+          });
+        }
+      } catch (err) {
         await db.put('pending_recycling', {
           ...activity,
           retry_count: activity.retry_count + 1,
-          last_error: `HTTP ${response.status}`,
+          last_error: err instanceof Error ? err.message : 'Network error',
         });
       }
-    } catch (err) {
-      await db.put('pending_recycling', {
-        ...activity,
-        retry_count: activity.retry_count + 1,
-        last_error: err instanceof Error ? err.message : 'Network error',
-      });
     }
+  } finally {
+    _flushing = false;
+    // Tell BottomNav (and any other listener) to re-read the queue count.
+    window.dispatchEvent(new CustomEvent('queue-flushed'));
   }
 }
 

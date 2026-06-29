@@ -29,6 +29,7 @@ export function BottomNav() {
     void checkQueue();
 
     const onOnline = () => void checkQueue();
+    const onFlushed = () => void checkQueue();
     const onSwMessage = (e: MessageEvent) => {
       if ((e.data as { type?: string } | null)?.type === 'FLUSH_QUEUE') {
         void checkQueue();
@@ -36,11 +37,13 @@ export function BottomNav() {
     };
 
     window.addEventListener('online', onOnline);
+    window.addEventListener('queue-flushed', onFlushed);
     navigator.serviceWorker?.addEventListener('message', onSwMessage);
 
     return () => {
       mounted = false;
       window.removeEventListener('online', onOnline);
+      window.removeEventListener('queue-flushed', onFlushed);
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
     };
   }, []);
