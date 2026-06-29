@@ -87,7 +87,7 @@ export function BottomNav() {
       window.removeEventListener('queue-flushed', onFlushed);
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
     };
-  }, []);
+  }, [qc]);
 
   return (
     <nav
