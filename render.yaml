@@ -1,0 +1,54 @@
+services:
+  # ── Web service (Django + Gunicorn) ─────────────────────────────────────────
+  - type: web
+    name: ptrack-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate && gunicorn ptrack.wsgi:application
+    envVars:
+      - key: DEBUG
+        value: "false"
+      # Secrets — set these in the Render dashboard (service → Environment):
+      # SECRET_KEY, DATABASE_URL, REDIS_URL, ALLOWED_HOSTS,
+      # CORS_ALLOWED_ORIGINS, SENTRY_DSN, RESEND_API_KEY, DEFAULT_FROM_EMAIL,
+      # GOOGLE_MAPS_API_KEY, GOOGLE_OAUTH_CLIENT_ID,
+      # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT,
+      # USE_CLOUDINARY, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,
+      # CLOUDINARY_API_SECRET, APP_VERSION
+
+  # ── Cron: community updates  (Tue + Fri  17:00 CAT = 15:00 UTC) ─────────────
+  - type: cron
+    name: ptrack-community-updates
+    runtime: python
+    rootDir: backend
+    schedule: "0 15 * * 2,5"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py send_community_updates
+    envVars:
+      - key: DEBUG
+        value: "false"
+
+  # ── Cron: weekly digest  (Sunday  18:00 CAT = 16:00 UTC) ────────────────────
+  - type: cron
+    name: ptrack-weekly-digest
+    runtime: python
+    rootDir: backend
+    schedule: "0 16 * * 0"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py send_weekly_digest
+    envVars:
+      - key: DEBUG
+        value: "false"
+
+  # ── Cron: streak warnings  (daily  19:00 CAT = 17:00 UTC) ──────────────────
+  - type: cron
+    name: ptrack-streak-warnings
+    runtime: python
+    rootDir: backend
+    schedule: "0 17 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py send_streak_warnings
+    envVars:
+      - key: DEBUG
+        value: "false"
