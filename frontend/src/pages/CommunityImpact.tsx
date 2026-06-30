@@ -59,7 +59,7 @@ export default function CommunityImpact() {
     recycling: w.recycling,
   }));
 
-  const plasticKg = (stats?.total_reports ?? 0) * 2.5;
+  const plasticKg = stats?.estimated_plastic_kg ?? 0;
   const plasticDisplay =
     plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)} kg`;
 
@@ -73,7 +73,7 @@ export default function CommunityImpact() {
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Community Impact</h1>
         </div>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 pl-8">
-          {user?.sector ?? 'Kimironko'} · All time
+          {user?.sector ?? 'Your area'} · All time
         </p>
       </div>
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Recycle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -88,7 +89,7 @@ export default function RecyclingModal({ onClose }: Props) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -163,6 +164,7 @@ export default function RecyclingModal({ onClose }: Props) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

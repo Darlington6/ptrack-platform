@@ -19,9 +19,10 @@ from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_sche
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from accounts.services import PLASTIC_KG_PER_RECYCLING, PLASTIC_KG_PER_REPORT
 from accounts.throttles import MapBboxThrottle, RecyclingLogThrottle, ReportSubmitThrottle
 from core.notifications import notify
 from core.pagination import FeedCursorPagination, StandardPagination
@@ -55,6 +56,24 @@ _COMMUNITY_STATS_CACHE_KEY = "community:stats"
 _COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
 _COMMUNITY_TRENDS_CACHE_KEY = "community:trends"
 _COMMUNITY_TRENDS_CACHE_TTL = 3600  # 1 hour
+
+
+def _award_badges(user, old_points: int, new_points: int) -> None:
+    """Notify user of any points-based badge whose threshold this points increase just crossed."""
+    newly_earned = BadgeDefinition.objects.filter(
+        is_active=True,
+        badge_type="points",
+        required_points__gt=old_points,
+        required_points__lte=new_points,
+    )
+    for badge in newly_earned:
+        notify(
+            user,
+            "badge_earned",
+            f"{badge.name} badge earned! 🏅",
+            badge.description or f"You've earned the {badge.name} badge.",
+            "/rewards",
+        )
 
 
 # ── Reports ────────────────────────────────────────────────────────────────────
@@ -167,8 +186,10 @@ def reports_list_create(request):
 
     pts = get_points("report_submitted", fallback=5)
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")
+    old_points = request.user.points
     request.user.points += pts
     request.user.save(update_fields=["points"])
+    _award_badges(request.user, old_points, request.user.points)
 
     _prefs = getattr(request.user, "notification_preferences", {}) or {}
     if _prefs.get("report_notifications", True):
@@ -202,16 +223,38 @@ def reports_list_create(request):
 
 
 @extend_schema(
-    tags=["reports"], responses={200: WasteReportSerializer}, summary="Retrieve a single report"
+    tags=["reports"],
+    responses={200: WasteReportSerializer},
+    summary="Retrieve a single report",
+    methods=["GET"],
 )
-@api_view(["GET"])
+@extend_schema(
+    tags=["reports"],
+    responses={204: OpenApiResponse(description="Report deleted")},
+    summary="Delete a report (owner only)",
+    methods=["DELETE"],
+)
+@api_view(["GET", "DELETE"])
 @permission_classes([IsAuthenticated])
 def report_detail(request, pk):
-    """Return a single waste report by ID."""
+    """GET a single waste report by ID, or DELETE it (owner only)."""
     try:
         report = WasteReport.objects.select_related("user").get(pk=pk)
     except WasteReport.DoesNotExist:
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "DELETE":
+        if report.user_id != request.user.id:
+            return Response(
+                {"detail": "You can only delete your own reports."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        report.delete()
+        cache.delete(_LEADERBOARD_CACHE_KEY)
+        cache.delete(_COMMUNITY_STATS_CACHE_KEY)
+        cache.delete(f"user:profile:{request.user.pk}")
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     return Response(WasteReportSerializer(report).data)
 
 
@@ -240,8 +283,10 @@ def report_verify(request, pk):
     Reward.objects.create(
         user=report.user, points_earned=bonus_pts, reward_type="verification_bonus"
     )
+    old_points = report.user.points
     report.user.points += bonus_pts
     report.user.save(update_fields=["points"])
+    _award_badges(report.user, old_points, report.user.points)
 
     _vprefs = getattr(report.user, "notification_preferences", {}) or {}
     if _vprefs.get("verification_notifications", True):
@@ -388,8 +433,10 @@ def recycling_list_create(request):
     activity = serializer.save(user=request.user, points_awarded=pts)
 
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="recycling_logged")
+    old_points = request.user.points
     request.user.points += pts
     request.user.save(update_fields=["points"])
+    _award_badges(request.user, old_points, request.user.points)
 
     _rprefs = getattr(request.user, "notification_preferences", {}) or {}
     if _rprefs.get("recycling_notifications", True):
@@ -551,6 +598,28 @@ def my_rewards(request):
 # ── Community stats ────────────────────────────────────────────────────────────
 
 
+def _compute_community_stats() -> dict:
+    """Platform-wide totals shared by the authenticated and public stats endpoints."""
+    month_ago = timezone.now() - timedelta(days=30)
+    total_reports = WasteReport.objects.count()
+    total_recycling = RecyclingActivity.objects.count()
+    estimated_plastic_kg = round(
+        total_reports * PLASTIC_KG_PER_REPORT + total_recycling * PLASTIC_KG_PER_RECYCLING, 2
+    )
+    return {
+        "total_reports": total_reports,
+        "verified_reports": WasteReport.objects.filter(status="verified").count(),
+        "total_recycling_activities": total_recycling,
+        "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
+        # "Active" = submitted a report in the last 30 days, matching the admin
+        # dashboard's definition rather than the old all-time points>0 count.
+        "active_citizens": User.objects.filter(reports__created_at__gte=month_ago)
+        .distinct()
+        .count(),
+        "estimated_plastic_kg": estimated_plastic_kg,
+    }
+
+
 @extend_schema(
     tags=["reports"],
     responses={200: OpenApiResponse(description="Platform-wide community impact stats")},
@@ -562,13 +631,23 @@ def community_stats(request):
     """Return platform-wide totals. Cached for 10 minutes."""
     data = cache.get(_COMMUNITY_STATS_CACHE_KEY)
     if data is None:
-        data = {
-            "total_reports": WasteReport.objects.count(),
-            "verified_reports": WasteReport.objects.filter(status="verified").count(),
-            "total_recycling_activities": RecyclingActivity.objects.count(),
-            "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
-            "active_citizens": User.objects.filter(points__gt=0).count(),
-        }
+        data = _compute_community_stats()
+        cache.set(_COMMUNITY_STATS_CACHE_KEY, data, timeout=_COMMUNITY_STATS_CACHE_TTL)
+    return Response(data)
+
+
+@extend_schema(
+    tags=["reports"],
+    responses={200: OpenApiResponse(description="Public subset of community impact stats")},
+    summary="Public community impact stats for the landing page (cached 10 min)",
+)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def community_stats_public(request):
+    """Unauthenticated landing-page stats. Shares the same cache as community_stats."""
+    data = cache.get(_COMMUNITY_STATS_CACHE_KEY)
+    if data is None:
+        data = _compute_community_stats()
         cache.set(_COMMUNITY_STATS_CACHE_KEY, data, timeout=_COMMUNITY_STATS_CACHE_TTL)
     return Response(data)
 

@@ -212,7 +212,7 @@ export default function MyActivity() {
               </div>
             );
             return item.linkTo ? (
-              <Link key={item.id} to={item.linkTo}>
+              <Link key={item.id} to={item.linkTo} className="block">
                 {content}
               </Link>
             ) : (

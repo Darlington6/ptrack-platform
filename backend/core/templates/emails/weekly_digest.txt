@@ -10,6 +10,6 @@ Here's your pTrack weekly summary:
 
 Keep up the great work protecting Kigali's environment!
 
-Open pTrack: https://ptrack.vercel.app/dashboard
+Open pTrack: https://ptrack-platform.vercel.app/dashboard
 
 — The pTrack Team

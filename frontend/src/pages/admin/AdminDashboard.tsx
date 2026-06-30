@@ -155,7 +155,7 @@ export default function AdminDashboard() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
           <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-800 dark:text-slate-100">
-              Report Heatmap — Kimironko, Kigali
+              Report Heatmap — Kigali
             </h2>
             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400">
               <span className="flex items-center gap-1">

@@ -82,14 +82,14 @@ export default function About() {
         </p>
       </div>
 
-      {/* Pilot info */}
+      {/* Coverage info */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
         <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-          🚀 Pilot — Kimironko, Kigali
+          Piloting in Kimironko, Kigali
         </p>
         <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-          The current pilot is limited to the Kimironko sector. We plan to expand to all 35 Kigali
-          sectors based on pilot feedback and adoption metrics.
+          pTrack is currently piloting in the Kimironko sector, and built to scale across all of
+          Kigali as the program expands.
         </p>
       </div>
 

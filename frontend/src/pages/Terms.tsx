@@ -23,7 +23,7 @@ export default function Terms() {
         </button>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Terms of Service</h1>
-          <p className="text-xs text-gray-400 dark:text-slate-500">Effective: 1 June 2025</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">Effective: 1 June 2026</p>
         </div>
       </div>
 
@@ -124,7 +124,7 @@ export default function Terms() {
         </p>
       </Section>
 
-      <p className="text-xs text-gray-400 dark:text-slate-600 text-center pt-2">
+      <p className="text-xs text-gray-400 dark:text-slate-400 text-center pt-2">
         © {new Date().getFullYear()} pTrack · MIT License
       </p>
     </div>

@@ -120,9 +120,12 @@ export interface Notification {
 }
 
 export interface ImpactSummary {
-  plastic_kg: number;
-  bottles_equivalent: number;
-  co2_kg: number;
+  total_reports: number;
+  total_recycling: number;
+  total_points: number;
+  estimated_plastic_kg: number;
+  estimated_bottles_equivalent: number;
+  co2_saved_kg: number;
 }
 
 export interface CommunityStats {
@@ -131,6 +134,7 @@ export interface CommunityStats {
   total_recycling_activities: number;
   total_points_awarded: number;
   active_citizens: number;
+  estimated_plastic_kg: number;
 }
 
 export interface AuthTokens {

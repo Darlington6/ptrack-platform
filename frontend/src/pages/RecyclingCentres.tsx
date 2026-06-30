@@ -17,7 +17,7 @@ import { recyclingCentresApi } from '../api/endpoints/recyclingCentres';
 import { Spinner } from '../components/ui/Spinner';
 import type { RecyclingCentre } from '../api/types';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 const MATERIALS = [
   'All',
@@ -272,7 +272,7 @@ export default function RecyclingCentres() {
         >
           <Map
             mapId={MAP_ID ?? null}
-            defaultCenter={userPos ? { lat: userPos.lat, lng: userPos.lon } : KIMIRONKO}
+            defaultCenter={userPos ? { lat: userPos.lat, lng: userPos.lon } : KIGALI_CENTER}
             defaultZoom={13}
             gestureHandling="greedy"
             disableDefaultUI

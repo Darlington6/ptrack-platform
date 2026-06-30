@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { MapPin } from 'lucide-react';
 
 const STORAGE_KEY = 'ptrack_geo_consent';
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <button
         type="button"
@@ -45,7 +46,7 @@ export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
         </div>
         <p className="text-sm text-gray-600 dark:text-slate-300">
           pTrack uses your location only when you submit a waste report, to verify it is in or near
-          Kimironko, Kigali. We never track you in the background.
+          Kigali. We never track you in the background.
         </p>
         <div className="flex gap-3">
           <button
@@ -68,6 +69,7 @@ export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
