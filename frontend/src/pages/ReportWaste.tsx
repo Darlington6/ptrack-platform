@@ -13,7 +13,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import axios from 'axios';
 import { enqueueReport } from '../lib/offlineQueue';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const WASTE_TYPES = [
@@ -57,8 +57,8 @@ export default function ReportWaste() {
   });
   const reportPts = pointConfigs?.['report_submitted'] ?? 10;
 
-  const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIMIRONKO);
-  const [address, setAddress] = useState('Kimironko, Kigali');
+  const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIGALI_CENTER);
+  const [address, setAddress] = useState('Kigali');
   const [wasteType, setWasteType] = useState('bottles');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -80,7 +80,7 @@ export default function ReportWaste() {
         setMarkerPos(p);
       },
       () => {
-        // silently fall back to Kimironko
+        // silently fall back to the default map center
       }
     );
   }
@@ -216,7 +216,7 @@ export default function ReportWaste() {
           >
             <GoogleMap
               mapId={MAP_ID ?? null}
-              defaultCenter={KIMIRONKO}
+              defaultCenter={KIGALI_CENTER}
               center={markerPos}
               defaultZoom={15}
               gestureHandling="greedy"

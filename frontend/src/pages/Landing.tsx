@@ -1,9 +1,21 @@
 import { Link } from 'react-router-dom';
 import { Globe, Leaf } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
+import { communityApi } from '../api/endpoints/community';
 
 export default function Landing() {
   const { i18n } = useTranslation();
+
+  const { data: statsData } = useQuery({
+    queryKey: ['community', 'stats', 'public'],
+    queryFn: () => communityApi.statsPublic(),
+    staleTime: 5 * 60_000,
+  });
+  const stats = statsData?.data;
+  const plasticKg = stats?.estimated_plastic_kg ?? 0;
+  const plasticDisplay =
+    plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)}kg`;
 
   const current = i18n.language?.startsWith('rw') ? 'rw' : 'en';
 
@@ -28,9 +40,9 @@ export default function Landing() {
       </nav>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center -mt-8">
-        {/* Pilot badge */}
+        {/* Coverage badge */}
         <div className="mb-6 px-4 py-1.5 rounded-full border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950 text-sm text-green-700 dark:text-green-400 font-medium">
-          🚀 Pilot — Kimironko, Kigali
+          Piloting in Kimironko, Kigali
         </div>
 
         {/* Icon */}
@@ -55,15 +67,21 @@ export default function Landing() {
           </p>
           <div className="flex justify-between text-center">
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">1,248</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {stats ? stats.total_reports.toLocaleString() : '—'}
+              </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Reports Filed</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">340</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {stats ? stats.active_citizens.toLocaleString() : '—'}
+              </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Active Citizens</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">4.2T</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">
+                {stats ? plasticDisplay : '—'}
+              </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Plastic Tracked</p>
             </div>
           </div>

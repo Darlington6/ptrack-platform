@@ -24,6 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from accounts.models import User
         from core.email import send_email
+        from core.models import Notification
         from core.notifications import notify
         from push.helpers import send_push
         from reports.models import RecyclingActivity, Reward, WasteReport
@@ -35,6 +36,11 @@ class Command(BaseCommand):
         for user in users:
             prefs = user.notification_preferences or {}
             if not prefs.get("weekly_digest", True):
+                continue
+
+            if Notification.objects.filter(
+                recipient=user, category="weekly_digest", created_at__date__gte=week_start
+            ).exists():
                 continue
 
             reports = WasteReport.objects.filter(
@@ -57,7 +63,7 @@ class Command(BaseCommand):
             notify(user, "weekly_digest", title, body, action_url="/rewards")
 
             if not user.email.startswith("phone_"):
-                send_email(
+                delivered = send_email(
                     user.email,
                     title,
                     "weekly_digest",
@@ -68,7 +74,8 @@ class Command(BaseCommand):
                         "points_earned": points_earned,
                     },
                 )
-                sent += 1
+                if delivered:
+                    sent += 1
 
             if prefs.get("push_enabled", False):
                 send_push(user, title, body, url="/rewards")

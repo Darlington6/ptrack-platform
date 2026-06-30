@@ -46,7 +46,8 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ── Precaching ────────────────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST);
+const manifest = self.__WB_MANIFEST;
+precacheAndRoute(manifest);
 cleanupOutdatedCaches();
 
 // Claim all open clients immediately after activation so the new SW takes
@@ -58,11 +59,16 @@ self.addEventListener('activate', (event) => {
 // ── SPA navigation fallback ───────────────────────────────────────────────────
 // Without this, navigating to /dashboard or /admin while offline falls through
 // to the network (which is down) instead of serving index.html from precache.
-registerRoute(
-  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
-    denylist: [/^\/api\//],
-  })
-);
+// Guarded because in dev mode (devOptions.enabled) __WB_MANIFEST is empty —
+// there's no production build to glob index.html from — so the lookup would
+// otherwise throw "non-precached-url" on every dev server start.
+if (manifest.some((entry) => entry.url === '/index.html')) {
+  registerRoute(
+    new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+      denylist: [/^\/api\//],
+    })
+  );
+}
 
 // ── B: Images — CacheFirst, 100 entries, 30 days ─────────────────────────────
 registerRoute(

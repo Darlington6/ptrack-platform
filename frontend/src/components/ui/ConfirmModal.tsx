@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
 
 type Intent = 'danger' | 'warning' | 'success';
@@ -51,7 +52,7 @@ export function ConfirmModal({
   if (!open) return null;
   const resolved: Intent = intent ?? (danger ? 'danger' : 'warning');
   const { icon, btn, ring } = INTENT_STYLES[resolved];
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
       <div className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-xl p-6 text-center">
@@ -80,6 +81,7 @@ export function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -22,6 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from accounts.models import User
+        from core.models import Notification
         from core.notifications import notify
         from push.helpers import send_push
         from reports.models import WasteReport
@@ -50,13 +51,18 @@ class Command(BaseCommand):
                 if not prefs.get("community_updates", True):
                     continue
 
+                if Notification.objects.filter(
+                    recipient=user, category="community", created_at__gte=since
+                ).exists():
+                    continue
+
                 title = "Your community is active!"
                 body = (
                     f"{sector_reports} waste reports were submitted in {sector} this week. "
                     "Keep up the great work!"
                 )
 
-                notify(user, "community_update", title, body, action_url="/community")
+                notify(user, "community", title, body, action_url="/community")
 
                 if prefs.get("push_enabled", False):
                     send_push(user, title, body, url="/community")

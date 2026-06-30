@@ -9,6 +9,13 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+# Shared impact-estimation constants — used both for a single user's impact
+# (compute_impact below) and for platform-wide totals (reports.views.community_stats).
+PLASTIC_KG_PER_REPORT = 0.5
+PLASTIC_KG_PER_RECYCLING = 1.2
+CO2_KG_PER_PLASTIC_KG = 1.5
+BOTTLES_PER_KG = 50
+
 
 def update_streak(user) -> None:
     """
@@ -53,9 +60,11 @@ def compute_impact(user) -> dict:
     total_reports = WasteReport.objects.filter(user=user).count()
     total_recycling = RecyclingActivity.objects.filter(user=user).count()
 
-    estimated_plastic_kg = round(total_reports * 0.5 + total_recycling * 1.2, 2)
-    estimated_bottles_equivalent = int(estimated_plastic_kg * 50)
-    co2_saved_kg = round(estimated_plastic_kg * 1.5, 2)
+    estimated_plastic_kg = round(
+        total_reports * PLASTIC_KG_PER_REPORT + total_recycling * PLASTIC_KG_PER_RECYCLING, 2
+    )
+    estimated_bottles_equivalent = int(estimated_plastic_kg * BOTTLES_PER_KG)
+    co2_saved_kg = round(estimated_plastic_kg * CO2_KG_PER_PLASTIC_KG, 2)
 
     return {
         "total_reports": total_reports,

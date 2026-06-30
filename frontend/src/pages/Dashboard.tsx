@@ -77,6 +77,9 @@ export default function Dashboard() {
 
   const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;
   const communityStats = statsData?.data ?? null;
+  const plasticKg = communityStats?.estimated_plastic_kg ?? 0;
+  const plasticDisplay =
+    plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)}kg`;
 
   const oneWeekAgo = Date.now() - 7 * 86_400_000;
   const weeklyReports = rewards.filter(
@@ -112,7 +115,7 @@ export default function Dashboard() {
             <span>🔥 {t('streak', { count: user?.current_streak ?? 0 })}</span>
             {rank !== null && (
               <span className="font-semibold">
-                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'Kimironko' })}
+                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'your area' })}
               </span>
             )}
           </div>
@@ -193,7 +196,7 @@ export default function Dashboard() {
         <div className="p-5">
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
-              {t('community_impact')} — {user?.sector ?? 'Kimironko'}
+              {t('community_impact')} — {user?.sector ?? 'your area'}
             </p>
             <button
               onClick={() => setCommunityExpanded((v) => !v)}
@@ -206,7 +209,7 @@ export default function Dashboard() {
             {[
               { value: communityStats?.total_reports ?? '—', label: t('total_reports') },
               { value: communityStats?.active_citizens ?? '—', label: t('active_citizens') },
-              { value: '4.2T', label: t('plastic_logged') },
+              { value: communityStats ? plasticDisplay : '—', label: t('plastic_logged') },
             ].map((s) => (
               <div key={s.label}>
                 <p className="text-2xl font-bold text-white">{s.value}</p>

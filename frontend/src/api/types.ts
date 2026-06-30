@@ -207,6 +207,7 @@ export interface CommunityStats {
   total_recycling_activities: number;
   total_points_awarded: number;
   active_citizens: number;
+  estimated_plastic_kg: number;
 }
 
 export interface WeekTrend {

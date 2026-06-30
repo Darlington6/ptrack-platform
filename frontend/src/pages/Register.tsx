@@ -355,8 +355,26 @@ export default function Register() {
               className="mt-0.5 accent-green-600"
             />
             <span>
-              {t('agree_terms')} — <span className="text-green-600 font-medium">Terms</span> &amp;{' '}
-              <span className="text-green-600 font-medium">Privacy</span>
+              I agree to the{' '}
+              <Link
+                to="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-green-600 dark:text-green-400 font-medium hover:underline"
+              >
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-green-600 dark:text-green-400 font-medium hover:underline"
+              >
+                Privacy Policy
+              </Link>
             </span>
           </label>
           {errors.agreed && <p className="text-xs text-red-500 -mt-2">{errors.agreed.message}</p>}

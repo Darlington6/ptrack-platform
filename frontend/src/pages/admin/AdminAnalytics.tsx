@@ -15,12 +15,33 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  type TooltipContentProps,
 } from 'recharts';
+import type { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
 import { Download } from 'lucide-react';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi, type AnalyticsFunnelStep } from '../../api/endpoints/admin';
 
 const DONUT_COLORS = ['#16a34a', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
+
+// Recharts' default tooltip leaves the label uncoloured, so it inherits the
+// page's dark-mode text colour (near-white) against the tooltip's hardcoded
+// white background — making the label unreadable in dark mode. Render it
+// with Tailwind classes instead so both label and value stay legible in
+// both themes.
+function ChartTooltip({ active, payload, label }: TooltipContentProps<ValueType, NameType>) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg px-3 py-2 text-xs">
+      <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color }} className="font-medium">
+          {p.name}: {p.value}
+        </p>
+      ))}
+    </div>
+  );
+}
 
 type DateRange = '7' | '30' | '90';
 
@@ -108,7 +129,7 @@ export default function AdminAnalytics() {
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="week" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
+              <Tooltip content={ChartTooltip} />
               <Line
                 type="monotone"
                 dataKey="count"
@@ -143,7 +164,7 @@ export default function AdminAnalytics() {
                     <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length] ?? '#16a34a'} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip content={ChartTooltip} />
                 <Legend
                   formatter={(value) => (
                     <span className="text-xs text-gray-700 dark:text-slate-300">{value}</span>
@@ -163,7 +184,7 @@ export default function AdminAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="sector" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <Tooltip content={ChartTooltip} />
                 <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

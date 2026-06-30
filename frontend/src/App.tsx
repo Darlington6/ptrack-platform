@@ -90,6 +90,8 @@ export default function App() {
                   <Route path="/verify" element={<Verify />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<Terms />} />
                 </Route>
 
                 {/* Onboarding (protected, no chrome) */}
@@ -133,8 +135,6 @@ export default function App() {
                   <Route path="/education/:slug" element={<EducationArticle />} />
                   <Route path="/help" element={<HelpFAQ />} />
                   <Route path="/about" element={<About />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<Terms />} />
                 </Route>
 
                 {/* Admin */}

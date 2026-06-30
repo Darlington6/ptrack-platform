@@ -6,7 +6,7 @@ import { Locate, MapPin } from 'lucide-react';
 import { reportsApi } from '../api/endpoints/reports';
 import type { WasteReport, ReportStatus } from '../api/types';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const STATUS_COLOR: Record<ReportStatus, string> = {
@@ -206,7 +206,7 @@ export default function MapView() {
       <div className="flex-shrink-0" style={{ height: '45%' }}>
         <Map
           mapId={MAP_ID ?? null}
-          defaultCenter={KIMIRONKO}
+          defaultCenter={KIGALI_CENTER}
           defaultZoom={14}
           minZoom={11}
           gestureHandling="greedy"

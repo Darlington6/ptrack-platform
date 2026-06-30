@@ -1,7 +1,7 @@
 import { AdvancedMarker, Map } from '@vis.gl/react-google-maps';
 import type { HeatmapPoint } from '../../api/endpoints/admin';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const STATUS_COLORS: Record<string, string> = {
@@ -19,8 +19,8 @@ export function KigaliHeatmap({ points }: Props) {
   return (
     <Map
       mapId={MAP_ID ?? null}
-      defaultCenter={KIMIRONKO}
-      defaultZoom={13}
+      defaultCenter={KIGALI_CENTER}
+      defaultZoom={12}
       gestureHandling="none"
       disableDefaultUI
       zoomControl

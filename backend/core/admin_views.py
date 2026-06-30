@@ -406,7 +406,7 @@ def reports_bulk_verify(request):
 
     reports = WasteReport.objects.filter(pk__in=ids, status="pending")
     count = reports.count()
-    bonus_pts = get_points("verification_bonus", fallback=5)
+    bonus_pts = get_points("verification_bonus", fallback=10)
 
     for report in reports.select_related("user"):
         report.status = "verified"
