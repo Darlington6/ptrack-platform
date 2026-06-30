@@ -57,6 +57,12 @@ _COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
 _COMMUNITY_TRENDS_CACHE_KEY = "community:trends"
 _COMMUNITY_TRENDS_CACHE_TTL = 3600  # 1 hour
 
+# Notification title suffixes — defined as constants so emoji characters
+# are never scattered through logic code and are trivial to update in one place.
+_ICON_REPORT = "\U0001f4cd"  # 📍
+_ICON_RECYCLE = "♻️"  # ♻️
+_ICON_VERIFIED = "✅"  # ✅
+
 
 def _award_badges(user, old_points: int, new_points: int) -> None:
     """Notify user of any points-based badge whose threshold this points increase just crossed."""
@@ -70,7 +76,7 @@ def _award_badges(user, old_points: int, new_points: int) -> None:
         notify(
             user,
             "badge_earned",
-            f"{badge.name} badge earned! 🏅",
+            f"{badge.name} badge earned! {badge.icon or ''}".strip(),
             badge.description or f"You've earned the {badge.name} badge.",
             "/rewards",
         )
@@ -196,7 +202,7 @@ def reports_list_create(request):
         notify(
             request.user,
             "report",
-            "Report received! 📍",
+            f"Report received! {_ICON_REPORT}",
             f"Your waste report is under review. +{pts} pts added.",
             f"/reports/{report.pk}",
         )
@@ -296,14 +302,14 @@ def report_verify(request, pk):
         notify(
             report.user,
             "verification",
-            "Report verified!",
+            f"Report verified! {_ICON_VERIFIED}",
             f"An admin verified your waste report. +{bonus_pts} bonus pts added.{detail}",
             f"/reports/{report.pk}",
         )
         if _vprefs.get("push_enabled", False):
             send_push(
                 report.user,
-                "Report verified!",
+                f"Report verified! {_ICON_VERIFIED}",
                 f"An admin verified your waste report — +{bonus_pts} bonus pts.",
                 f"/reports/{report.pk}",
             )
@@ -445,14 +451,14 @@ def recycling_list_create(request):
         notify(
             request.user,
             "recycling",
-            "Recycling logged!",
+            f"Recycling logged! {_ICON_RECYCLE}",
             f"Your recycling activity was recorded. +{pts} pts added.",
             "/rewards",
         )
         if _rprefs.get("push_enabled", False):
             send_push(
                 request.user,
-                "Recycling logged!",
+                f"Recycling logged! {_ICON_RECYCLE}",
                 f"Recycling activity recorded — +{pts} pts added.",
                 "/rewards",
             )

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Globe, Leaf } from 'lucide-react';
+import { Globe, Leaf, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { communityApi } from '../api/endpoints/community';
@@ -63,7 +63,7 @@ export default function Landing() {
         {/* Community Impact card */}
         <div className="w-full max-w-sm mb-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm p-4">
           <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-            <span>👥</span> Community Impact
+            <Users size={13} /> Community Impact
           </p>
           <div className="flex justify-between text-center">
             <div>

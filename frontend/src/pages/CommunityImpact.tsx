@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, MapPin, Users, Recycle, Globe } from 'lucide-react';
+import { ArrowLeft, MapPin, Users, Recycle, Globe, Flame } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
@@ -171,7 +171,8 @@ export default function CommunityImpact() {
             citizens of {user.sector}.
           </p>
           <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-            Current streak: <span className="font-bold">{user.current_streak} days</span> 🔥
+            Current streak: <span className="font-bold">{user.current_streak} days</span>{' '}
+            <Flame size={14} className="inline text-orange-400" />
           </p>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, ArrowLeft } from 'lucide-react';
+import { Clock, ArrowLeft, Newspaper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { educationApi } from '../api/endpoints/education';
 import type { Article } from '../api/types';
@@ -31,7 +31,7 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
         />
       ) : (
         <div className="w-24 h-24 bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-3xl">📰</span>
+          <Newspaper size={36} className="text-green-600 dark:text-green-400" />
         </div>
       )}
       <div className="flex-1 p-3 min-w-0">

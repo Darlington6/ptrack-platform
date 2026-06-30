@@ -80,89 +80,99 @@ export default function Leaderboard() {
         ))}
       </div>
 
-      {/* Sector toggle */}
-      <div className="flex items-center justify-end gap-2">
-        <span className="text-xs text-gray-500 dark:text-slate-400">Your sector only</span>
-        <button
-          onClick={() => setSectorOnly((v) => !v)}
-          aria-label="Toggle sector filter"
-          className={`relative w-10 h-5 rounded-full transition-colors ${
-            sectorOnly ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'
-          }`}
-        >
-          <span
-            className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-              sectorOnly ? 'translate-x-5' : 'translate-x-0.5'
+      {/* Green gradient section — edge-to-edge from toggle through podium */}
+      <div className="-mx-4 bg-gradient-to-b from-green-50 to-transparent dark:from-green-900/20 dark:to-transparent">
+        {/* Sector toggle */}
+        <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-2">
+          <span className="text-xs text-gray-500 dark:text-slate-400">Your sector only</span>
+          <button
+            onClick={() => setSectorOnly((v) => !v)}
+            aria-label="Toggle sector filter"
+            className={`relative w-11 h-6 rounded-full transition-colors ${
+              sectorOnly ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'
             }`}
-          />
-        </button>
-      </div>
-
-      {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                sectorOnly ? 'translate-x-5' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
-      )}
 
-      {!isLoading && entries.length === 0 && (
-        <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
-          No data yet for this period.
-        </div>
-      )}
-
-      {/* Podium — top 3 */}
-      {!isLoading && podium.length > 0 && (
-        <div className="rounded-2xl bg-gradient-to-b from-sky-100/80 to-transparent dark:from-sky-900/20 dark:to-transparent px-3 pt-4 pb-0">
-          <div className="flex items-end justify-center gap-3">
-            {/* 2nd */}
-            {podium[1] && (
-              <div className="flex flex-col items-center gap-1 flex-1">
-                <Avatar name={podium[1].full_name} className="w-10 h-10" />
-                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                  {podium[1].full_name.split(' ')[0]}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[1].points} pts</p>
-                <div
-                  className={`w-full h-16 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[1]} flex items-center justify-center`}
-                >
-                  <span className="text-lg font-bold text-white/90">2</span>
-                </div>
-              </div>
-            )}
-            {/* 1st */}
-            {podium[0] && (
-              <div className="flex flex-col items-center gap-1 flex-1">
-                <Trophy size={18} className="text-amber-500" />
-                <Avatar name={podium[0].full_name} className="w-12 h-12" />
-                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                  {podium[0].full_name.split(' ')[0]}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[0].points} pts</p>
-                <div
-                  className={`w-full h-24 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[0]} flex items-center justify-center`}
-                >
-                  <span className="text-2xl font-bold text-white/90">1</span>
-                </div>
-              </div>
-            )}
-            {/* 3rd */}
-            {podium[2] && (
-              <div className="flex flex-col items-center gap-1 flex-1">
-                <Avatar name={podium[2].full_name} className="w-10 h-10" />
-                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                  {podium[2].full_name.split(' ')[0]}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[2].points} pts</p>
-                <div
-                  className={`w-full h-10 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[2]} flex items-center justify-center`}
-                >
-                  <span className="text-lg font-bold text-white/90">3</span>
-                </div>
-              </div>
-            )}
+        {isLoading && (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
           </div>
-        </div>
-      )}
+        )}
+
+        {!isLoading && entries.length === 0 && (
+          <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
+            No data yet for this period.
+          </div>
+        )}
+
+        {/* Podium — top 3 */}
+        {!isLoading && podium.length > 0 && (
+          <div className="px-4 pb-0">
+            <div className="flex items-end justify-center gap-3">
+              {/* 2nd */}
+              {podium[1] && (
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <Avatar name={podium[1].full_name} className="w-10 h-10" />
+                  <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                    {podium[1].full_name.split(' ')[0]}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    {podium[1].points} pts
+                  </p>
+                  <div
+                    className={`w-full h-16 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[1]} flex items-center justify-center`}
+                  >
+                    <span className="text-lg font-bold text-white/90">2</span>
+                  </div>
+                </div>
+              )}
+              {/* 1st */}
+              {podium[0] && (
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <Trophy size={18} className="text-amber-500" />
+                  <Avatar name={podium[0].full_name} className="w-12 h-12" />
+                  <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                    {podium[0].full_name.split(' ')[0]}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    {podium[0].points} pts
+                  </p>
+                  <div
+                    className={`w-full h-24 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[0]} flex items-center justify-center`}
+                  >
+                    <span className="text-2xl font-bold text-white/90">1</span>
+                  </div>
+                </div>
+              )}
+              {/* 3rd */}
+              {podium[2] && (
+                <div className="flex flex-col items-center gap-1 flex-1">
+                  <Avatar name={podium[2].full_name} className="w-10 h-10" />
+                  <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                    {podium[2].full_name.split(' ')[0]}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    {podium[2].points} pts
+                  </p>
+                  <div
+                    className={`w-full h-10 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[2]} flex items-center justify-center`}
+                  >
+                    <span className="text-lg font-bold text-white/90">3</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      {/* end green gradient section */}
 
       {/* Ranked list 4–20 */}
       {!isLoading && rest.length > 0 && (
