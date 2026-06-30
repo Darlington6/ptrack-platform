@@ -4,6 +4,7 @@ import { APIProvider } from '@vis.gl/react-google-maps';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { ScrollToTop } from './components/ScrollToTop';
 import { queryClient } from './lib/queryClient';
 import CitizenLayout from './components/layout/CitizenLayout';
 import PublicLayout from './components/layout/PublicLayout';
@@ -79,6 +80,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <APIProvider apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''} libraries={[]}>
           <BrowserRouter>
+            <ScrollToTop />
             <AuthProvider>
               <UpdateBanner />
               <Routes>

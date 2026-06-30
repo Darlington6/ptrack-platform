@@ -6,6 +6,7 @@ the user's current state and returns the ones that fire (respecting cooldowns).
 """
 
 from datetime import date, datetime, timedelta
+from typing import Callable
 
 from django.utils import timezone
 
@@ -35,7 +36,7 @@ def get_active_nudges_for(user, limit: int = 3) -> list:
 
 # ── Rule evaluators ───────────────────────────────────────────────────────────
 
-_EVALUATORS = {}
+_EVALUATORS: dict[str, Callable[..., bool]] = {}
 
 
 def _register(code: str):
