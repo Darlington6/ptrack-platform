@@ -304,12 +304,22 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 
 if not DEBUG:
+    # Trust Render's (and any reverse proxy's) X-Forwarded-Proto header so
+    # Django knows the original request was HTTPS. Without this, Django sees
+    # every internal HTTP request as plain HTTP and issues an infinite HTTPS
+    # redirect loop, causing 500s on browser-driven pages like the admin.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{h.strip()}"
+        for h in cfg.ALLOWED_HOSTS.split(",")
+        if h.strip() and "localhost" not in h.strip() and "127.0.0.1" not in h.strip()
+    ]
 
 # ── Content Security Policy ───────────────────────────────────────────────────
 # Swagger UI loads assets from jsDelivr CDN; exempt docs paths from CSP
