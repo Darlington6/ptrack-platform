@@ -200,12 +200,13 @@ def reports_list_create(request):
             f"Your waste report is under review. +{pts} pts added.",
             f"/reports/{report.pk}",
         )
-        send_push(
-            request.user,
-            "Report received! 📍",
-            f"Your waste report is under review — +{pts} pts added.",
-            f"/reports/{report.pk}",
-        )
+        if _prefs.get("push_enabled", False):
+            send_push(
+                request.user,
+                "Report received!",
+                f"Your waste report is under review — +{pts} pts added.",
+                f"/reports/{report.pk}",
+            )
 
     # Invalidate caches affected by a new report
     cache.delete(_LEADERBOARD_CACHE_KEY)
@@ -299,12 +300,13 @@ def report_verify(request, pk):
             f"An admin verified your waste report. +{bonus_pts} bonus pts added.{detail}",
             f"/reports/{report.pk}",
         )
-        send_push(
-            report.user,
-            "Report verified! ✅",
-            f"An admin verified your waste report — +{bonus_pts} bonus pts.",
-            f"/reports/{report.pk}",
-        )
+        if _vprefs.get("push_enabled", False):
+            send_push(
+                report.user,
+                "Report verified!",
+                f"An admin verified your waste report — +{bonus_pts} bonus pts.",
+                f"/reports/{report.pk}",
+            )
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{report.user.pk}")
@@ -443,16 +445,17 @@ def recycling_list_create(request):
         notify(
             request.user,
             "recycling",
-            "Recycling logged! ♻️",
+            "Recycling logged!",
             f"Your recycling activity was recorded. +{pts} pts added.",
             "/rewards",
         )
-        send_push(
-            request.user,
-            "Recycling logged! ♻️",
-            f"Recycling activity recorded — +{pts} pts added.",
-            "/rewards",
-        )
+        if _rprefs.get("push_enabled", False):
+            send_push(
+                request.user,
+                "Recycling logged!",
+                f"Recycling activity recorded — +{pts} pts added.",
+                "/rewards",
+            )
 
     cache.delete(_LEADERBOARD_CACHE_KEY)
     cache.delete(f"user:profile:{request.user.pk}")

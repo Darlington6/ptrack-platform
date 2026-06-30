@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { leaderboardApi, type LeaderboardPeriod } from '../api/endpoints/leaderboard';
 import type { LeaderboardEntry } from '../types';
@@ -17,7 +17,6 @@ const PODIUM_COLORS = [
   'from-slate-400 to-slate-300',
   'from-orange-500 to-orange-400',
 ];
-const PODIUM_RANK = ['🥇', '🥈', '🥉'];
 
 function Avatar({ name, className = '' }: { name: string; className?: string }) {
   const initials = name
@@ -92,7 +91,7 @@ export default function Leaderboard() {
           }`}
         >
           <span
-            className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
+            className={`absolute left-0 top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
               sectorOnly ? 'translate-x-5' : 'translate-x-0.5'
             }`}
           />
@@ -113,52 +112,55 @@ export default function Leaderboard() {
 
       {/* Podium — top 3 */}
       {!isLoading && podium.length > 0 && (
-        <div className="flex items-end justify-center gap-3 pt-2">
-          {/* 2nd */}
-          {podium[1] && (
-            <div className="flex flex-col items-center gap-1 flex-1">
-              <Avatar name={podium[1].full_name} className="w-10 h-10" />
-              <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                {podium[1].full_name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">{podium[1].points} pts</p>
-              <div
-                className={`w-full h-16 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[1]} flex items-center justify-center text-xl`}
-              >
-                {PODIUM_RANK[1]}
+        <div className="rounded-2xl bg-gradient-to-b from-sky-100/80 to-transparent dark:from-sky-900/20 dark:to-transparent px-3 pt-4 pb-0">
+          <div className="flex items-end justify-center gap-3">
+            {/* 2nd */}
+            {podium[1] && (
+              <div className="flex flex-col items-center gap-1 flex-1">
+                <Avatar name={podium[1].full_name} className="w-10 h-10" />
+                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                  {podium[1].full_name.split(' ')[0]}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[1].points} pts</p>
+                <div
+                  className={`w-full h-16 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[1]} flex items-center justify-center`}
+                >
+                  <span className="text-lg font-bold text-white/90">2</span>
+                </div>
               </div>
-            </div>
-          )}
-          {/* 1st */}
-          {podium[0] && (
-            <div className="flex flex-col items-center gap-1 flex-1">
-              <Avatar name={podium[0].full_name} className="w-12 h-12" />
-              <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                {podium[0].full_name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">{podium[0].points} pts</p>
-              <div
-                className={`w-full h-24 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[0]} flex items-center justify-center text-2xl`}
-              >
-                {PODIUM_RANK[0]}
+            )}
+            {/* 1st */}
+            {podium[0] && (
+              <div className="flex flex-col items-center gap-1 flex-1">
+                <Trophy size={18} className="text-amber-500" />
+                <Avatar name={podium[0].full_name} className="w-12 h-12" />
+                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                  {podium[0].full_name.split(' ')[0]}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[0].points} pts</p>
+                <div
+                  className={`w-full h-24 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[0]} flex items-center justify-center`}
+                >
+                  <span className="text-2xl font-bold text-white/90">1</span>
+                </div>
               </div>
-            </div>
-          )}
-          {/* 3rd */}
-          {podium[2] && (
-            <div className="flex flex-col items-center gap-1 flex-1">
-              <Avatar name={podium[2].full_name} className="w-10 h-10" />
-              <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
-                {podium[2].full_name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-slate-400">{podium[2].points} pts</p>
-              <div
-                className={`w-full h-10 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[2]} flex items-center justify-center text-lg`}
-              >
-                {PODIUM_RANK[2]}
+            )}
+            {/* 3rd */}
+            {podium[2] && (
+              <div className="flex flex-col items-center gap-1 flex-1">
+                <Avatar name={podium[2].full_name} className="w-10 h-10" />
+                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 text-center truncate w-full px-1">
+                  {podium[2].full_name.split(' ')[0]}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{podium[2].points} pts</p>
+                <div
+                  className={`w-full h-10 rounded-t-xl bg-gradient-to-b ${PODIUM_COLORS[2]} flex items-center justify-center`}
+                >
+                  <span className="text-lg font-bold text-white/90">3</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 
