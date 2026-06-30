@@ -13,6 +13,7 @@ import {
   MapPin,
   Recycle,
   CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -29,6 +30,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   report: MapPin,
   recycling: Recycle,
   verification: CheckCircle,
+  rejection: XCircle,
 };
 
 type FilterKey = 'all' | 'unread' | 'streak_warning' | 'badge_earned' | 'community';
@@ -83,9 +85,20 @@ export default function Notifications() {
       } else {
         setNotifications(data.results);
       }
-      setNextCursor(data.next);
+      // Backend returns a full URL like "http://…/notifications/?cursor=TOKEN"
+      // Extract only the token so we don't double-encode it as a query param.
+      if (data.next) {
+        try {
+          setNextCursor(new URL(data.next).searchParams.get('cursor'));
+        } catch {
+          setNextCursor(null);
+        }
+      } else {
+        setNextCursor(null);
+      }
     } catch {
       toast.error('Failed to load notifications.');
+      setNextCursor(null); // stop the IntersectionObserver retry loop
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -192,20 +205,28 @@ export default function Notifications() {
                         className={`w-full flex items-start gap-3 p-4 rounded-xl border transition-colors text-left ${
                           n.is_read
                             ? 'bg-white dark:bg-slate-800 border-gray-100 dark:border-slate-700'
-                            : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-800'
+                            : n.category === 'rejection'
+                              ? 'bg-red-50 dark:bg-red-900/10 border-red-100 dark:border-red-900'
+                              : 'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-800'
                         }`}
                       >
                         <div
                           className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                             n.is_read
                               ? 'bg-gray-100 dark:bg-slate-700'
-                              : 'bg-green-100 dark:bg-green-900/30'
+                              : n.category === 'rejection'
+                                ? 'bg-red-100 dark:bg-red-900/30'
+                                : 'bg-green-100 dark:bg-green-900/30'
                           }`}
                         >
                           <Icon
                             size={16}
                             className={
-                              n.is_read ? 'text-gray-500' : 'text-green-600 dark:text-green-400'
+                              n.is_read
+                                ? 'text-gray-500'
+                                : n.category === 'rejection'
+                                  ? 'text-red-500 dark:text-red-400'
+                                  : 'text-green-600 dark:text-green-400'
                             }
                           />
                         </div>

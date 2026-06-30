@@ -1,6 +1,6 @@
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
-export type ReportStatus = 'pending' | 'verified' | 'resolved';
+export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
 export type ActivityType = 'drop_off' | 'pickup' | 'exchange' | 'other';
 export type ThemePreference = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'rw';
@@ -102,7 +102,15 @@ export interface LeaderboardEntry {
 
 export interface Notification {
   id: number;
-  category: 'system' | 'badge_earned' | 'streak_warning' | 'weekly_digest' | 'community' | 'admin';
+  category:
+    | 'system'
+    | 'badge_earned'
+    | 'streak_warning'
+    | 'weekly_digest'
+    | 'community'
+    | 'admin'
+    | 'verification'
+    | 'rejection';
   title: string;
   body: string;
   action_url: string;
@@ -112,9 +120,12 @@ export interface Notification {
 }
 
 export interface ImpactSummary {
-  plastic_kg: number;
-  bottles_equivalent: number;
-  co2_kg: number;
+  total_reports: number;
+  total_recycling: number;
+  total_points: number;
+  estimated_plastic_kg: number;
+  estimated_bottles_equivalent: number;
+  co2_saved_kg: number;
 }
 
 export interface CommunityStats {
@@ -123,6 +134,7 @@ export interface CommunityStats {
   total_recycling_activities: number;
   total_points_awarded: number;
   active_citizens: number;
+  estimated_plastic_kg: number;
 }
 
 export interface AuthTokens {

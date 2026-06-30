@@ -12,13 +12,6 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 declare let self: ServiceWorkerGlobalScope;
 
-// Augment ServiceWorkerGlobalScope with the injected precache manifest
-declare global {
-  interface ServiceWorkerGlobalScope {
-    __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
-  }
-}
-
 // ── Share target: intercept POST /report from Android share sheet ─────────────
 // Must be registered BEFORE precacheAndRoute so we can call respondWith first.
 self.addEventListener('fetch', (event) => {
@@ -46,17 +39,29 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ── Precaching ────────────────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST);
+const manifest = self.__WB_MANIFEST;
+precacheAndRoute(manifest);
 cleanupOutdatedCaches();
+
+// Claim all open clients immediately after activation so the new SW takes
+// effect without requiring a manual reload on every tab.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
 
 // ── SPA navigation fallback ───────────────────────────────────────────────────
 // Without this, navigating to /dashboard or /admin while offline falls through
 // to the network (which is down) instead of serving index.html from precache.
-registerRoute(
-  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
-    denylist: [/^\/api\//],
-  })
-);
+// Guarded because in dev mode (devOptions.enabled) __WB_MANIFEST is empty —
+// there's no production build to glob index.html from — so the lookup would
+// otherwise throw "non-precached-url" on every dev server start.
+if (manifest.some((entry) => typeof entry !== 'string' && entry.url === '/index.html')) {
+  registerRoute(
+    new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+      denylist: [/^\/api\//],
+    })
+  );
+}
 
 // ── B: Images — CacheFirst, 100 entries, 30 days ─────────────────────────────
 registerRoute(
@@ -94,14 +99,15 @@ registerRoute(
   })
 );
 
-// /api/v1/recycling-centres/ — CacheFirst, 1 day
+// /api/v1/recycling-centres/ — NetworkFirst so admin edits appear immediately
 registerRoute(
   ({ url, request }) =>
     request.method === 'GET' && url.pathname.startsWith('/api/v1/recycling-centres'),
-  new CacheFirst({
+  new NetworkFirst({
     cacheName: 'ptrack-recycling-centres',
+    networkTimeoutSeconds: 5,
     plugins: [
-      new ExpirationPlugin({ maxAgeSeconds: 24 * 60 * 60 }),
+      new ExpirationPlugin({ maxAgeSeconds: 60 * 60 }),
       new CacheableResponsePlugin({ statuses: [0, 200] }),
     ],
   })
@@ -137,6 +143,12 @@ interface PushPayload {
   icon?: string;
 }
 
+// `vibrate` is a real, widely-supported field (Chrome/Android) but isn't part
+// of the standard Notifications API, so it's missing from TS's NotificationOptions.
+interface VibrateNotificationOptions extends NotificationOptions {
+  vibrate?: number[];
+}
+
 self.addEventListener('push', (event) => {
   const data = event.data?.json() as PushPayload | undefined;
   const title = data?.title ?? 'pTrack';
@@ -144,15 +156,15 @@ self.addEventListener('push', (event) => {
   const url = data?.url ?? '/dashboard';
   const icon = data?.icon ?? '/icons/icon-192.png';
 
-  event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon,
-      badge: '/icons/badge-96.png',
-      data: { url },
-      vibrate: [100, 50, 100],
-    })
-  );
+  const options: VibrateNotificationOptions = {
+    body,
+    icon,
+    badge: '/icons/badge-96.png',
+    data: { url },
+    vibrate: [100, 50, 100],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', (event) => {
@@ -181,7 +193,7 @@ self.addEventListener('sync', (event) => {
   const sync = event as SyncEvent;
   if (sync.tag === 'sync-reports') {
     // Notify open clients to flush; they have the auth token
-    event.waitUntil(
+    sync.waitUntil(
       self.clients.matchAll({ type: 'window' }).then((clients) => {
         clients.forEach((c) => c.postMessage({ type: 'FLUSH_QUEUE' }));
       })

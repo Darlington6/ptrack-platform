@@ -46,6 +46,7 @@ class WasteReport(models.Model):
         ("pending", "Pending"),
         ("verified", "Verified"),
         ("resolved", "Resolved"),
+        ("rejected", "Rejected"),
     ]
 
     user = models.ForeignKey(
@@ -53,6 +54,7 @@ class WasteReport(models.Model):
     )
     latitude = models.FloatField()
     longitude = models.FloatField()
+    sector = models.CharField(max_length=100, blank=True, default="")
     image = models.ImageField(upload_to="ptrack/reports/", null=True, blank=True)
     thumbnail = models.ImageField(upload_to="ptrack/thumbnails/", null=True, blank=True)
     description = models.TextField(blank=True)

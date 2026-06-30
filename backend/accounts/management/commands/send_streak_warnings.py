@@ -24,9 +24,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from accounts.models import User
         from core.email import send_email
+        from core.models import Notification
         from core.notifications import notify
         from push.helpers import send_push
 
+        today = timezone.now().date()
         cutoff = (timezone.now() - timedelta(hours=20)).date()
         at_risk = User.objects.filter(
             current_streak__gte=2,
@@ -36,6 +38,11 @@ class Command(BaseCommand):
 
         count = 0
         for user in at_risk:
+            if Notification.objects.filter(
+                recipient=user, category="streak_warning", created_at__date=today
+            ).exists():
+                continue
+
             title = "Your streak is at risk!"
             body = (
                 f"You have a {user.current_streak}-day streak. "

@@ -18,7 +18,18 @@ const ALL_MATERIALS = [
   'Textiles',
 ];
 
-const SECTORS = ['Kimironko', 'Gasabo', 'Kicukiro', 'Nyarugenge'];
+const SECTORS = [
+  'Kimironko',
+  'Kacyiru',
+  'Remera',
+  'Kinyinya',
+  'Gisozi',
+  'Ndera',
+  'Nduba',
+  'Rusororo',
+  'Jabana',
+  'Bumbogo',
+];
 
 type FormState = {
   name: string;

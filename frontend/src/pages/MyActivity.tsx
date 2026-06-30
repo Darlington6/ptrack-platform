@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Recycle, CheckCircle } from 'lucide-react';
 import client from '../api/client';
 import type { Reward, RecyclingActivity, WasteReport } from '../types';
 
@@ -9,7 +9,7 @@ type Filter = 'all' | 'reports' | 'recycling' | 'points';
 interface ActivityItem {
   id: string;
   type: 'report' | 'recycling' | 'reward';
-  icon: string;
+  icon: ReactNode;
   label: string;
   sublabel: string;
   points?: number;
@@ -60,11 +60,13 @@ export default function MyActivity() {
         id: `reward-${r.id}`,
         type: 'reward',
         icon:
-          r.reward_type === 'report_submitted'
-            ? '📍'
-            : r.reward_type === 'recycling_logged'
-              ? '♻️'
-              : '✅',
+          r.reward_type === 'report_submitted' ? (
+            <MapPin size={16} className="text-green-600" />
+          ) : r.reward_type === 'recycling_logged' ? (
+            <Recycle size={16} className="text-green-600" />
+          ) : (
+            <CheckCircle size={16} className="text-green-600" />
+          ),
         label: REWARD_LABELS[r.reward_type] ?? r.reward_type,
         sublabel: `+${r.points_earned} pts`,
         points: r.points_earned,
@@ -100,7 +102,7 @@ export default function MyActivity() {
           ? (reportsRes.value.data.results ?? []).map((r) => ({
               id: `report-${r.id}`,
               type: 'report' as const,
-              icon: '📍',
+              icon: <MapPin size={16} className="text-green-600" />,
               label: `${r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)} waste report`,
               sublabel: r.status,
               date: r.created_at,
@@ -113,7 +115,7 @@ export default function MyActivity() {
           ? (recyclingRes.value.data.results ?? []).map((a) => ({
               id: `recycling-${a.id}`,
               type: 'recycling' as const,
-              icon: '♻️',
+              icon: <Recycle size={16} className="text-green-600" />,
               label: `Recycling — ${a.activity_type.replace('_', ' ')}`,
               sublabel: `+${a.points_awarded} pts`,
               points: a.points_awarded,
@@ -190,7 +192,9 @@ export default function MyActivity() {
           {filtered.map((item) => {
             const content = (
               <div className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4">
-                <span className="text-xl w-9 text-center flex-shrink-0">{item.icon}</span>
+                <span className="w-9 flex-shrink-0 flex items-center justify-center">
+                  {item.icon}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
                     {item.label}
@@ -208,7 +212,7 @@ export default function MyActivity() {
               </div>
             );
             return item.linkTo ? (
-              <Link key={item.id} to={item.linkTo}>
+              <Link key={item.id} to={item.linkTo} className="block">
                 {content}
               </Link>
             ) : (

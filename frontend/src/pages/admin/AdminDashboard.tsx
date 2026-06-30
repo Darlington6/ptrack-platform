@@ -15,6 +15,7 @@ const STATUS_BADGE: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
   verified: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   resolved: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  rejected: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
 function KpiCard({
@@ -94,7 +95,11 @@ export default function AdminDashboard() {
   });
 
   const periodValue =
-    dateRange === '7' ? (kpis?.reports_this_week ?? 0) : (kpis?.reports_this_month ?? 0);
+    dateRange === '7'
+      ? (kpis?.reports_this_week ?? 0)
+      : dateRange === '30'
+        ? (kpis?.reports_this_month ?? 0)
+        : (kpis?.reports_last_90d ?? 0);
 
   return (
     <AdminPageShell title="Dashboard">
@@ -150,7 +155,7 @@ export default function AdminDashboard() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
           <div className="px-5 py-4 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-800 dark:text-slate-100">
-              Report Heatmap — Kimironko, Kigali
+              Report Heatmap — Kigali
             </h2>
             <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-slate-400">
               <span className="flex items-center gap-1">
@@ -161,6 +166,9 @@ export default function AdminDashboard() {
               </span>
               <span className="flex items-center gap-1">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block" /> Resolved
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" /> Rejected
               </span>
             </div>
           </div>

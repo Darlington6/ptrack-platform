@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity,
@@ -7,6 +8,8 @@ import {
   Settings,
   HelpCircle,
   Info,
+  FileText,
+  Shield,
   LogOut,
   ChevronRight,
   MapPin,
@@ -23,6 +26,7 @@ import { Avatar } from '../components/ui/Avatar';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { AvatarUploadModal } from '../components/AvatarUploadModal';
 import client from '../api/client';
+import { badgesApi } from '../api/endpoints/badges';
 import type { ImpactSummary } from '../types';
 
 function formatDate(iso: string): string {
@@ -39,6 +43,8 @@ const MENU = [
   { icon: Settings, label: 'Settings', to: '/settings' },
   { icon: HelpCircle, label: 'Help & Support', to: '/help' },
   { icon: Info, label: 'About pTrack', to: '/about' },
+  { icon: FileText, label: 'Terms of Service', to: '/terms' },
+  { icon: Shield, label: 'Privacy Policy', to: '/privacy' },
 ] as const;
 
 export default function Profile() {
@@ -52,6 +58,15 @@ export default function Profile() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
+
+  const { data: badgesData } = useQuery({
+    queryKey: ['badges'],
+    queryFn: () => badgesApi.list(),
+    staleTime: 10 * 60_000,
+  });
+  const earnedBadgesCount = (badgesData?.data ?? []).filter(
+    (b) => (user?.points ?? 0) >= b.required_points
+  ).length;
 
   useEffect(() => {
     client
@@ -90,7 +105,7 @@ export default function Profile() {
     { label: 'Reports', value: String(reportsCount) },
     { label: 'Recycling', value: String(recyclingCount) },
     { label: 'Points', value: String(user?.points ?? 0) },
-    { label: 'Badges', value: '0' },
+    { label: 'Badges', value: String(earnedBadgesCount) },
     { label: 'Streak', value: `${user?.current_streak ?? 0}d` },
   ];
 
@@ -176,12 +191,13 @@ export default function Profile() {
             Your Environmental Impact
           </p>
           <p className="text-sm text-green-700 dark:text-green-400">
-            You've helped prevent ~<span className="font-bold">{impact.plastic_kg}kg</span> of
-            plastic from reaching Kigali's drainage.
+            You've helped prevent ~
+            <span className="font-bold">{impact.estimated_plastic_kg}kg</span> of plastic from
+            reaching Kigali's drainage.
           </p>
           <button
             onClick={() => {
-              const text = `I've helped prevent ~${impact.plastic_kg}kg of plastic from reaching Kigali's drainage using pTrack!`;
+              const text = `I've helped prevent ~${impact.estimated_plastic_kg}kg of plastic from reaching Kigali's drainage using pTrack!`;
               if (navigator.share) {
                 void navigator.share({
                   title: 'My pTrack Impact',

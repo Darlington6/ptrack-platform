@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface Props {
@@ -22,7 +23,7 @@ export function Modal({ isOpen, onClose, title, children }: Props) {
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       <button
         type="button"
@@ -41,6 +42,7 @@ export function Modal({ isOpen, onClose, title, children }: Props) {
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

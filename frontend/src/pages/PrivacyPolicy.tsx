@@ -23,16 +23,16 @@ export default function PrivacyPolicy() {
         </button>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">Privacy Policy</h1>
-          <p className="text-xs text-gray-400 dark:text-slate-500">Effective: 1 June 2025</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">Effective: 1 June 2026</p>
         </div>
       </div>
 
       <Section title="1. Who we are">
         <p>
           pTrack ("we", "us", "our") is a plastic waste tracking application developed as an ALU
-          capstone project, operated in the Kimironko sector of Kigali, Rwanda.
+          capstone project, currently piloting in the Kimironko sector of Kigali, Rwanda.
         </p>
-        <p>Data controller: Darlington Tunyinko · d.tunyinko@alustudent.com</p>
+        <p>Data controller: Desmond Tunyinko · d.tunyinko@alustudent.com</p>
       </Section>
 
       <Section title="2. Data we collect">
@@ -70,8 +70,9 @@ export default function PrivacyPolicy() {
 
       <Section title="4. Data storage and security">
         <p>
-          Data is stored on Render's PostgreSQL (EU region) and media files on Cloudinary (served
-          over HTTPS). JWT access tokens expire after 60 minutes; refresh tokens after 7 days.
+          Data is stored on Neon's PostgreSQL (AWS US East 1 (N. Virginia)) and media files on
+          Cloudinary (served over HTTPS). JWT access tokens expire after 60 minutes; refresh tokens
+          after 7 days.
         </p>
         <p>
           We apply encryption in transit (TLS 1.2+), input sanitisation, and rate-limiting on all
@@ -93,7 +94,7 @@ export default function PrivacyPolicy() {
           <a href="mailto:support@ptrack.rw" className="text-green-600 dark:text-green-400">
             support@ptrack.rw
           </a>
-          . We respond within 30 days.
+          . We respond within 7 days.
         </p>
       </Section>
 
@@ -127,7 +128,7 @@ export default function PrivacyPolicy() {
         </p>
       </Section>
 
-      <p className="text-xs text-gray-400 dark:text-slate-600 text-center pt-2">
+      <p className="text-xs text-gray-400 dark:text-slate-400 text-center pt-2">
         Questions? Email{' '}
         <a href="mailto:support@ptrack.rw" className="underline">
           support@ptrack.rw

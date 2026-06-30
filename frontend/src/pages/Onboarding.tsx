@@ -1,35 +1,47 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronRight, Hand, Star, Trophy, Rocket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 
-const SLIDES = [
-  {
-    bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
-    icon: '👋',
-    title: 'Welcome to pTrack!',
-    body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
-  },
-  {
-    bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
-    icon: '⭐',
-    title: 'Earn points for every action',
-    body: 'Report waste (+10 pts), log recycling (+15 pts), get verified (+5 bonus). Points unlock rewards and badges.',
-  },
-  {
-    bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
-    icon: '🏆',
-    title: 'Climb the leaderboard',
-    body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
-  },
-  {
-    bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
-    icon: '🚀',
-    title: 'Ready to get started?',
-    body: 'Start your first report and earn 10 points right now. Kigali is counting on you!',
-  },
-] as const;
+interface Slide {
+  bg: string;
+  icon: ReactNode;
+  title: string;
+  body: string;
+}
+
+function buildSlides(report: number, recycling: number, bonus: number): Slide[] {
+  return [
+    {
+      bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
+      icon: <Hand size={56} className="text-green-700" />,
+      title: 'Welcome to pTrack!',
+      body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
+    },
+    {
+      bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
+      icon: <Star size={56} className="text-amber-500" />,
+      title: 'Earn points for every action',
+      body: `Report waste (+${report} pts), log recycling (+${recycling} pts), get verified (+${bonus} bonus). Points unlock rewards and badges.`,
+    },
+    {
+      bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
+      icon: <Trophy size={56} className="text-blue-500" />,
+      title: 'Climb the leaderboard',
+      body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
+    },
+    {
+      bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
+      icon: <Rocket size={56} className="text-purple-600" />,
+      title: 'Ready to get started?',
+      body: `Start your first report and earn ${report} points right now. Kigali is counting on you!`,
+    },
+  ];
+}
+
+const SLIDE_COUNT = 4;
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -37,10 +49,23 @@ export default function Onboarding() {
   const [slide, setSlide] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const { data: ptData } = useQuery({
+    queryKey: ['point-configs'],
+    queryFn: () => client.get<Record<string, number>>('/point-configs/'),
+    staleTime: 10 * 60_000,
+  });
+
+  const pts = ptData?.data ?? {};
+  const slides = buildSlides(
+    pts.report_submitted ?? 5,
+    pts.recycling_logged ?? 5,
+    pts.verification_bonus ?? 10
+  );
+
   function resetTimer() {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setSlide((s) => (s + 1) % SLIDES.length);
+      setSlide((s) => (s + 1) % SLIDE_COUNT);
     }, 3000);
   }
 
@@ -49,7 +74,6 @@ export default function Onboarding() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function finishOnboarding() {
@@ -67,15 +91,14 @@ export default function Onboarding() {
 
   function handleNext() {
     resetTimer();
-    if (slide < SLIDES.length - 1) {
+    if (slide < SLIDE_COUNT - 1) {
       setSlide((s) => s + 1);
     } else {
       void finishOnboarding();
     }
   }
 
-  // slide is always in [0, SLIDES.length-1]
-  const currentSlide = SLIDES[slide]!;
+  const currentSlide = slides[slide]!;
 
   return (
     <div
@@ -83,21 +106,21 @@ export default function Onboarding() {
       style={{ background: currentSlide.bg, transition: 'background 0.5s ease' }}
     >
       {/* Icon */}
-      <span className="text-6xl mb-8 select-none" aria-hidden="true">
+      <div className="mb-8 select-none" aria-hidden="true">
         {currentSlide.icon}
-      </span>
+      </div>
 
       {/* Text */}
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 text-center mb-3 leading-snug">
+      <h1 className="text-2xl font-bold text-gray-900 text-center mb-3 leading-snug">
         {currentSlide.title}
       </h1>
-      <p className="text-gray-600 dark:text-slate-400 text-center text-base leading-relaxed max-w-sm">
+      <p className="text-gray-600 text-center text-base leading-relaxed max-w-sm">
         {currentSlide.body}
       </p>
 
       {/* Progress dots */}
       <div className="flex items-center gap-2 mt-10 mb-8">
-        {SLIDES.map((_, i) => (
+        {slides.map((_, i) => (
           <div
             key={i}
             className={`transition-all duration-300 rounded-full ${
@@ -112,7 +135,7 @@ export default function Onboarding() {
         onClick={handleNext}
         className="w-full max-w-sm bg-green-600 hover:bg-green-700 text-white font-semibold py-4 rounded-2xl text-base flex items-center justify-center gap-2 transition-colors"
       >
-        {slide < SLIDES.length - 1 ? (
+        {slide < SLIDE_COUNT - 1 ? (
           <>
             Next <ChevronRight size={18} />
           </>
@@ -122,7 +145,7 @@ export default function Onboarding() {
       </button>
 
       {/* Skip link */}
-      {slide < SLIDES.length - 1 && (
+      {slide < SLIDE_COUNT - 1 && (
         <button
           onClick={() => void finishOnboarding()}
           className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"

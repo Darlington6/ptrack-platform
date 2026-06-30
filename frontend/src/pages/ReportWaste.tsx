@@ -10,9 +10,10 @@ import { useAuth } from '../context/AuthContext';
 import { ImageUpload } from '../components/ImageUpload';
 import { GeoConsentModal, getGeoConsent, saveGeoConsent } from '../components/GeoConsentModal';
 import { useDebounce } from '../hooks/useDebounce';
-import { enqueueReport, flushQueue } from '../lib/offlineQueue';
+import axios from 'axios';
+import { enqueueReport } from '../lib/offlineQueue';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const WASTE_TYPES = [
@@ -56,8 +57,8 @@ export default function ReportWaste() {
   });
   const reportPts = pointConfigs?.['report_submitted'] ?? 10;
 
-  const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIMIRONKO);
-  const [address, setAddress] = useState('Kimironko, Kigali');
+  const [markerPos, setMarkerPos] = useState<google.maps.LatLngLiteral>(KIGALI_CENTER);
+  const [address, setAddress] = useState('Kigali');
   const [wasteType, setWasteType] = useState('bottles');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -79,7 +80,7 @@ export default function ReportWaste() {
         setMarkerPos(p);
       },
       () => {
-        // silently fall back to Kimironko
+        // silently fall back to the default map center
       }
     );
   }
@@ -108,14 +109,7 @@ export default function ReportWaste() {
       });
     }
 
-    // Flush any queued reports that failed while offline
-    void flushQueue();
-
-    // Also flush whenever the window comes back online
-    const onOnline = () => void flushQueue();
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Flushing is handled globally by BottomNav so the queue syncs on any page.
   }, []);
 
   async function handleSubmit(e: { preventDefault(): void }) {
@@ -163,11 +157,16 @@ export default function ReportWaste() {
         );
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
-        // Network error while online — queue for later sync
+        if (axios.isAxiosError(networkErr) && networkErr.response) {
+          // API returned an error response — don't queue, show error
+          toast.error('Failed to submit report. Please try again.');
+          setLoading(false);
+          return;
+        }
+        // True network failure — queue for offline sync
         await enqueueReport(payload, image);
         toast.success("Saved — will sync when you're back online.");
         setTimeout(() => navigate('/dashboard'), 2000);
-        void networkErr;
       }
     } catch {
       toast.error('Failed to submit report. Please try again.');
@@ -217,7 +216,7 @@ export default function ReportWaste() {
           >
             <GoogleMap
               mapId={MAP_ID ?? null}
-              defaultCenter={KIMIRONKO}
+              defaultCenter={KIGALI_CENTER}
               center={markerPos}
               defaultZoom={15}
               gestureHandling="greedy"

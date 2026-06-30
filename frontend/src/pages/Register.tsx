@@ -334,9 +334,15 @@ export default function Register() {
             <label className={LABEL_CLS}>{t('location_sector')}</label>
             <select {...register('sector')} className={`${INPUT_CLS} bg-white dark:bg-slate-700`}>
               <option value="Kimironko">Kimironko</option>
-              <option value="Gasabo">Gasabo</option>
-              <option value="Kicukiro">Kicukiro</option>
-              <option value="Nyarugenge">Nyarugenge</option>
+              <option value="Kacyiru">Kacyiru</option>
+              <option value="Remera">Remera</option>
+              <option value="Kinyinya">Kinyinya</option>
+              <option value="Gisozi">Gisozi</option>
+              <option value="Ndera">Ndera</option>
+              <option value="Nduba">Nduba</option>
+              <option value="Rusororo">Rusororo</option>
+              <option value="Jabana">Jabana</option>
+              <option value="Bumbogo">Bumbogo</option>
             </select>
           </div>
 
@@ -349,8 +355,26 @@ export default function Register() {
               className="mt-0.5 accent-green-600"
             />
             <span>
-              {t('agree_terms')} — <span className="text-green-600 font-medium">Terms</span> &amp;{' '}
-              <span className="text-green-600 font-medium">Privacy</span>
+              I agree to the{' '}
+              <Link
+                to="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-green-600 dark:text-green-400 font-medium hover:underline"
+              >
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link
+                to="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-green-600 dark:text-green-400 font-medium hover:underline"
+              >
+                Privacy Policy
+              </Link>
             </span>
           </label>
           {errors.agreed && <p className="text-xs text-red-500 -mt-2">{errors.agreed.message}</p>}

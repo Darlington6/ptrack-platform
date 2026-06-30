@@ -1,7 +1,16 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Recycle, Trophy, ChevronRight, Star, BookOpen } from 'lucide-react';
+import {
+  Plus,
+  Recycle,
+  Trophy,
+  ChevronRight,
+  Star,
+  BookOpen,
+  MapPin,
+  CheckCircle,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -18,10 +27,10 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-const REWARD_ICONS: Record<string, string> = {
-  report_submitted: '📍',
-  recycling_logged: '♻️',
-  verification_bonus: '✅',
+const REWARD_ICONS: Record<string, ReactNode> = {
+  report_submitted: <MapPin size={14} className="text-green-600" />,
+  recycling_logged: <Recycle size={14} className="text-green-600" />,
+  verification_bonus: <CheckCircle size={14} className="text-green-600" />,
 };
 
 const REWARD_LABELS: Record<string, string> = {
@@ -68,6 +77,9 @@ export default function Dashboard() {
 
   const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;
   const communityStats = statsData?.data ?? null;
+  const plasticKg = communityStats?.estimated_plastic_kg ?? 0;
+  const plasticDisplay =
+    plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)}kg`;
 
   const oneWeekAgo = Date.now() - 7 * 86_400_000;
   const weeklyReports = rewards.filter(
@@ -103,7 +115,7 @@ export default function Dashboard() {
             <span>🔥 {t('streak', { count: user?.current_streak ?? 0 })}</span>
             {rank !== null && (
               <span className="font-semibold">
-                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'Kimironko' })}
+                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'your area' })}
               </span>
             )}
           </div>
@@ -184,7 +196,7 @@ export default function Dashboard() {
         <div className="p-5">
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
-              {t('community_impact')} — {user?.sector ?? 'Kimironko'}
+              {t('community_impact')} — {user?.sector ?? 'your area'}
             </p>
             <button
               onClick={() => setCommunityExpanded((v) => !v)}
@@ -197,7 +209,7 @@ export default function Dashboard() {
             {[
               { value: communityStats?.total_reports ?? '—', label: t('total_reports') },
               { value: communityStats?.active_citizens ?? '—', label: t('active_citizens') },
-              { value: '4.2T', label: t('plastic_logged') },
+              { value: communityStats ? plasticDisplay : '—', label: t('plastic_logged') },
             ].map((s) => (
               <div key={s.label}>
                 <p className="text-2xl font-bold text-white">{s.value}</p>

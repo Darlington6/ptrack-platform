@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useEffect, useState, type ReactNode } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Flame,
+  Recycle,
+  MapPin,
+  Users,
+  Trophy,
+  Lightbulb,
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { nudgesApi } from '../../api/endpoints/nudges';
 import type { NudgeRule } from '../../api/types';
 
-const CATEGORY_ICON: Record<string, string> = {
-  streak: '🔥',
-  recycling: '♻️',
-  report: '📍',
-  community: '👥',
-  reward: '🏆',
-  default: '💡',
+const CATEGORY_ICON: Record<string, ReactNode> = {
+  streak: <Flame size={16} className="text-orange-500" />,
+  recycling: <Recycle size={16} className="text-green-600" />,
+  report: <MapPin size={16} className="text-green-700" />,
+  community: <Users size={16} className="text-blue-500" />,
+  reward: <Trophy size={16} className="text-amber-500" />,
+  default: <Lightbulb size={16} className="text-amber-500" />,
 };
 
 const AUTO_ADVANCE_MS = 6000;
@@ -71,7 +81,7 @@ export function NudgeBanner() {
   return (
     <div className="mx-4 mt-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-3">
       <div className="flex items-start gap-2">
-        <span className="text-lg leading-none mt-0.5">{icon}</span>
+        <span className="flex-shrink-0 mt-0.5">{icon}</span>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-green-800 dark:text-green-300 truncate">
             {title}

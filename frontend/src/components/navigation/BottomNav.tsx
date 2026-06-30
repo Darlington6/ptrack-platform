@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Map, Camera, Gift, User } from 'lucide-react';
-import { getQueueStats } from '../../lib/offlineQueue';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { flushQueue, getQueueStats } from '../../lib/offlineQueue';
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: Home, label: 'Home' },
@@ -13,6 +15,7 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const [pendingCount, setPendingCount] = useState(0);
+  const qc = useQueryClient();
 
   useEffect(() => {
     let mounted = true;
@@ -28,22 +31,63 @@ export function BottomNav() {
 
     void checkQueue();
 
-    const onOnline = () => void checkQueue();
+    // Flush the queue and then re-read the count so the badge clears promptly.
+    const flushAndCheck = () => {
+      void flushQueue().then(({ reports, recycling, rejectedRecycling }) => {
+        void checkQueue();
+        if (reports + recycling > 0) {
+          const parts: string[] = [];
+          if (reports > 0) parts.push(`${reports} report${reports > 1 ? 's' : ''}`);
+          if (recycling > 0)
+            parts.push(`${recycling} recycling activit${recycling > 1 ? 'ies' : 'y'}`);
+          toast.success(`Synced: ${parts.join(' and ')} submitted!`);
+          void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+          void qc.invalidateQueries({ queryKey: ['dashboard'] });
+        }
+        if (rejectedRecycling > 0) {
+          toast.error(
+            "You've already logged a recycling activity today. The saved entry has been removed."
+          );
+        }
+      });
+    };
+
+    const onOnline = flushAndCheck;
+    const onFlushed = (e: Event) => {
+      const {
+        reports = 0,
+        recycling = 0,
+        rejectedRecycling = 0,
+      } = (e as CustomEvent<{ reports: number; recycling: number; rejectedRecycling: number }>)
+        .detail ?? {};
+      void checkQueue();
+      if (reports + recycling > 0) {
+        void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+        void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      }
+      if (rejectedRecycling > 0) {
+        toast.error(
+          "You've already logged a recycling activity today. The saved entry has been removed."
+        );
+      }
+    };
     const onSwMessage = (e: MessageEvent) => {
       if ((e.data as { type?: string } | null)?.type === 'FLUSH_QUEUE') {
-        void checkQueue();
+        flushAndCheck();
       }
     };
 
     window.addEventListener('online', onOnline);
+    window.addEventListener('queue-flushed', onFlushed);
     navigator.serviceWorker?.addEventListener('message', onSwMessage);
 
     return () => {
       mounted = false;
       window.removeEventListener('online', onOnline);
+      window.removeEventListener('queue-flushed', onFlushed);
       navigator.serviceWorker?.removeEventListener('message', onSwMessage);
     };
-  }, []);
+  }, [qc]);
 
   return (
     <nav

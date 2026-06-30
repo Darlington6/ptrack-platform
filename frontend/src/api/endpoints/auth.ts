@@ -29,6 +29,8 @@ export const authApi = {
 
   impact: () => client.get('/auth/me/impact/'),
 
+  exportData: () => client.get<Record<string, unknown>>('/auth/me/export/'),
+
   deleteAccount: (password: string) =>
     client.post('/auth/me/delete/', { password, confirmation: 'DELETE MY ACCOUNT' }),
 

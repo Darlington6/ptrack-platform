@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Recycle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import client from '../api/client';
-import { enqueueRecycling } from '../lib/offlineQueue';
+import {
+  enqueueRecycling,
+  hasLoggedRecyclingToday,
+  markRecyclingLoggedToday,
+} from '../lib/offlineQueue';
 
 const ACTIVITY_TYPES = [
   { value: 'drop_off', label: 'Drop-off at centre' },
@@ -40,12 +45,19 @@ export default function RecyclingModal({ onClose }: Props) {
     const payload = { activity_type: activityType, note: note || undefined };
     try {
       if (!navigator.onLine) {
+        if (hasLoggedRecyclingToday()) {
+          toast.error("You've already logged a recycling activity today. Come back tomorrow!");
+          setLoading(false);
+          return;
+        }
         await enqueueRecycling(payload);
+        markRecyclingLoggedToday();
         toast.success("Saved offline — will sync automatically when you're back online.");
         onClose();
         return;
       }
       const res = await client.post<{ points_earned?: number }>('/recycling/', payload);
+      markRecyclingLoggedToday();
       const earned = res.data.points_earned ?? recyclingPts;
       toast.success(`+${earned} points! Recycling activity logged.`);
       void qc.invalidateQueries({ queryKey: ['rewards'] });
@@ -53,14 +65,22 @@ export default function RecyclingModal({ onClose }: Props) {
       void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       onClose();
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 429) {
-        const msg =
-          (err.response.data as { detail?: string }).detail ??
-          "You've already logged a recycling activity today. Come back tomorrow!";
-        toast.error(msg);
-        setLoading(false);
-        return;
+      if (axios.isAxiosError(err)) {
+        if (err.response?.status === 429) {
+          const msg =
+            (err.response.data as { detail?: string }).detail ??
+            "You've already logged a recycling activity today. Come back tomorrow!";
+          toast.error(msg);
+          setLoading(false);
+          return;
+        }
+        if (err.response) {
+          toast.error('Failed to log activity. Please try again.');
+          setLoading(false);
+          return;
+        }
       }
+      // True network failure — queue for later sync
       await enqueueRecycling(payload);
       toast.success("Saved — will sync when you're back online.");
       onClose();
@@ -69,7 +89,7 @@ export default function RecyclingModal({ onClose }: Props) {
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center"
       onClick={(e) => e.target === e.currentTarget && onClose()}
@@ -144,6 +164,7 @@ export default function RecyclingModal({ onClose }: Props) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

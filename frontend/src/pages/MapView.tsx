@@ -6,13 +6,14 @@ import { Locate, MapPin } from 'lucide-react';
 import { reportsApi } from '../api/endpoints/reports';
 import type { WasteReport, ReportStatus } from '../api/types';
 
-const KIMIRONKO = { lat: -1.9441, lng: 30.0619 };
+const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const STATUS_COLOR: Record<ReportStatus, string> = {
   pending: '#f59e0b', // amber-500
   verified: '#16a34a', // green-600
   resolved: '#60a5fa', // blue-400
+  rejected: '#ef4444', // red-500
 };
 
 const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [
@@ -20,6 +21,7 @@ const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [
   { label: 'Pending', value: 'pending' },
   { label: 'Verified', value: 'verified' },
   { label: 'Resolved', value: 'resolved' },
+  { label: 'Rejected', value: 'rejected' },
 ];
 
 interface BBox {
@@ -173,6 +175,11 @@ export default function MapView() {
     [fetchReports]
   );
 
+  // Re-fetch when filter changes without waiting for a map move event
+  useEffect(() => {
+    if (bboxRef.current) void fetchReports(bboxRef.current);
+  }, [fetchReports]);
+
   function recentre() {
     navigator.geolocation.getCurrentPosition((pos) => {
       setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
@@ -199,7 +206,7 @@ export default function MapView() {
       <div className="flex-shrink-0" style={{ height: '45%' }}>
         <Map
           mapId={MAP_ID ?? null}
-          defaultCenter={KIMIRONKO}
+          defaultCenter={KIGALI_CENTER}
           defaultZoom={14}
           minZoom={11}
           gestureHandling="greedy"

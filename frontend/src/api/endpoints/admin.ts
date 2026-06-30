@@ -40,6 +40,11 @@ export interface HeatmapPoint {
 export interface AnalyticsHeatmap {
   points: HeatmapPoint[];
 }
+export interface AnalyticsFunnelStep {
+  label: string;
+  count: number;
+  pct: number;
+}
 export interface AdminUser {
   id: number;
   username: string;
@@ -68,6 +73,7 @@ export const adminApi = {
       client.get<AnalyticsTopUser[]>('/admin/analytics/top-users/', { params: { limit } }),
     heatmap: () => client.get<AnalyticsHeatmap>('/admin/analytics/heatmap/'),
     kpis: () => client.get<AdminAnalyticsKpis>('/admin/analytics/kpis/'),
+    funnel: () => client.get<AnalyticsFunnelStep[]>('/admin/analytics/funnel/'),
   },
 
   auditLogs: {
