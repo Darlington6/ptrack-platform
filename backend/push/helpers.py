@@ -73,9 +73,9 @@ def send_push(
                 logger.error("Push failed for sub %s: %s", sub.pk, exc)
         except Exception as exc:
             # Catch configuration errors (e.g. malformed VAPID key) so a bad
-            # env var never crashes the calling view and rolls back the DB write
-            # that already succeeded before push was attempted.
-            logger.error("Push delivery error for sub %s: %s", sub.pk, exc)
+            # env var never crashes the calling view. Logged as warning, not
+            # error, so Sentry doesn't page for a misconfigured env var.
+            logger.warning("Push delivery error for sub %s: %s", sub.pk, exc)
             break  # key error affects all subs — no point retrying the loop
 
     return sent
