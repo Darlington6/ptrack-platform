@@ -106,11 +106,15 @@ export default function SecuritySettings() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {hasPassword && (
           <div>
-            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+            <label
+              htmlFor="sec-current-password"
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
               Current password
             </label>
             <div className="relative">
               <input
+                id="sec-current-password"
                 type={show.current ? 'text' : 'password'}
                 autoComplete="current-password"
                 {...register('current_password')}
@@ -137,11 +141,15 @@ export default function SecuritySettings() {
           ] as const
         ).map(({ name, label, key }) => (
           <div key={name}>
-            <label className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1">
+            <label
+              htmlFor={name}
+              className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
+            >
               {label}
             </label>
             <div className="relative">
               <input
+                id={name}
                 type={show[key] ? 'text' : 'password'}
                 autoComplete="new-password"
                 {...register(name)}

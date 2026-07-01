@@ -91,10 +91,14 @@ function ArticleModal({
           {/* Titles side-by-side */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="edu-title-en"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Title (English) *
               </label>
               <input
+                id="edu-title-en"
                 value={form.title_en}
                 onChange={(e) => setForm((f) => ({ ...f, title_en: e.target.value }))}
                 required
@@ -102,10 +106,14 @@ function ArticleModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="edu-title-rw"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Umutwe (Kinyarwanda) *
               </label>
               <input
+                id="edu-title-rw"
                 value={form.title_rw}
                 onChange={(e) => setForm((f) => ({ ...f, title_rw: e.target.value }))}
                 required
@@ -116,10 +124,13 @@ function ArticleModal({
 
           {/* Body side-by-side */}
           <div className="grid grid-cols-2 gap-4" data-color-mode="light">
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+            <div aria-labelledby="edu-body-en-label">
+              <span
+                id="edu-body-en-label"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Body (English)
-              </label>
+              </span>
               <MDEditor
                 value={form.body_en}
                 onChange={(v) => setForm((f) => ({ ...f, body_en: v ?? '' }))}
@@ -127,10 +138,13 @@ function ArticleModal({
                 preview="edit"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+            <div aria-labelledby="edu-body-rw-label">
+              <span
+                id="edu-body-rw-label"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Ibiriho (Kinyarwanda)
-              </label>
+              </span>
               <MDEditor
                 value={form.body_rw}
                 onChange={(v) => setForm((f) => ({ ...f, body_rw: v ?? '' }))}
@@ -142,10 +156,14 @@ function ArticleModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="edu-category"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Category
               </label>
               <select
+                id="edu-category"
                 value={form.category}
                 onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -158,10 +176,14 @@ function ArticleModal({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="edu-cover-image"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Cover image
               </label>
               <input
+                id="edu-cover-image"
                 type="file"
                 accept="image/*"
                 onChange={(e) =>

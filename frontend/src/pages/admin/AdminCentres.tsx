@@ -132,10 +132,14 @@ function CentreModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-name"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Name *
               </label>
               <input
+                id="rc-name"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 required
@@ -143,20 +147,28 @@ function CentreModal({
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-address"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Address
               </label>
               <input
+                id="rc-address"
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-sector"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Sector
               </label>
               <select
+                id="rc-sector"
                 value={form.sector}
                 onChange={(e) => setForm((f) => ({ ...f, sector: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -170,20 +182,28 @@ function CentreModal({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-district"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 District
               </label>
               <input
+                id="rc-district"
                 value={form.district}
                 onChange={(e) => setForm((f) => ({ ...f, district: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-latitude"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Latitude *
               </label>
               <input
+                id="rc-latitude"
                 type="text"
                 placeholder="-1.9441"
                 value={form.latitude}
@@ -192,10 +212,14 @@ function CentreModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-longitude"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Longitude *
               </label>
               <input
+                id="rc-longitude"
                 type="text"
                 placeholder="30.0619"
                 value={form.longitude}
@@ -204,20 +228,28 @@ function CentreModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-contact-phone"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Contact phone
               </label>
               <input
+                id="rc-contact-phone"
                 value={form.contact_phone}
                 onChange={(e) => setForm((f) => ({ ...f, contact_phone: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-contact-email"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Contact email
               </label>
               <input
+                id="rc-contact-email"
                 type="email"
                 value={form.contact_email}
                 onChange={(e) => setForm((f) => ({ ...f, contact_email: e.target.value }))}
@@ -225,10 +257,14 @@ function CentreModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-open-time"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Opening time
               </label>
               <input
+                id="rc-open-time"
                 type="time"
                 value={form.open_time}
                 onChange={(e) => setForm((f) => ({ ...f, open_time: e.target.value }))}
@@ -236,10 +272,14 @@ function CentreModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-close-time"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Closing time
               </label>
               <input
+                id="rc-close-time"
                 type="time"
                 value={form.close_time}
                 onChange={(e) => setForm((f) => ({ ...f, close_time: e.target.value }))}
@@ -247,10 +287,14 @@ function CentreModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1">
+              <label
+                htmlFor="rc-timezone"
+                className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-1"
+              >
                 Timezone
               </label>
               <select
+                id="rc-timezone"
                 value={form.timezone}
                 onChange={(e) => setForm((f) => ({ ...f, timezone: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -264,10 +308,13 @@ function CentreModal({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-2">
+          <div role="group" aria-labelledby="rc-materials-label">
+            <span
+              id="rc-materials-label"
+              className="block text-xs font-semibold text-gray-600 dark:text-slate-400 mb-2"
+            >
               Accepted materials
-            </label>
+            </span>
             <div className="flex flex-wrap gap-2">
               {ALL_MATERIALS.map((m) => (
                 <button

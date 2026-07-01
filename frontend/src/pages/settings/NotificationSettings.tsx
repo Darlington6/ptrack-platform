@@ -20,7 +20,7 @@ const PREFS = [
   {
     key: 'verification_notifications',
     label: 'Verification bonus',
-    desc: 'Alert when an admin verifies your report (+5 pts)',
+    desc: 'Alert when an admin verifies your report and you earn a bonus',
   },
   { key: 'badge_earned', label: 'Badge earned', desc: 'Celebrate when you earn a badge' },
   { key: 'streak_reminders', label: 'Streak reminders', desc: 'Get reminded to keep your streak' },
