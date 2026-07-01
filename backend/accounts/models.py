@@ -27,7 +27,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=150, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
-    sector = models.CharField(max_length=100, default="Kimironko")
+    sector = models.CharField(max_length=100, blank=True, default="")
     points = models.IntegerField(default=0)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="citizen")
     created_at = models.DateTimeField(auto_now_add=True)
