@@ -29,8 +29,8 @@ def send_push(
 
     from .models import PushSubscription
 
-    vapid_private_key = getattr(settings, "VAPID_PRIVATE_KEY", "")
-    vapid_subject = getattr(settings, "VAPID_SUBJECT", "")
+    vapid_private_key = getattr(settings, "VAPID_PRIVATE_KEY", "").strip()
+    vapid_subject = getattr(settings, "VAPID_SUBJECT", "").strip()
 
     if not vapid_private_key or not vapid_subject:
         logger.warning("VAPID keys not configured — skipping push for user %s", user.pk)
@@ -71,5 +71,11 @@ def send_push(
                 sub.save(update_fields=["is_active"])
             else:
                 logger.error("Push failed for sub %s: %s", sub.pk, exc)
+        except Exception as exc:
+            # Catch configuration errors (e.g. malformed VAPID key) so a bad
+            # env var never crashes the calling view and rolls back the DB write
+            # that already succeeded before push was attempted.
+            logger.error("Push delivery error for sub %s: %s", sub.pk, exc)
+            break  # key error affects all subs — no point retrying the loop
 
     return sent
