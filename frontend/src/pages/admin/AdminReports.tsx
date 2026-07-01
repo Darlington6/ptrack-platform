@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Download, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { adminApi } from '../../api/endpoints/admin';
 import client from '../../api/client';
 import type { WasteReport } from '../../api/types';
@@ -43,6 +44,9 @@ export default function AdminReports() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [inlineVerify, setInlineVerify] = useState<WasteReport | null>(null);
+  const [inlineReject, setInlineReject] = useState<WasteReport | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const params = {
     page,
@@ -146,225 +150,269 @@ export default function AdminReports() {
   );
 
   return (
-    <AdminPageShell title={`Reports (${count})`} actions={actions}>
-      <div className="space-y-4">
-        {/* Filters */}
-        <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
-          <input
-            type="text"
-            placeholder="Search by user name or email…"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 dark:text-slate-200 w-56"
-          />
-          <select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value="">All statuses</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={wasteType}
-            onChange={(e) => {
-              setWasteType(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            <option value="">All types</option>
-            {WASTE_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => {
-              setDateFrom(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-            title="From date"
-          />
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => {
-              setDateTo(e.target.value);
-              setPage(1);
-            }}
-            className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
-            title="To date"
-          />
-        </div>
+    <>
+      <AdminPageShell title={`Reports (${count})`} actions={actions}>
+        <div className="space-y-4">
+          {/* Filters */}
+          <div className="flex gap-3 flex-wrap bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4">
+            <input
+              type="text"
+              placeholder="Search by user name or email…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-900 dark:text-slate-200 w-56"
+            />
+            <select
+              value={status}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">All statuses</option>
+              {STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={wasteType}
+              onChange={(e) => {
+                setWasteType(e.target.value);
+                setPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">All types</option>
+              {WASTE_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => {
+                setDateFrom(e.target.value);
+                setPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              title="From date"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => {
+                setDateTo(e.target.value);
+                setPage(1);
+              }}
+              className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
+              title="To date"
+            />
+          </div>
 
-        {/* Table */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
-              <tr>
-                <th className="px-4 py-3 w-10">
-                  <input
-                    type="checkbox"
-                    checked={reports.length > 0 && selected.size === reports.length}
-                    onChange={toggleAll}
-                    className="rounded text-green-600 focus:ring-green-500"
-                    aria-label="Select all"
-                  />
-                </th>
-                {['ID', 'User', 'Type', 'Status', 'Location', 'Date', 'Actions'].map((h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {isLoading && (
+          {/* Table */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                  >
-                    Loading…
-                  </td>
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={reports.length > 0 && selected.size === reports.length}
+                      onChange={toggleAll}
+                      className="rounded text-green-600 focus:ring-green-500"
+                      aria-label="Select all"
+                    />
+                  </th>
+                  {['ID', 'User', 'Type', 'Status', 'Location', 'Date', 'Actions'].map((h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      {h}
+                    </th>
+                  ))}
                 </tr>
-              )}
-              {!isLoading &&
-                reports.map((r) => (
-                  <tr
-                    key={r.id}
-                    className={`hover:bg-gray-50 dark:hover:bg-slate-700/40 ${selected.has(r.id) ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
-                  >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selected.has(r.id)}
-                        onChange={() => toggleRow(r.id)}
-                        className="rounded text-green-600 focus:ring-green-500"
-                        aria-label={`Select report ${r.id}`}
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
-                      #{r.id}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800 dark:text-slate-200 max-w-[140px] truncate">
-                      {r.user_detail?.full_name ?? r.user_detail?.email ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 capitalize text-gray-700 dark:text-slate-300">
-                      {r.waste_type.replace('_', ' ')}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status] ?? ''}`}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
-                      {r.latitude.toFixed(3)},{r.longitude.toFixed(3)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">
-                      {new Date(r.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => navigate(`/reports/${r.id}`)}
-                          title="View"
-                          className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
-                        >
-                          <Eye size={15} />
-                        </button>
-                        {r.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() =>
-                                void adminApi.reports.bulkVerify([r.id]).then(() => {
-                                  toast.success('Verified');
-                                  refetch();
-                                })
-                              }
-                              title="Verify"
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              <CheckCircle size={15} />
-                            </button>
-                            <button
-                              onClick={() =>
-                                void adminApi.reports.bulkReject([r.id]).then(() => {
-                                  toast.success('Rejected');
-                                  refetch();
-                                })
-                              }
-                              title="Reject"
-                              className="text-red-400 hover:text-red-600"
-                            >
-                              <XCircle size={15} />
-                            </button>
-                          </>
-                        )}
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
+                {isLoading && (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
+                    >
+                      Loading…
                     </td>
                   </tr>
-                ))}
-              {!isLoading && reports.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                  >
-                    No reports match the current filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-400">
-            <p>{count} total reports</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
-              >
-                Prev
-              </button>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
-              >
-                Next
-              </button>
-            </div>
+                )}
+                {!isLoading &&
+                  reports.map((r) => (
+                    <tr
+                      key={r.id}
+                      className={`hover:bg-gray-50 dark:hover:bg-slate-700/40 ${selected.has(r.id) ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(r.id)}
+                          onChange={() => toggleRow(r.id)}
+                          className="rounded text-green-600 focus:ring-green-500"
+                          aria-label={`Select report ${r.id}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                        #{r.id}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-slate-200 max-w-[140px] truncate">
+                        {r.user_detail?.full_name ?? r.user_detail?.email ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 capitalize text-gray-700 dark:text-slate-300">
+                        {r.waste_type.replace('_', ' ')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status] ?? ''}`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                        {r.latitude.toFixed(3)},{r.longitude.toFixed(3)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => navigate(`/reports/${r.id}`)}
+                            title="View"
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200"
+                          >
+                            <Eye size={15} />
+                          </button>
+                          {r.status === 'pending' && (
+                            <>
+                              <button
+                                onClick={() => setInlineVerify(r)}
+                                title="Verify"
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <CheckCircle size={15} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setInlineReject(r);
+                                  setRejectReason('');
+                                }}
+                                title="Reject"
+                                className="text-red-400 hover:text-red-600"
+                              >
+                                <XCircle size={15} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                {!isLoading && reports.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
+                    >
+                      No reports match the current filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
-    </AdminPageShell>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-400">
+              <p>{count} total reports</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
+                >
+                  Prev
+                </button>
+                <span>
+                  {page} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-700 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-800"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </AdminPageShell>
+
+      {/* Inline verify confirmation */}
+      <ConfirmModal
+        open={!!inlineVerify}
+        title="Verify this report?"
+        message={`Verify report #${inlineVerify?.id ?? ''}? The citizen will receive a +${10} pts bonus.`}
+        confirmLabel="Verify"
+        loading={false}
+        onConfirm={() => {
+          if (!inlineVerify) return;
+          void adminApi.reports.bulkVerify([inlineVerify.id]).then(() => {
+            toast.success('Report verified');
+            refetch();
+            setInlineVerify(null);
+          });
+        }}
+        onCancel={() => setInlineVerify(null)}
+      />
+
+      {/* Inline reject with reason */}
+      <ConfirmModal
+        open={!!inlineReject}
+        title="Reject this report?"
+        message={`Report #${inlineReject?.id ?? ''} will be marked as rejected and the citizen will be notified.`}
+        confirmLabel="Reject"
+        danger
+        loading={false}
+        onConfirm={() => {
+          if (!inlineReject) return;
+          void adminApi.reports.bulkReject([inlineReject.id], rejectReason).then(() => {
+            toast.success('Report rejected');
+            refetch();
+            setInlineReject(null);
+            setRejectReason('');
+          });
+        }}
+        onCancel={() => {
+          setInlineReject(null);
+          setRejectReason('');
+        }}
+      >
+        <textarea
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Reason for rejection (optional)"
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+        />
+      </ConfirmModal>
+    </>
   );
 }

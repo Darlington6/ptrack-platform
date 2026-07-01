@@ -439,8 +439,26 @@ def reports_bulk_reject(request):
     if not isinstance(ids, list) or not ids:
         return Response({"detail": "Provide a non-empty list of report IDs."}, status=400)
 
-    updated = WasteReport.objects.filter(pk__in=ids, status="pending").update(status="resolved")
-    return Response({"rejected": updated, "reason": reason})
+    from core.notifications import notify
+
+    reports = WasteReport.objects.filter(pk__in=ids, status="pending").select_related("user")
+    count = 0
+    for report in reports:
+        report.status = "rejected"
+        report.rejection_reason = reason
+        report.save(update_fields=["status", "rejection_reason"])
+        _vprefs = getattr(report.user, "notification_preferences", {}) or {}
+        if _vprefs.get("report_notifications", True):
+            notify(
+                report.user,
+                "rejection",
+                "Report not accepted",
+                f"Your waste report was not accepted.{' Reason: ' + reason if reason else ''}",
+                f"/reports/{report.pk}",
+            )
+        count += 1
+
+    return Response({"rejected": count, "reason": reason})
 
 
 @extend_schema(
