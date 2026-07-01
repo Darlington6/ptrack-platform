@@ -122,21 +122,30 @@ else:
 # ── Cache (Redis) ─────────────────────────────────────────────────────────────
 REDIS_URL = cfg.REDIS_URL
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_URL,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "IGNORE_EXCEPTIONS": True,  # degrade gracefully if Redis is down
-        },
-        "KEY_PREFIX": "ptrack",
+if REDIS_URL and REDIS_URL != "redis://localhost:6379/0":
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+            },
+            "KEY_PREFIX": "ptrack",
+        }
     }
-}
-
-# cached_db: writes to both Redis and the DB — survives Redis being unavailable locally
-SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
-SESSION_CACHE_ALIAS = "default"
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+    SESSION_CACHE_ALIAS = "default"
+else:
+    # No real Redis configured — fall back to in-memory cache and DB-backed
+    # sessions so browser-driven flows (Django admin) don't hang on a
+    # localhost Redis that doesn't exist in the deployment environment.
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # ── Authentication ────────────────────────────────────────────────────────────
 AUTHENTICATION_BACKENDS = [

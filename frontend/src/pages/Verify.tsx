@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { Mail } from 'lucide-react';
 import { OtpInput } from '../components/ui/OtpInput';
 import { authApi } from '../api/endpoints/auth';
 import { useAuth } from '../context/AuthContext';
@@ -69,7 +70,7 @@ export default function Verify() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 p-8 w-full max-w-md text-center">
         <div className="w-14 h-14 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">📩</span>
+          <Mail size={24} className="text-green-600 dark:text-green-400" />
         </div>
 
         <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">

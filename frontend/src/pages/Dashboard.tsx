@@ -10,6 +10,9 @@ import {
   BookOpen,
   MapPin,
   CheckCircle,
+  Flame,
+  PartyPopper,
+  Target,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
@@ -112,7 +115,10 @@ export default function Dashboard() {
           <p className="text-sm font-medium text-green-100 mb-1">{t('your_points')}</p>
           <p className="text-5xl font-extrabold tabular-nums mb-3">{user?.points ?? 0}</p>
           <div className="flex items-center justify-between text-sm">
-            <span>🔥 {t('streak', { count: user?.current_streak ?? 0 })}</span>
+            <span className="flex items-center gap-1">
+              <Flame size={14} className="text-orange-400" />{' '}
+              {t('streak', { count: user?.current_streak ?? 0 })}
+            </span>
             {rank !== null && (
               <span className="font-semibold">
                 ↗ {t('rank_in', { rank, sector: user?.sector ?? 'your area' })}
@@ -132,7 +138,7 @@ export default function Dashboard() {
       >
         <div className="flex items-center justify-between mb-2">
           <p className="font-semibold text-gray-800 dark:text-slate-100 flex items-center gap-1.5">
-            <span className="text-green-600">⊙</span> {t('weekly_goal')}
+            <Target size={15} className="text-green-600" /> {t('weekly_goal')}
           </p>
           <span className="text-sm text-gray-500 dark:text-slate-400">
             {weeklyReports} / {weeklyGoal} reports
@@ -146,7 +152,7 @@ export default function Dashboard() {
         </div>
         {goalComplete ? (
           <p className="text-xs font-semibold text-green-700 dark:text-green-400 mt-1.5">
-            🎉 Goal complete! Amazing work this week.
+            <PartyPopper size={13} className="inline mr-1" /> Goal complete! Amazing work this week.
           </p>
         ) : (
           <p className="text-xs text-gray-500 dark:text-slate-400 mt-1.5">
