@@ -63,25 +63,25 @@ export default function Leaderboard() {
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leaderboard</h1>
       </div>
 
-      {/* Period tabs */}
-      <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 gap-1">
-        {PERIODS.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => setPeriod(p.key)}
-            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-              period === p.key
-                ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-slate-400'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Green gradient section — edge-to-edge from toggle through podium */}
+      {/* Green gradient section — edge-to-edge from tabs through podium */}
       <div className="-mx-4 bg-gradient-to-b from-green-50 to-transparent dark:from-green-900/20 dark:to-transparent">
+        {/* Period tabs */}
+        <div className="flex bg-gray-100/70 dark:bg-slate-800/70 rounded-xl p-1 gap-1 mx-4">
+          {PERIODS.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setPeriod(p.key)}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                period === p.key
+                  ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-slate-400'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
         {/* Sector toggle */}
         <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-2">
           <span className="text-xs text-gray-500 dark:text-slate-400">Your sector only</span>
