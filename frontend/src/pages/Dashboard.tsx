@@ -15,6 +15,7 @@ import {
   Target,
 } from 'lucide-react';
 import { authApi } from '../api/endpoints/auth';
+import { KIGALI_SECTORS } from '../lib/sectors';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -48,33 +49,21 @@ interface RewardsResponse {
   rewards: Reward[];
 }
 
-const KIGALI_SECTORS = [
-  'Kimironko',
-  'Kacyiru',
-  'Remera',
-  'Kinyinya',
-  'Gisozi',
-  'Ndera',
-  'Nduba',
-  'Rusororo',
-  'Jabana',
-  'Bumbogo',
-  'Nyamirambo',
-  'Nyabugogo',
-  'Kiyovu',
-  'Gikondo',
-  'Kicukiro',
-  'Kanombe',
-];
-
 function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
   const [selected, setSelected] = useState('Kimironko');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   async function save() {
     setSaving(true);
-    await authApi.updateMe({ sector: selected });
-    onDone(selected);
+    setError('');
+    try {
+      await authApi.updateMe({ sector: selected });
+      onDone(selected);
+    } catch {
+      setError('Could not save — please try again.');
+      setSaving(false);
+    }
   }
 
   return (
@@ -96,6 +85,7 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
             </option>
           ))}
         </select>
+        {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
         <button
           onClick={() => void save()}
           disabled={saving}

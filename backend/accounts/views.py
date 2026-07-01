@@ -48,6 +48,7 @@ _ME_CACHE_TTL = 60  # seconds
 
 _UPDATABLE_PROFILE_FIELDS = [
     "bio",
+    "sector",
     "preferred_language",
     "theme_preference",
     "weekly_goal",
