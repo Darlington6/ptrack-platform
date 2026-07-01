@@ -60,8 +60,8 @@ _COMMUNITY_TRENDS_CACHE_TTL = 3600  # 1 hour
 # Notification title suffixes — defined as constants so emoji characters
 # are never scattered through logic code and are trivial to update in one place.
 _ICON_REPORT = "\U0001f4cd"  # 📍
-_ICON_RECYCLE = "♻️"  # ♻️
-_ICON_VERIFIED = "✅"  # ✅
+_ICON_RECYCLE = "\u267b\ufe0f"  # ♻️
+_ICON_VERIFIED = "\u2705"  # ✅
 
 
 def _award_badges(user, old_points: int, new_points: int) -> None:

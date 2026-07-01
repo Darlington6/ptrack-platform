@@ -85,17 +85,16 @@ export default function ReportWaste() {
     );
   }
 
-  // Check consent on mount + retrieve shared image from Web Share Target
+  // Geo consent — run once on mount
   useEffect(() => {
     const consent = getGeoConsent();
-    if (consent === 'allowed') {
-      requestGeolocation();
-    } else if (consent === null) {
-      setShowConsent(true);
-    }
+    if (consent === 'allowed') requestGeolocation();
+    else if (consent === null) setShowConsent(true);
+  }, []);
 
-    // Android share target sends the user here with ?shared=true after the SW
-    // stores the file in the 'ptrack-share-target' cache.
+  // Android share target: SW stores the shared image in cache then redirects
+  // here with ?shared=true. Re-run whenever search params change.
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('shared') === 'true') {
       void caches.open('ptrack-share-target').then(async (cache) => {
@@ -108,9 +107,7 @@ export default function ReportWaste() {
         }
       });
     }
-
-    // Flushing is handled globally by BottomNav so the queue syncs on any page.
-  }, []);
+  }, [location.search]);
 
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
@@ -270,7 +267,7 @@ export default function ReportWaste() {
             htmlFor="report-description"
             className="text-sm font-medium text-gray-700 dark:text-slate-300"
           >
-            Describe what you found (optional)
+            Describe what you found (optional but recommended)
           </label>
           <textarea
             id="report-description"
