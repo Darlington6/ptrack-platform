@@ -60,6 +60,7 @@ class WasteReport(models.Model):
     description = models.TextField(blank=True)
     waste_type = models.CharField(max_length=20, choices=WASTE_TYPE_CHOICES, default="bottles")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    rejection_reason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
     # ── Soft delete ───────────────────────────────────────────────────────────

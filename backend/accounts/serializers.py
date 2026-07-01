@@ -58,6 +58,8 @@ class UserSerializer(serializers.ModelSerializer):
             "allow_public_reports",
             # Preferences
             "notification_preferences",
+            # Account status
+            "is_active",
             # OAuth
             "google_connected",
             "has_usable_password",
