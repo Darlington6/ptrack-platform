@@ -7,6 +7,7 @@ import { adminApi } from '../../api/endpoints/admin';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import client from '../../api/client';
 import type { AdminUser } from '../../api/endpoints/admin';
+import { KIGALI_SECTORS } from '../../lib/sectors';
 
 async function downloadCsv(url: string, filename: string) {
   try {
@@ -26,19 +27,6 @@ const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   citizen: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400',
 };
-
-const SECTORS = [
-  'Kimironko',
-  'Kacyiru',
-  'Remera',
-  'Kinyinya',
-  'Gisozi',
-  'Ndera',
-  'Nduba',
-  'Rusororo',
-  'Jabana',
-  'Bumbogo',
-];
 
 function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void }) {
   const qc = useQueryClient();
@@ -122,7 +110,10 @@ function UserDrawer({ user, onClose }: { user: AdminUser; onClose: () => void })
               ['Reports', String(user.report_count)],
               ['Streak', `${user.current_streak ?? 0} days`],
               ['Email verified', user.email_verified ? 'Yes' : 'No'],
-              ['Status', user.is_active ? 'Active' : 'Suspended'],
+              [
+                'Status',
+                !user.is_active ? 'Suspended' : user.is_recently_active ? 'Active' : 'Inactive',
+              ],
               ['Joined', new Date(user.created_at).toLocaleDateString()],
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between px-4 py-3">
@@ -263,7 +254,7 @@ export default function AdminUsers() {
               className="px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">All sectors</option>
-              {SECTORS.map((s) => (
+              {KIGALI_SECTORS.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -360,9 +351,19 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            !u.is_active
+                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                              : u.is_recently_active
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          }`}
                         >
-                          {u.is_active ? 'Active' : 'Suspended'}
+                          {!u.is_active
+                            ? 'Suspended'
+                            : u.is_recently_active
+                              ? 'Active'
+                              : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">

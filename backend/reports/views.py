@@ -620,10 +620,10 @@ def _compute_community_stats() -> dict:
         "verified_reports": WasteReport.objects.filter(status="verified").count(),
         "total_recycling_activities": total_recycling,
         "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
-        # "Active" = submitted a report in the last 30 days, matching the admin
-        # dashboard's definition rather than the old all-time points>0 count.
-        "active_citizens": User.objects.filter(reports__created_at__gte=month_ago)
-        .distinct()
+        # "Active" = any activity (last_activity_date) within 30 days, or account < 30 days old.
+        # Consistent with the admin dashboard KPI and the Status column on the users list.
+        "active_citizens": User.objects.filter(is_active=True, is_deleted=False)
+        .filter(Q(last_activity_date__gte=month_ago.date()) | Q(date_joined__gte=month_ago))
         .count(),
         "estimated_plastic_kg": estimated_plastic_kg,
     }

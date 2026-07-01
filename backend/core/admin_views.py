@@ -158,7 +158,7 @@ def analytics_by_sector(request):
     data = cache.get(cache_key)
     if data is None:
         rows = WasteReport.objects.values("sector").annotate(count=Count("id")).order_by("-count")
-        data = [{"sector": r["sector"] or "Unknown", "count": r["count"]} for r in rows]
+        data = [{"sector": r["sector"] or "Outside Kigali", "count": r["count"]} for r in rows]
         cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
     return Response(data)
 
@@ -257,8 +257,11 @@ def analytics_kpis(request):
             "reports_this_month": WasteReport.objects.filter(created_at__gte=month_ago).count(),
             "reports_last_90d": WasteReport.objects.filter(created_at__gte=quarter_ago).count(),
             "total_citizens": User.objects.filter(role="citizen").count(),
-            "active_citizens_30d": User.objects.filter(reports__created_at__gte=month_ago)
-            .distinct()
+            "active_citizens_30d": User.objects.filter(
+                is_active=True,
+                is_deleted=False,
+            )
+            .filter(Q(last_activity_date__gte=month_ago.date()) | Q(date_joined__gte=month_ago))
             .count(),
             "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
         }
@@ -610,6 +613,7 @@ def badge_detail(request, pk):
 
 class AdminUserSerializer(serializers.ModelSerializer):
     report_count = serializers.SerializerMethodField()
+    is_recently_active = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -623,6 +627,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
             "role",
             "points",
             "is_active",
+            "is_recently_active",
             "email_verified",
             "current_streak",
             "created_at",
@@ -636,6 +641,13 @@ class AdminUserSerializer(serializers.ModelSerializer):
         if hasattr(obj, "report_count_ann"):
             return obj.report_count_ann
         return obj.reports.count()
+
+    def get_is_recently_active(self, obj) -> bool:
+        """True if the user has had any activity in the last 30 days or joined within 30 days."""
+        cutoff = (timezone.now() - timedelta(days=30)).date()
+        if obj.last_activity_date and obj.last_activity_date >= cutoff:
+            return True
+        return obj.date_joined >= timezone.now() - timedelta(days=30)
 
 
 @extend_schema(
