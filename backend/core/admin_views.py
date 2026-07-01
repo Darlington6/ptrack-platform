@@ -631,7 +631,11 @@ class AdminUserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "email", "username", "points", "created_at", "report_count"]
 
     def get_report_count(self, obj):
-        return getattr(obj, "_report_count", 0)
+        # List endpoint annotates as report_count_ann for efficiency.
+        # Detail endpoint fetches a plain object, so fall back to a direct count.
+        if hasattr(obj, "report_count_ann"):
+            return obj.report_count_ann
+        return obj.reports.count()
 
 
 @extend_schema(
