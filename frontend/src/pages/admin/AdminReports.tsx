@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { VerifyReportModal, RejectReportModal } from '../../components/admin/ReportActionModals';
 import { adminApi } from '../../api/endpoints/admin';
 import client from '../../api/client';
 import type { WasteReport } from '../../api/types';
@@ -44,9 +45,12 @@ export default function AdminReports() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
-  const [inlineVerify, setInlineVerify] = useState<WasteReport | null>(null);
-  const [inlineReject, setInlineReject] = useState<WasteReport | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
+  // Inline (single-report) action pending confirmation
+  const [pendingVerify, setPendingVerify] = useState<WasteReport | null>(null);
+  const [pendingReject, setPendingReject] = useState<WasteReport | null>(null);
+  // Bulk (multi-select) action pending confirmation
+  const [bulkVerifyOpen, setBulkVerifyOpen] = useState(false);
+  const [bulkRejectOpen, setBulkRejectOpen] = useState(false);
 
   const params = {
     page,
@@ -75,6 +79,31 @@ export default function AdminReports() {
     setSelected(new Set());
   }
 
+  // Inline single-report mutations — use the full /reports/{id}/ endpoints so
+  // notifications fire correctly and notes/reasons are supported.
+  const inlineVerify = useMutation({
+    mutationFn: ({ id, note }: { id: number; note: string }) =>
+      client.patch(`/reports/${id}/verify/`, note ? { note } : {}),
+    onSuccess: () => {
+      toast.success('Report verified');
+      refetch();
+    },
+    onError: () => toast.error('Verification failed'),
+    onSettled: () => setPendingVerify(null),
+  });
+
+  const inlineReject = useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      client.patch(`/reports/${id}/reject/`, { reason }),
+    onSuccess: () => {
+      toast.success('Report rejected');
+      refetch();
+    },
+    onError: () => toast.error('Reject failed'),
+    onSettled: () => setPendingReject(null),
+  });
+
+  // Bulk mutations — operate on all selected IDs at once.
   const bulkVerify = useMutation({
     mutationFn: () => adminApi.reports.bulkVerify(Array.from(selected)),
     onSuccess: (res) => {
@@ -82,15 +111,17 @@ export default function AdminReports() {
       refetch();
     },
     onError: () => toast.error('Bulk verify failed'),
+    onSettled: () => setBulkVerifyOpen(false),
   });
 
   const bulkReject = useMutation({
-    mutationFn: () => adminApi.reports.bulkReject(Array.from(selected)),
+    mutationFn: (reason: string) => adminApi.reports.bulkReject(Array.from(selected), reason),
     onSuccess: (res) => {
       toast.success(`${res.data.rejected} report(s) rejected`);
       refetch();
     },
     onError: () => toast.error('Bulk reject failed'),
+    onSettled: () => setBulkRejectOpen(false),
   });
 
   function toggleRow(id: number) {
@@ -125,14 +156,14 @@ export default function AdminReports() {
       {selected.size > 0 && (
         <>
           <button
-            onClick={() => bulkVerify.mutate()}
+            onClick={() => setBulkVerifyOpen(true)}
             disabled={bulkVerify.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-60"
           >
             <CheckCircle size={14} /> Verify {selected.size}
           </button>
           <button
-            onClick={() => bulkReject.mutate()}
+            onClick={() => setBulkRejectOpen(true)}
             disabled={bulkReject.isPending}
             className="flex items-center gap-1.5 px-3 py-1.5 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-900/10 disabled:opacity-60"
           >
@@ -301,17 +332,14 @@ export default function AdminReports() {
                           {r.status === 'pending' && (
                             <>
                               <button
-                                onClick={() => setInlineVerify(r)}
+                                onClick={() => setPendingVerify(r)}
                                 title="Verify"
                                 className="text-green-600 hover:text-green-700"
                               >
                                 <CheckCircle size={15} />
                               </button>
                               <button
-                                onClick={() => {
-                                  setInlineReject(r);
-                                  setRejectReason('');
-                                }}
+                                onClick={() => setPendingReject(r)}
                                 title="Reject"
                                 className="text-red-400 hover:text-red-600"
                               >
@@ -365,54 +393,41 @@ export default function AdminReports() {
         </div>
       </AdminPageShell>
 
-      {/* Inline verify confirmation */}
-      <ConfirmModal
-        open={!!inlineVerify}
-        title="Verify this report?"
-        message={`Verify report #${inlineVerify?.id ?? ''}? The citizen will receive a +${10} pts bonus.`}
-        confirmLabel="Verify"
-        loading={false}
-        onConfirm={() => {
-          if (!inlineVerify) return;
-          void adminApi.reports.bulkVerify([inlineVerify.id]).then(() => {
-            toast.success('Report verified');
-            refetch();
-            setInlineVerify(null);
-          });
-        }}
-        onCancel={() => setInlineVerify(null)}
+      {/* Inline: single-report verify/reject — use full /reports/{id}/ endpoints */}
+      <VerifyReportModal
+        open={pendingVerify !== null}
+        loading={inlineVerify.isPending}
+        onConfirm={(note) =>
+          pendingVerify !== null && inlineVerify.mutate({ id: pendingVerify.id, note })
+        }
+        onCancel={() => setPendingVerify(null)}
+      />
+      <RejectReportModal
+        open={pendingReject !== null}
+        loading={inlineReject.isPending}
+        onConfirm={(reason) =>
+          pendingReject !== null && inlineReject.mutate({ id: pendingReject.id, reason })
+        }
+        onCancel={() => setPendingReject(null)}
       />
 
-      {/* Inline reject with reason */}
+      {/* Bulk: multi-select verify/reject */}
       <ConfirmModal
-        open={!!inlineReject}
-        title="Reject this report?"
-        message={`Report #${inlineReject?.id ?? ''} will be marked as rejected and the citizen will be notified.`}
-        confirmLabel="Reject"
-        danger
-        loading={false}
-        onConfirm={() => {
-          if (!inlineReject) return;
-          void adminApi.reports.bulkReject([inlineReject.id], rejectReason).then(() => {
-            toast.success('Report rejected');
-            refetch();
-            setInlineReject(null);
-            setRejectReason('');
-          });
-        }}
-        onCancel={() => {
-          setInlineReject(null);
-          setRejectReason('');
-        }}
-      >
-        <textarea
-          value={rejectReason}
-          onChange={(e) => setRejectReason(e.target.value)}
-          placeholder="Reason for rejection (optional)"
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
-        />
-      </ConfirmModal>
+        open={bulkVerifyOpen}
+        intent="success"
+        title={`Verify ${selected.size} report(s)?`}
+        message="All selected pending reports will be marked as verified and citizens awarded bonus points."
+        confirmLabel="Verify all"
+        loading={bulkVerify.isPending}
+        onConfirm={() => bulkVerify.mutate()}
+        onCancel={() => setBulkVerifyOpen(false)}
+      />
+      <RejectReportModal
+        open={bulkRejectOpen}
+        loading={bulkReject.isPending}
+        onConfirm={(reason) => bulkReject.mutate(reason)}
+        onCancel={() => setBulkRejectOpen(false)}
+      />
     </>
   );
 }

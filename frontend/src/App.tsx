@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ShieldOff } from 'lucide-react';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { queryClient } from './lib/queryClient';
@@ -85,7 +86,7 @@ function SuspendedGate({ children }: { children: React.ReactNode }) {
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
           <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🚫</span>
+            <ShieldOff size={28} className="text-red-600 dark:text-red-400" />
           </div>
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
             Account suspended
