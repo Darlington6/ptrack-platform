@@ -13,7 +13,7 @@ test('citizen can submit a waste report and see confirmation', async ({ page }) 
 
   // Mock all API calls the ReportWaste page needs
   await page.route('**/api/v1/point-configs/', (route) =>
-    route.fulfill({ json: { report_submitted: 10, verification_bonus: 10 } }),
+    route.fulfill({ json: { report_submitted: 10, verification_bonus: 10 } })
   );
   await page.route('**/api/v1/reports/', (route) => {
     if (route.request().method() === 'POST') {
@@ -35,7 +35,7 @@ test('citizen can submit a waste report and see confirmation', async ({ page }) 
     return route.fulfill({ json: { results: [], count: 0 } });
   });
   await page.route('**/api/v1/rewards/', (route) =>
-    route.fulfill({ json: { results: [], count: 0 } }),
+    route.fulfill({ json: { results: [], count: 0 } })
   );
 
   await page.goto('/report');

@@ -112,7 +112,6 @@ export default function AdminSettings() {
             ))}
           </div>
         </div>
-
       </div>
     </AdminPageShell>
   );

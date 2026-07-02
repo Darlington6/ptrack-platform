@@ -108,7 +108,11 @@ describe('Login page', () => {
   });
 
   it('navigates to /dashboard on successful login for an onboarded citizen', async () => {
-    mockLogin.mockResolvedValueOnce({ ...baseUser, role: 'citizen', has_completed_onboarding: true });
+    mockLogin.mockResolvedValueOnce({
+      ...baseUser,
+      role: 'citizen',
+      has_completed_onboarding: true,
+    });
     renderLogin();
 
     fireEvent.change(screen.getByPlaceholderText(/youremail@example.com/i), {

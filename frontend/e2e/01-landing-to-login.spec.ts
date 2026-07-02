@@ -7,7 +7,7 @@ import { loginAs, MOCK_CITIZEN } from './helpers';
 test('landing page has a Login CTA that goes to /login', async ({ page }) => {
   // Unauthenticated — /auth/me/ should 401
   await page.route('**/api/v1/auth/me/', (route) =>
-    route.fulfill({ status: 401, json: { detail: 'Unauthorized' } }),
+    route.fulfill({ status: 401, json: { detail: 'Unauthorized' } })
   );
 
   await page.goto('/');
@@ -22,9 +22,7 @@ test('landing page has a Login CTA that goes to /login', async ({ page }) => {
 test('login with valid credentials redirects to dashboard', async ({ page }) => {
   // In Playwright, LAST-registered route takes precedence.
   // Register the catch-all FIRST so specific routes below override it.
-  await page.route('**/api/v1/**', (route) =>
-    route.fulfill({ json: { results: [], count: 0 } }),
-  );
+  await page.route('**/api/v1/**', (route) => route.fulfill({ json: { results: [], count: 0 } }));
 
   // loginAs registered AFTER catch-all → /auth/me/ takes precedence over it
   await loginAs(page, MOCK_CITIZEN);
@@ -37,7 +35,7 @@ test('login with valid credentials redirects to dashboard', async ({ page }) => 
         refresh: 'mock-refresh-token',
         user: MOCK_CITIZEN,
       },
-    }),
+    })
   );
 
   await page.goto('/login');

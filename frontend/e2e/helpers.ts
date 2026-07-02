@@ -52,7 +52,7 @@ export async function loginAs(page: Page, user: typeof MOCK_CITIZEN) {
       // Pre-grant geolocation consent so GeoConsentModal never blocks the report page
       localStorage.setItem('ptrack_geo_consent', 'allowed');
     },
-    [ACCESS, REFRESH],
+    [ACCESS, REFRESH]
   );
 
   // Route mocks must be registered before navigation too.
@@ -64,12 +64,10 @@ export async function loginAs(page: Page, user: typeof MOCK_CITIZEN) {
   });
 
   await page.route('**/api/v1/auth/refresh/', (route) =>
-    route.fulfill({ json: { access: ACCESS } }),
+    route.fulfill({ json: { access: ACCESS } })
   );
 
   // nudgesApi.active() returns a plain array — the catch-all's { results: [] }
   // format would cause NudgeBanner to crash (can't call .slice on an object).
-  await page.route('**/api/v1/nudges/**', (route) =>
-    route.fulfill({ json: [] }),
-  );
+  await page.route('**/api/v1/nudges/**', (route) => route.fulfill({ json: [] }));
 }

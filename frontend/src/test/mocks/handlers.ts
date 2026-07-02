@@ -1,5 +1,14 @@
 import { http, HttpResponse } from 'msw';
-import type { User, AuthTokens, CommunityStats, Notification, LeaderboardEntry, WasteReport, PaginatedResponse, CursorPaginatedResponse } from '../../api/types';
+import type {
+  User,
+  AuthTokens,
+  CommunityStats,
+  Notification,
+  LeaderboardEntry,
+  WasteReport,
+  PaginatedResponse,
+  CursorPaginatedResponse,
+} from '../../api/types';
 
 const mockUser: User = {
   id: 1,
@@ -63,7 +72,14 @@ const mockNotifications: CursorPaginatedResponse<Notification> & { unread_count:
 
 const mockLeaderboard: LeaderboardEntry[] = [
   { id: 1, username: 'top_user', full_name: 'Top User', points: 500, rank: 1, sector: 'Kacyiru' },
-  { id: 2, username: 'testuser', full_name: 'Test User', points: 120, rank: 2, sector: 'Kimironko' },
+  {
+    id: 2,
+    username: 'testuser',
+    full_name: 'Test User',
+    points: 120,
+    rank: 2,
+    sector: 'Kimironko',
+  },
 ];
 
 const mockReports: PaginatedResponse<WasteReport> = {
@@ -107,7 +123,5 @@ export const handlers = [
     })
   ),
 
-  http.get(`${BASE}/health/`, () =>
-    HttpResponse.json({ status: 'ok' })
-  ),
+  http.get(`${BASE}/health/`, () => HttpResponse.json({ status: 'ok' })),
 ];

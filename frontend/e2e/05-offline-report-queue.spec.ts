@@ -23,13 +23,13 @@ test('activity page shows submitted reports', async ({ page }) => {
 
   // MyActivity fetches /rewards/, /reports/?user=me, and /recycling/
   await page.route('**/api/v1/rewards/**', (route) =>
-    route.fulfill({ json: { results: [], count: 0 } }),
+    route.fulfill({ json: { results: [], count: 0 } })
   );
   await page.route('**/api/v1/reports/**', (route) =>
-    route.fulfill({ json: { results: [MOCK_REPORT], count: 1 } }),
+    route.fulfill({ json: { results: [MOCK_REPORT], count: 1 } })
   );
   await page.route('**/api/v1/recycling/**', (route) =>
-    route.fulfill({ json: { results: [], count: 0 } }),
+    route.fulfill({ json: { results: [], count: 0 } })
   );
 
   await page.goto('/activity');
@@ -43,7 +43,7 @@ test('app remains usable after going offline', async ({ page, context }) => {
 
   // Mock everything so the dashboard loads fully first
   await page.route('**/api/v1/**', (route) =>
-    route.fulfill({ json: { results: [], count: 0, points: 80 } }),
+    route.fulfill({ json: { results: [], count: 0, points: 80 } })
   );
 
   await page.goto('/dashboard');

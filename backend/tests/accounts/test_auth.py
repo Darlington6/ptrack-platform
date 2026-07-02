@@ -57,7 +57,7 @@ def test_register_duplicate_email_rejected(api_client):
 
 @pytest.mark.django_db
 def test_login_with_correct_credentials(api_client):
-    user = UserFactory(email="loginme@example.com")
+    UserFactory(email="loginme@example.com")
     response = api_client.post(
         "/api/v1/auth/login/",
         {"email": "loginme@example.com", "password": "testpass123"},
@@ -184,7 +184,7 @@ def test_google_auth_creates_user_on_new_account(api_client, mocker):
 
 @pytest.mark.django_db
 def test_google_auth_logs_in_existing_user(api_client, mocker):
-    existing = UserFactory(email="existing_google@gmail.com")
+    UserFactory(email="existing_google@gmail.com")
     mocker.patch(
         "accounts.views._verify_google_token",
         return_value={
