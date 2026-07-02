@@ -117,9 +117,7 @@ def test_me_unauthenticated_returns_401(api_client):
 @pytest.mark.django_db
 def test_me_patch_updates_sector(authed_client):
     client, user = authed_client
-    response = client.patch(
-        "/api/v1/auth/me/", {"sector": "Kicukiro"}, format="json"
-    )
+    response = client.patch("/api/v1/auth/me/", {"sector": "Kicukiro"}, format="json")
     assert response.status_code == 200
     user.refresh_from_db()
     assert user.sector == "Kicukiro"
@@ -128,9 +126,7 @@ def test_me_patch_updates_sector(authed_client):
 @pytest.mark.django_db
 def test_me_patch_no_updatable_fields_returns_400(authed_client):
     client, user = authed_client
-    response = client.patch(
-        "/api/v1/auth/me/", {"role": "admin"}, format="json"
-    )
+    response = client.patch("/api/v1/auth/me/", {"role": "admin"}, format="json")
     assert response.status_code == 400
 
 
@@ -143,9 +139,7 @@ def test_token_refresh_with_valid_refresh(api_client):
     from rest_framework_simplejwt.tokens import RefreshToken
 
     refresh = RefreshToken.for_user(user)
-    response = api_client.post(
-        "/api/v1/auth/refresh/", {"refresh": str(refresh)}, format="json"
-    )
+    response = api_client.post("/api/v1/auth/refresh/", {"refresh": str(refresh)}, format="json")
     assert response.status_code == 200
     assert "access" in response.data
 

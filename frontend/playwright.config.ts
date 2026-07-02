@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
+  // tsc -b (run by `npm run build`) compiles e2e/*.spec.ts → e2e/*.spec.js;
+  // restrict to .ts so Playwright doesn't run each test twice.
+  testMatch: ['**/*.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

@@ -246,7 +246,7 @@ jobs:
 
       - name: Serve frontend
         run: |
-          npx serve dist -l 5173 &
+          npx serve dist -l 5173 --single &
           echo "Serve PID: $!"
           sleep 2
 
