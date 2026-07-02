@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA, type ManifestOptions } from 'vite-plugin-pwa';
@@ -85,6 +85,24 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    exclude: ['node_modules/**', 'e2e/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      thresholds: { lines: 60, functions: 60, branches: 50, statements: 60 },
+      exclude: [
+        'node_modules/**',
+        'src/test/**',
+        '**/*.d.ts',
+        'src/sw.ts',
+        'src/vite-env.d.ts',
+      ],
     },
   },
 });

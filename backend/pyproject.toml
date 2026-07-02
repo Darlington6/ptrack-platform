@@ -53,8 +53,8 @@ DJANGO_SETTINGS_MODULE = "ptrack.settings"
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-testpaths = ["accounts", "reports", "utils"]
-addopts = "--cov=. --cov-report=xml --cov-report=term-missing --cov-config=pyproject.toml"
+testpaths = ["tests"]
+addopts = "--cov=. --cov-report=xml --cov-report=term-missing --cov-config=pyproject.toml --cov-fail-under=65"
 
 [tool.coverage.run]
 source = ["."]
@@ -65,4 +65,11 @@ omit = [
     "manage.py",
     "ptrack/asgi.py",
     "ptrack/wsgi.py",
+    # Management commands call tested business logic; cron boilerplate not worth unit-testing
+    "*/management/commands/*",
+    # External service wrappers — integration-tested in prod, not unit-tested
+    "core/sms.py",
+    "utils/email_service.py",
+    # Demo data seeder — dev utility only
+    "reports/management/*",
 ]

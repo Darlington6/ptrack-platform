@@ -41,7 +41,7 @@ USER ptrack
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/admin/login/ || exit 1
+    CMD curl -f http://localhost:8000/django-admin/login/ -o /dev/null || exit 1
 
 CMD ["gunicorn", "ptrack.wsgi:application", \
      "--bind", "0.0.0.0:8000", \

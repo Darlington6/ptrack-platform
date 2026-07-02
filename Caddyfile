@@ -1,10 +1,10 @@
-# Local production mirror — routes /api, /admin, /static, /media to backend;
+# Local production mirror — routes /api, /django-admin, /static, /media to backend;
 # everything else to the frontend SPA.
 :80 {
     handle /api/* {
         reverse_proxy backend:8000
     }
-    handle /admin/* {
+    handle /django-admin/* {
         reverse_proxy backend:8000
     }
     handle /api-auth/* {

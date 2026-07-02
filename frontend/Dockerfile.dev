@@ -8,4 +8,6 @@ RUN npm ci
 # Source code is mounted as a volume at runtime — don't copy here
 EXPOSE 5173
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# docker-entrypoint.dev.sh re-runs npm ci only when package-lock.json changed,
+# so `docker compose restart frontend` is enough after adding/removing packages.
+CMD ["sh", "docker-entrypoint.dev.sh"]
