@@ -35,6 +35,7 @@ export interface User {
   show_on_leaderboard?: boolean;
   allow_public_reports?: boolean;
   notification_preferences?: Record<string, boolean>;
+  is_active?: boolean;
   email_verified?: boolean;
   phone_verified?: boolean;
   current_streak?: number;

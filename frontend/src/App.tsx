@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { APIProvider } from '@vis.gl/react-google-maps';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ShieldOff } from 'lucide-react';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ScrollToTop } from './components/ScrollToTop';
 import { queryClient } from './lib/queryClient';
@@ -74,6 +75,38 @@ function AdminLayout() {
   );
 }
 
+function SuspendedGate({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+  const suspended = user !== null && user.is_active === false;
+
+  if (!suspended) return <>{children}</>;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 w-full max-w-sm shadow-2xl text-center">
+          <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+            <ShieldOff size={28} className="text-red-600 dark:text-red-400" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Account suspended
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
+            Your account has been suspended. If you believe this is a mistake, please contact
+            support.
+          </p>
+          <button
+            onClick={logout}
+            className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
@@ -82,84 +115,86 @@ export default function App() {
           <BrowserRouter>
             <ScrollToTop />
             <AuthProvider>
-              <UpdateBanner />
-              <Routes>
-                {/* Public */}
-                <Route element={<PublicLayout />}>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/verify" element={<Verify />} />
-                  <Route path="/forgot-password" element={<ForgotPassword />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/privacy" element={<PrivacyPolicy />} />
-                  <Route path="/terms" element={<Terms />} />
-                </Route>
+              <SuspendedGate>
+                <UpdateBanner />
+                <Routes>
+                  {/* Public */}
+                  <Route element={<PublicLayout />}>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/verify" element={<Verify />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<Terms />} />
+                  </Route>
 
-                {/* Onboarding (protected, no chrome) */}
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <Onboarding />
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Onboarding (protected, no chrome) */}
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <Onboarding />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Citizen */}
-                <Route
-                  element={
-                    <ProtectedRoute>
-                      <CitizenLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/report" element={<ReportWaste />} />
-                  <Route path="/map" element={<MapView />} />
-                  <Route path="/rewards" element={<Rewards />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/settings/account" element={<AccountSettings />} />
-                  <Route path="/settings/security" element={<SecuritySettings />} />
-                  <Route path="/settings/language" element={<LanguageSettings />} />
-                  <Route path="/settings/theme" element={<ThemeSettings />} />
-                  <Route path="/settings/notifications" element={<NotificationSettings />} />
-                  <Route path="/settings/privacy" element={<PrivacySettings />} />
-                  <Route path="/settings/data" element={<DataSettings />} />
-                  <Route path="/activity" element={<MyActivity />} />
-                  <Route path="/reports/:id" element={<ReportDetail />} />
-                  <Route path="/community" element={<CommunityImpact />} />
-                  <Route path="/centres" element={<RecyclingCentres />} />
-                  <Route path="/education" element={<Education />} />
-                  <Route path="/education/:slug" element={<EducationArticle />} />
-                  <Route path="/help" element={<HelpFAQ />} />
-                  <Route path="/about" element={<About />} />
-                </Route>
+                  {/* Citizen */}
+                  <Route
+                    element={
+                      <ProtectedRoute>
+                        <CitizenLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/report" element={<ReportWaste />} />
+                    <Route path="/map" element={<MapView />} />
+                    <Route path="/rewards" element={<Rewards />} />
+                    <Route path="/leaderboard" element={<Leaderboard />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/settings/account" element={<AccountSettings />} />
+                    <Route path="/settings/security" element={<SecuritySettings />} />
+                    <Route path="/settings/language" element={<LanguageSettings />} />
+                    <Route path="/settings/theme" element={<ThemeSettings />} />
+                    <Route path="/settings/notifications" element={<NotificationSettings />} />
+                    <Route path="/settings/privacy" element={<PrivacySettings />} />
+                    <Route path="/settings/data" element={<DataSettings />} />
+                    <Route path="/activity" element={<MyActivity />} />
+                    <Route path="/reports/:id" element={<ReportDetail />} />
+                    <Route path="/community" element={<CommunityImpact />} />
+                    <Route path="/centres" element={<RecyclingCentres />} />
+                    <Route path="/education" element={<Education />} />
+                    <Route path="/education/:slug" element={<EducationArticle />} />
+                    <Route path="/help" element={<HelpFAQ />} />
+                    <Route path="/about" element={<About />} />
+                  </Route>
 
-                {/* Admin */}
-                <Route
-                  element={
-                    <ProtectedRoute requireAdmin>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/reports" element={<AdminReports />} />
-                  <Route path="/admin/users" element={<AdminUsers />} />
-                  <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                  <Route path="/admin/audit-log" element={<AdminAuditLog />} />
-                  <Route path="/admin/centres" element={<AdminCentres />} />
-                  <Route path="/admin/education" element={<AdminEducation />} />
-                  <Route path="/admin/rewards" element={<AdminRewardConfig />} />
-                  <Route path="/admin/settings" element={<AdminSettings />} />
-                </Route>
+                  {/* Admin */}
+                  <Route
+                    element={
+                      <ProtectedRoute requireAdmin>
+                        <AdminLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/reports" element={<AdminReports />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                    <Route path="/admin/audit-log" element={<AdminAuditLog />} />
+                    <Route path="/admin/centres" element={<AdminCentres />} />
+                    <Route path="/admin/education" element={<AdminEducation />} />
+                    <Route path="/admin/rewards" element={<AdminRewardConfig />} />
+                    <Route path="/admin/settings" element={<AdminSettings />} />
+                  </Route>
 
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </SuspendedGate>
             </AuthProvider>
           </BrowserRouter>
         </APIProvider>

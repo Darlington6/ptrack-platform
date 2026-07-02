@@ -20,12 +20,17 @@ SECTOR_CENTROIDS: dict[str, tuple[float, float]] = {
 }
 
 
+_MAX_SECTOR_DIST_SQ = 0.25  # ~0.5° radius ≈ 55 km — anything farther is outside Kigali
+
+
 def coords_to_sector(lat: float, lng: float) -> str:
-    """Return the nearest known Kigali sector for the given coordinates."""
-    return min(
-        SECTOR_CENTROIDS.items(),
-        key=lambda item: (item[1][0] - lat) ** 2 + (item[1][1] - lng) ** 2,
-    )[0]
+    """Return the nearest Kigali sector, or '' if the coordinates are outside Kigali."""
+    best_name, best_dist = "", float("inf")
+    for name, (slat, slng) in SECTOR_CENTROIDS.items():
+        d = (slat - lat) ** 2 + (slng - lng) ** 2
+        if d < best_dist:
+            best_dist, best_name = d, name
+    return best_name if best_dist <= _MAX_SECTOR_DIST_SQ else ""
 
 
 _PTS_CACHE_TTL = 60  # 1 minute — short so config changes take effect quickly

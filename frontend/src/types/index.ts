@@ -53,6 +53,8 @@ export interface User {
     community_updates: boolean;
     badge_earned: boolean;
   };
+  // Account status
+  is_active: boolean;
   // OAuth
   google_connected: boolean;
   has_usable_password: boolean;

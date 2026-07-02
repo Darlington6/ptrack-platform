@@ -1,0 +1,18 @@
+export const KIGALI_SECTORS = [
+  'Kimironko',
+  'Kacyiru',
+  'Remera',
+  'Kinyinya',
+  'Gisozi',
+  'Ndera',
+  'Nduba',
+  'Rusororo',
+  'Jabana',
+  'Bumbogo',
+  'Nyamirambo',
+  'Nyabugogo',
+  'Kiyovu',
+  'Gikondo',
+  'Kicukiro',
+  'Kanombe',
+];

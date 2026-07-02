@@ -97,8 +97,7 @@ export default function AdminSettings() {
             {[
               [
                 'API base URL',
-                (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-                  'http://localhost:8000',
+                (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '(not set)',
               ],
               ['Environment', import.meta.env.MODE],
               ['Health endpoint', '/api/v1/health/'],

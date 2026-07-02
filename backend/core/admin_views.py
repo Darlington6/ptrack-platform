@@ -158,7 +158,7 @@ def analytics_by_sector(request):
     data = cache.get(cache_key)
     if data is None:
         rows = WasteReport.objects.values("sector").annotate(count=Count("id")).order_by("-count")
-        data = [{"sector": r["sector"] or "Unknown", "count": r["count"]} for r in rows]
+        data = [{"sector": r["sector"] or "Outside Kigali", "count": r["count"]} for r in rows]
         cache.set(cache_key, data, timeout=_ANALYTICS_CACHE_TTL)
     return Response(data)
 
@@ -257,8 +257,11 @@ def analytics_kpis(request):
             "reports_this_month": WasteReport.objects.filter(created_at__gte=month_ago).count(),
             "reports_last_90d": WasteReport.objects.filter(created_at__gte=quarter_ago).count(),
             "total_citizens": User.objects.filter(role="citizen").count(),
-            "active_citizens_30d": User.objects.filter(reports__created_at__gte=month_ago)
-            .distinct()
+            "active_citizens_30d": User.objects.filter(
+                is_active=True,
+                is_deleted=False,
+            )
+            .filter(Q(last_activity_date__gte=month_ago.date()) | Q(date_joined__gte=month_ago))
             .count(),
             "total_points_awarded": Reward.objects.aggregate(t=Sum("points_earned"))["t"] or 0,
         }
@@ -436,8 +439,26 @@ def reports_bulk_reject(request):
     if not isinstance(ids, list) or not ids:
         return Response({"detail": "Provide a non-empty list of report IDs."}, status=400)
 
-    updated = WasteReport.objects.filter(pk__in=ids, status="pending").update(status="resolved")
-    return Response({"rejected": updated, "reason": reason})
+    from core.notifications import notify
+
+    reports = WasteReport.objects.filter(pk__in=ids, status="pending").select_related("user")
+    count = 0
+    for report in reports:
+        report.status = "rejected"
+        report.rejection_reason = reason
+        report.save(update_fields=["status", "rejection_reason"])
+        _vprefs = getattr(report.user, "notification_preferences", {}) or {}
+        if _vprefs.get("report_notifications", True):
+            notify(
+                report.user,
+                "rejection",
+                "Report not accepted",
+                f"Your waste report was not accepted.{' Reason: ' + reason if reason else ''}",
+                f"/reports/{report.pk}",
+            )
+        count += 1
+
+    return Response({"rejected": count, "reason": reason})
 
 
 @extend_schema(
@@ -610,6 +631,7 @@ def badge_detail(request, pk):
 
 class AdminUserSerializer(serializers.ModelSerializer):
     report_count = serializers.SerializerMethodField()
+    is_recently_active = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -623,6 +645,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
             "role",
             "points",
             "is_active",
+            "is_recently_active",
             "email_verified",
             "current_streak",
             "created_at",
@@ -636,6 +659,13 @@ class AdminUserSerializer(serializers.ModelSerializer):
         if hasattr(obj, "report_count_ann"):
             return obj.report_count_ann
         return obj.reports.count()
+
+    def get_is_recently_active(self, obj) -> bool:
+        """True if the user has had any activity in the last 30 days or joined within 30 days."""
+        cutoff = (timezone.now() - timedelta(days=30)).date()
+        if obj.last_activity_date and obj.last_activity_date >= cutoff:
+            return True
+        return obj.date_joined >= timezone.now() - timedelta(days=30)
 
 
 @extend_schema(

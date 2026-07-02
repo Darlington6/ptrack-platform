@@ -55,6 +55,7 @@ export interface AdminUser {
   role: 'citizen' | 'admin';
   points: number;
   is_active: boolean;
+  is_recently_active: boolean;
   email_verified?: boolean;
   current_streak?: number;
   created_at: string;

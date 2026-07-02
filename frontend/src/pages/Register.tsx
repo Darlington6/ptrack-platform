@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import { KIGALI_SECTORS } from '../lib/sectors';
 
 // ── Password strength ─────────────────────────────────────────────────────────
 
@@ -333,16 +334,11 @@ export default function Register() {
           <div>
             <label className={LABEL_CLS}>{t('location_sector')}</label>
             <select {...register('sector')} className={`${INPUT_CLS} bg-white dark:bg-slate-700`}>
-              <option value="Kimironko">Kimironko</option>
-              <option value="Kacyiru">Kacyiru</option>
-              <option value="Remera">Remera</option>
-              <option value="Kinyinya">Kinyinya</option>
-              <option value="Gisozi">Gisozi</option>
-              <option value="Ndera">Ndera</option>
-              <option value="Nduba">Nduba</option>
-              <option value="Rusororo">Rusororo</option>
-              <option value="Jabana">Jabana</option>
-              <option value="Bumbogo">Bumbogo</option>
+              {KIGALI_SECTORS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
           </div>
 

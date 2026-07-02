@@ -180,7 +180,10 @@ export default function AdminAnalytics() {
               Reports by Sector
             </h2>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={bySector} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+              <BarChart
+                data={bySector.map((r) => ({ ...r, sector: r.sector || 'Outside Kigali' }))}
+                margin={{ top: 4, right: 16, left: 0, bottom: 4 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="sector" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />

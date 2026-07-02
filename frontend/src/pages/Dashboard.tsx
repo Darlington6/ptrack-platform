@@ -14,6 +14,8 @@ import {
   PartyPopper,
   Target,
 } from 'lucide-react';
+import { authApi } from '../api/endpoints/auth';
+import { KIGALI_SECTORS } from '../lib/sectors';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
@@ -47,13 +49,65 @@ interface RewardsResponse {
   rewards: Reward[];
 }
 
+function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
+  const [selected, setSelected] = useState('Kimironko');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  async function save() {
+    setSaving(true);
+    setError('');
+    try {
+      await authApi.updateMe({ sector: selected });
+      onDone(selected);
+    } catch {
+      setError('Could not save — please try again.');
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Select your sector</h2>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
+          We need your Kigali sector so your reports and recycling logs are counted in the right
+          area.
+        </p>
+        <select
+          value={selected}
+          onChange={(e) => setSelected(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+        >
+          {KIGALI_SECTORS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+        {error && <p className="text-xs text-red-500 mb-3">{error}</p>}
+        <button
+          onClick={() => void save()}
+          disabled={saving}
+          className="w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
+        >
+          {saving ? 'Saving…' : 'Save sector'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('dashboard');
   const [showRecycling, setShowRecycling] = useState(false);
   const [communityExpanded, setCommunityExpanded] = useState(false);
+  const [sectorSaved, setSectorSaved] = useState(false);
   const confettiFired = useRef(false);
+
+  const needsSector = !sectorSaved && user !== null && !user.sector;
 
   const { data: rewardsData, isLoading: rewardsLoading } = useQuery({
     queryKey: ['rewards', 'dashboard'],
@@ -102,6 +156,15 @@ export default function Dashboard() {
 
   return (
     <div className="px-4 pt-4 pb-24 space-y-4">
+      {needsSector && (
+        <SectorPickerModal
+          onDone={async (_sector) => {
+            setSectorSaved(true);
+            await refreshUser();
+          }}
+        />
+      )}
+
       {/* NudgeBanner */}
       <NudgeBanner />
 
