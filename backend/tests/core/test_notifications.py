@@ -6,7 +6,6 @@ from core.models import Notification
 from core.notifications import notify
 from tests.factories import UserFactory
 
-
 # ── notify() helper ───────────────────────────────────────────────────────────
 
 

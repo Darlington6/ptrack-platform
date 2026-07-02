@@ -15,7 +15,6 @@ from accounts.services import (
 )
 from tests.factories import RecyclingActivityFactory, UserFactory, WasteReportFactory
 
-
 # ── update_streak ─────────────────────────────────────────────────────────────
 
 

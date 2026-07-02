@@ -2,8 +2,7 @@
 
 import pytest
 
-from tests.factories import UserFactory, WasteReportFactory
-
+from tests.factories import WasteReportFactory
 
 # ── GET /api/v1/admin/analytics/kpis/ ────────────────────────────────────────
 

@@ -5,7 +5,6 @@ import pytest
 from reports.models import Reward, WasteReport
 from tests.factories import UserFactory, WasteReportFactory
 
-
 # ── POST /api/v1/reports/ ────────────────────────────────────────────────────
 
 
