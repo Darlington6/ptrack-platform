@@ -144,7 +144,7 @@ export default function AdminDashboard() {
               icon={Users}
               label="Active Users (30d)"
               value={kpis?.active_citizens_30d ?? '—'}
-              sub={`${kpis?.total_citizens ?? 0} total`}
+              sub={`${kpis?.total_citizens ?? 0} citizens in total`}
               color="text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400"
             />
             <KpiCard

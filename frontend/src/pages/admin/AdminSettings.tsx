@@ -112,12 +112,6 @@ export default function AdminSettings() {
             ))}
           </div>
         </div>
-
-        {/* Placeholder note */}
-        <p className="text-xs text-gray-400 dark:text-slate-500">
-          Additional platform settings (SMTP, SMS gateway, rate limits) will be added in a future
-          release.
-        </p>
       </div>
     </AdminPageShell>
   );

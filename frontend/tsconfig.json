@@ -19,7 +19,8 @@
     "noUncheckedIndexedAccess": true,
     "allowJs": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vitest/globals"]
   },
   "include": ["src"],
   "exclude": ["src/sw.ts"],

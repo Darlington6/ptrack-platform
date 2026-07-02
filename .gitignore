@@ -63,6 +63,9 @@ Desktop.ini
 *.sublime-project
 *.sublime-workspace
 
+# ── Claude Code internal state ────────────────────────────────────────────────
+.claude/
+
 # ── Coverage / testing ────────────────────────────────────────────────────────
 htmlcov/
 .coverage
@@ -70,6 +73,11 @@ htmlcov/
 coverage.xml
 .pytest_cache/
 .tox/
+frontend/coverage/
+
+# ── Playwright ────────────────────────────────────────────────────────────────
+test-results/
+playwright-report/
 
 # ── Python tooling ────────────────────────────────────────────────────────────
 .ruff_cache/
