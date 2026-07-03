@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     CLOUDINARY_API_SECRET: str = ""
 
     # External APIs
-    RESEND_API_KEY: str = ""
-    DEFAULT_FROM_EMAIL: str = "pTrack <onboarding@resend.dev>"
+    BREVO_API_KEY: str = ""
+    DEFAULT_FROM_EMAIL: str = "pTrack <noreply@ptrack.rw>"
     GOOGLE_MAPS_API_KEY: str = ""
     GOOGLE_OAUTH_CLIENT_ID: str = ""
 

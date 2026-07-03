@@ -1,37 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Leaf } from 'lucide-react';
-
-const TECH_STACK = [
-  { label: 'React 19', color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' },
-  {
-    label: 'TypeScript',
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  },
-  {
-    label: 'Tailwind v4',
-    color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
-  },
-  {
-    label: 'Django 5',
-    color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  },
-  {
-    label: 'PostgreSQL',
-    color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-  },
-  {
-    label: 'Recharts',
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  },
-  {
-    label: 'React Query v5',
-    color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  },
-  {
-    label: 'Simple JWT',
-    color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-  },
-];
+import { ArrowLeft } from 'lucide-react';
 
 export default function About() {
   const navigate = useNavigate();
@@ -51,9 +19,11 @@ export default function About() {
 
       {/* App identity */}
       <div className="flex items-center gap-4">
-        <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center flex-shrink-0">
-          <Leaf size={32} className="text-green-600 dark:text-green-400" />
-        </div>
+        <img
+          src="/icons/icon-192.png"
+          alt="pTrack"
+          className="w-16 h-16 rounded-2xl flex-shrink-0"
+        />
         <div>
           <p className="text-2xl font-extrabold text-gray-900 dark:text-white">pTrack</p>
           <p className="text-sm text-gray-500 dark:text-slate-400">v1.0.0-pilot · MIT License</p>
@@ -76,9 +46,10 @@ export default function About() {
           ALU Capstone Project
         </p>
         <p className="text-sm text-green-700 dark:text-green-400 leading-relaxed">
-          pTrack was built as a final-year capstone project at the African Leadership University
-          (ALU), Kigali campus. It addresses Rwanda's ongoing challenge of plastic pollution in
-          urban neighbourhoods by giving every citizen a direct, measurable way to contribute.
+          pTrack was developed as a final-year BSc Software Engineering capstone at the African
+          Leadership University (ALU). It pilots a digital incentive model to drive measurable
+          behavioural change in plastic waste management — grounding the research in the lived
+          reality of Kimironko Sector, Gasabo District, Kigali.
         </p>
       </div>
 
@@ -88,35 +59,14 @@ export default function About() {
           Piloting in Kimironko, Kigali
         </p>
         <p className="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-          pTrack is currently piloting in the Kimironko sector, and built to scale across all of
-          Kigali as the program expands.
+          pTrack is currently piloting with residents of Kimironko Sector, Gasabo District. The
+          platform is designed to scale across all of Kigali — and eventually Rwanda — as the
+          programme expands.
         </p>
       </div>
 
-      {/* Tech stack */}
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold text-gray-900 dark:text-white">Built with</h2>
-        <div className="flex flex-wrap gap-2">
-          {TECH_STACK.map(({ label, color }) => (
-            <span key={label} className={`text-xs font-medium px-3 py-1 rounded-full ${color}`}>
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* GitHub link */}
-      <a
-        href="https://github.com/Darlington6/ptrack-platform"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-2 w-full py-3 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-      >
-        <ExternalLink size={16} /> View source on GitHub
-      </a>
-
       <p className="text-center text-xs text-gray-400 dark:text-slate-600">
-        MIT License · © {new Date().getFullYear()} pTrack
+        MIT License · &copy; {new Date().getFullYear()} pTrack
       </p>
     </div>
   );

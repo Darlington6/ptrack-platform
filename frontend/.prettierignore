@@ -2,3 +2,6 @@ dist/
 node_modules/
 *.min.js
 public/
+coverage/
+playwright-report/
+test-results/

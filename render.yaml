@@ -11,7 +11,7 @@ services:
         value: "false"
       # Secrets — set these in the Render dashboard (service → Environment):
       # SECRET_KEY, DATABASE_URL, REDIS_URL, ALLOWED_HOSTS,
-      # CORS_ALLOWED_ORIGINS, SENTRY_DSN, RESEND_API_KEY, DEFAULT_FROM_EMAIL,
+      # CORS_ALLOWED_ORIGINS, SENTRY_DSN, BREVO_API_KEY, DEFAULT_FROM_EMAIL,
       # GOOGLE_MAPS_API_KEY, GOOGLE_OAUTH_CLIENT_ID,
       # VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT,
       # USE_CLOUDINARY, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,
@@ -49,6 +49,18 @@ services:
     schedule: "0 17 * * *"
     buildCommand: pip install -r requirements.txt
     startCommand: python manage.py send_streak_warnings
+    envVars:
+      - key: DEBUG
+        value: "false"
+
+  # ── Cron: cleanup verification codes  (daily  03:00 CAT = 01:00 UTC) ────────
+  - type: cron
+    name: ptrack-cleanup-verification-codes
+    runtime: python
+    rootDir: backend
+    schedule: "0 1 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py cleanup_verification_codes
     envVars:
       - key: DEBUG
         value: "false"

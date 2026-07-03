@@ -19,7 +19,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: 'How are points calculated?',
-    a: 'You earn 10 points for each verified waste report and 15 points per recycling log. Bonus points are awarded when an admin marks your report as resolved.',
+    a: 'Point values are set by administrators and can be adjusted over time. You earn points when you submit a waste report, additional bonus points when an admin verifies your report, and separate points for logging recycling activities. Your running total is always visible on your profile.',
   },
   {
     q: 'What are badges?',
@@ -27,7 +27,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: 'How does the weekly goal work?',
-    a: 'Your weekly goal resets every Monday. The default is 3 activities per week (reports + recycling logs combined). You can change this in Settings → Account.',
+    a: 'Your weekly goal tracks how many waste reports you submit in a given week, resetting every Monday. The default is 5 reports per week. You can adjust your personal goal in Settings → Account.',
   },
   {
     q: 'Is my personal information visible to other users?',
@@ -35,7 +35,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: 'How do I log a recycling activity?',
-    a: 'Tap "Log Recycling" on the dashboard, select the activity type (drop-off, pickup, exchange, or other), and optionally add a note. +15 pts are credited instantly.',
+    a: 'Tap "Log Recycling" on the dashboard, select the activity type (drop-off, pickup, exchange, or other), and optionally add a note. Points are credited instantly — the exact amount is configured by administrators.',
   },
   {
     q: 'Can I delete a report I submitted?',
@@ -70,7 +70,7 @@ const FAQ_RW: FaqItem[] = [
   },
   {
     q: 'Amanota abarwa ate?',
-    a: 'Uhabwa amanota 10 kuri buri raporo yasuzumwe kandi 15 kuri buri ikorwa ryo gusunika. Amanota ya bonus ahabwa igihe umuyobozi arangije raporo yawe.',
+    a: "Umubare w'amanota ugengwa n'abayobozi kandi ushobora guhindurwa. Uhabwa amanota iyo utanze raporo, amanota yiyongera iyo raporo yawe yasuzumwe n'umuyobozi, no gusunika. Amanota yawe yose agaragara ku profilo yawe.",
   },
   {
     q: 'Badge ni iki?',
@@ -78,7 +78,7 @@ const FAQ_RW: FaqItem[] = [
   },
   {
     q: "Intego y'icyumweru ikora gute?",
-    a: "Intego y'icyumweru itangira buri Kuwa Mbere. Default ni ibikorwa 3 ku cyumweru (raporo + ibikorwa byo gusunika hamwe). Ushobora guhindura ibi muri Igenamigambi → Konti.",
+    a: "Intego y'icyumweru ikurikirana raporo z'imyanda utanga, itangira buri Kuwa Mbere. Default ni raporo 5 ku cyumweru. Ushobora guhindura intego yawe bwite muri Igenamigambi → Konti.",
   },
   {
     q: 'Amakuru yanjye bwite abonwa na ba mugenzi?',
@@ -86,7 +86,7 @@ const FAQ_RW: FaqItem[] = [
   },
   {
     q: 'Nshobora gute kanda ibikorwa byo gusunika?',
-    a: 'Kanda "Kanda Gusunika" ku dashboard, hitamo ubwoko bw\'ikorwa, hanyuma wohereze. Amanota 15 ashyirwaho vuba.',
+    a: 'Kanda "Kanda Gusunika" ku dashboard, hitamo ubwoko bw\'ikorwa (gushyira aho bigenewe, gutwara, guhana, n\'ibindi), hanyuma wohereze. Amanota ashyirwaho vuba — umubare ni uwo abayobozi bagenga.',
   },
   {
     q: 'Nshobora gusiba raporo nashyize?',

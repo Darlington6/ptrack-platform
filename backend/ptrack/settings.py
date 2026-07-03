@@ -373,7 +373,7 @@ AXES_LOCKOUT_PARAMETERS = ["ip_address"]
 AXES_CACHE = "default"
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
-RESEND_API_KEY = cfg.RESEND_API_KEY
+BREVO_API_KEY = cfg.BREVO_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
 GOOGLE_OAUTH_CLIENT_ID = cfg.GOOGLE_OAUTH_CLIENT_ID
 USE_CLOUDINARY = cfg.USE_CLOUDINARY
@@ -387,9 +387,9 @@ VAPID_SUBJECT = cfg.VAPID_SUBJECT
 DEFAULT_FROM_EMAIL = cfg.DEFAULT_FROM_EMAIL
 SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
-if cfg.RESEND_API_KEY:
-    EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
-    ANYMAIL = {"RESEND_API_KEY": cfg.RESEND_API_KEY}
+if cfg.BREVO_API_KEY:
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {"BREVO_API_KEY": cfg.BREVO_API_KEY}
 else:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
