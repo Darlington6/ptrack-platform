@@ -17,42 +17,6 @@ services:
       # USE_CLOUDINARY, CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY,
       # CLOUDINARY_API_SECRET, APP_VERSION
 
-  # ── Cron: community updates  (Tue + Fri  17:00 CAT = 15:00 UTC) ─────────────
-  - type: cron
-    name: ptrack-community-updates
-    runtime: python
-    rootDir: backend
-    schedule: "0 15 * * 2,5"
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_community_updates
-    envVars:
-      - key: DEBUG
-        value: "false"
-
-  # ── Cron: weekly digest  (Sunday  18:00 CAT = 16:00 UTC) ────────────────────
-  - type: cron
-    name: ptrack-weekly-digest
-    runtime: python
-    rootDir: backend
-    schedule: "0 16 * * 0"
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_weekly_digest
-    envVars:
-      - key: DEBUG
-        value: "false"
-
-  # ── Cron: streak warnings  (daily  19:00 CAT = 17:00 UTC) ──────────────────
-  - type: cron
-    name: ptrack-streak-warnings
-    runtime: python
-    rootDir: backend
-    schedule: "0 17 * * *"
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py send_streak_warnings
-    envVars:
-      - key: DEBUG
-        value: "false"
-
   # ── Cron: cleanup verification codes  (daily  03:00 CAT = 01:00 UTC) ────────
   - type: cron
     name: ptrack-cleanup-verification-codes
