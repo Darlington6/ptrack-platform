@@ -222,7 +222,7 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 | Cache / sessions | django-redis | 7.0.0 |
 | Rate limiting | django-axes + DRF throttles | 8.3.1 |
 | Media storage | Cloudinary | 1.44.2 |
-| Email | django-anymail (Resend) | 15.0 |
+| Email | django-anymail (Brevo) | 15.0 |
 | Web push | pywebpush | 2.3.0 |
 | OAuth | google-auth | 2.55.1 |
 | Password hashing | argon2-cffi | 25.1.0 |
@@ -264,10 +264,8 @@ Browser / Mobile
       v
  Neon PostgreSQL (managed, serverless)
 
-Render Cron Jobs (3)
-   ├── send_community_updates  (Tue + Fri 17:00 CAT)
-   ├── send_weekly_digest      (Sunday 18:00 CAT)
-   └── send_streak_warnings    (daily 19:00 CAT)
+Render Cron Jobs (1)
+   └── cleanup_verification_codes  (daily 03:00 CAT)
 ```
 
 The frontend is a Progressive Web App. On first install, Workbox precaches the shell and static assets. Report submissions are intercepted by a background sync strategy — if the user is offline, the payload is stored in IndexedDB and replayed when connectivity is restored.
@@ -697,9 +695,7 @@ The repository includes `render.yaml` at the root. Render auto-detects it and co
 | Service | Type | Schedule |
 |---|---|---|
 | `ptrack-backend` | Web service (Gunicorn) | Always on |
-| `ptrack-community-updates` | Cron job | Tue + Fri 17:00 CAT |
-| `ptrack-weekly-digest` | Cron job | Sunday 18:00 CAT |
-| `ptrack-streak-warnings` | Cron job | Daily 19:00 CAT |
+| `ptrack-cleanup-verification-codes` | Cron job | Daily 03:00 CAT |
 
 **Environment variables to set in the Render dashboard (service -> Environment):**
 
@@ -710,7 +706,7 @@ REDIS_URL             (Render Redis or Upstash)
 ALLOWED_HOSTS         (your-backend.onrender.com,localhost)
 CORS_ALLOWED_ORIGINS  (https://your-frontend.vercel.app)
 SENTRY_DSN
-RESEND_API_KEY
+BREVO_API_KEY
 DEFAULT_FROM_EMAIL
 GOOGLE_MAPS_API_KEY
 GOOGLE_OAUTH_CLIENT_ID
@@ -768,8 +764,8 @@ GitHub Actions runs five jobs on every push and pull request to `main` and `deve
 | `frontend-quality` | TypeScript typecheck, ESLint, Prettier format check, Vite production build |
 | `frontend-test` | Vitest (31 unit tests) with v8 coverage, uploads coverage artifact |
 | `backend-quality` | Ruff lint, Black format check, mypy type checking |
-| `backend-test` | pytest (40+ tests) against a real PostgreSQL 16 container, uploads coverage.xml |
-| `e2e` | Playwright (8 E2E tests) — builds the frontend, starts Django, serves the dist with `npx serve --single`, runs Chromium |
+| `backend-test` | pytest (69 tests) against a real PostgreSQL 16 container, uploads coverage.xml |
+| `e2e` | Playwright (8 E2E tests across 5 spec files) — builds the frontend, starts Django, serves the dist with `npx serve --single`, runs Chromium |
 | `secrets-scan` | Gitleaks scan of the full git history |
 
 The E2E job depends on `frontend-quality` and `backend-test` passing first. Coverage artifacts (frontend HTML report, backend XML) are uploaded and retained for 30 days.
