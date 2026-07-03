@@ -287,10 +287,12 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
 
 <table>
   <tr>
-    <td><img src="./screenshots/uptime.png" width="900" alt="UptimeRobot — backend and frontend monitors"/></td>
+    <td><img src="./screenshots/uptime-1.png" width="900" alt="UptimeRobot — backend and frontend monitors"/></td>
+    <td><img src="./screenshots/uptime-2.png" width="900" alt="UptimeRobot — backend and frontend monitors"/></td>
   </tr>
   <tr>
-    <td align="center">UptimeRobot — backend and frontend availability monitors at 100%</td>
+    <td align="center">UptimeRobot — backend and frontend availability monitors at 100% and 88.407% respectively</td>
+    <td align="center">UptimeRobot — backend and frontend availability monitors at 100% each</td>
   </tr>
 </table>
 
@@ -304,7 +306,7 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
   </tr>
   <tr>
     <td align="center">pTrack on Android (Techno Camon)</td>
-    <td align="center">pTrack on iPhone (iOS Safari)</td>
+    <td align="center">pTrack on iPhone (PWA)</td>
     <td align="center">Citizen dashboard</td>
   </tr>
 </table>
