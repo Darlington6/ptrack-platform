@@ -23,7 +23,7 @@ _START_TIME = time.time()
     summary="Service health check",
     responses={200: None},
 )
-@api_view(["GET"])
+@api_view(["GET", "HEAD"])
 @permission_classes([AllowAny])
 def health_check(request):
     """Returns 200 with db, cache, and uptime info. Used by Docker and Render."""
