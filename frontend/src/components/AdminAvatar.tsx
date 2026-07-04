@@ -54,7 +54,9 @@ export function AdminAvatar() {
         {open && (
           <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-              <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">{adminName}</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
+                {adminName}
+              </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{user?.email}</p>
             </div>
             <button
