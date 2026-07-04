@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .vercel
 vite.config.js
+
+# tsc -b (composite project) emits .js/.d.ts alongside e2e .ts sources — build artifacts
+playwright.config.js
+playwright.config.d.ts
+e2e/**/*.js
+e2e/**/*.d.ts
