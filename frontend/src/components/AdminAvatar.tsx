@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ConfirmModal } from './ui/ConfirmModal';
@@ -52,17 +52,29 @@ export function AdminAvatar() {
         </button>
 
         {open && (
-          <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-800 truncate">{adminName}</p>
-              <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+          <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+              <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
+                {adminName}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{user?.email}</p>
             </div>
+            <button
+              onClick={() => {
+                setOpen(false);
+                navigate('/profile');
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              <User size={15} />
+              Profile
+            </button>
             <button
               onClick={() => {
                 setOpen(false);
                 setConfirmLogout(true);
               }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               <LogOut size={15} />
               Logout

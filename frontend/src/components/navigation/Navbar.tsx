@@ -1,7 +1,38 @@
 import { useRef, useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset, User, LogOut } from 'lucide-react';
+
+const PAGE_TITLES: Record<string, string> = {
+  '/dashboard': 'Home',
+  '/map': 'Map',
+  '/report': 'Report Waste',
+  '/rewards': 'Rewards',
+  '/leaderboard': 'Leaderboard',
+  '/profile': 'Profile',
+  '/notifications': 'Notifications',
+  '/settings': 'Settings',
+  '/settings/account': 'Account Settings',
+  '/settings/security': 'Security',
+  '/settings/language': 'Language',
+  '/settings/theme': 'Appearance',
+  '/settings/notifications': 'Notification Settings',
+  '/settings/privacy': 'Privacy',
+  '/settings/data': 'My Data',
+  '/activity': 'My Activity',
+  '/community': 'Community Impact',
+  '/centres': 'Recycling Centres',
+  '/education': 'Education',
+  '/help': 'Help & FAQ',
+  '/about': 'About',
+};
+
+function getPageTitle(pathname: string): string {
+  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (pathname.startsWith('/reports/')) return 'Report Detail';
+  if (pathname.startsWith('/education/')) return 'Education';
+  return 'pTrack';
+}
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
@@ -20,6 +51,8 @@ function GreetingIcon() {
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const pageTitle = getPageTitle(pathname);
   const networkStatus = useNetworkStatus();
   const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,7 +80,11 @@ export function Navbar() {
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-      <span className="text-xl font-bold text-green-600">pTrack</span>
+      {/* Mobile: pTrack logo | Desktop: current page title */}
+      <span className="text-xl font-bold text-green-600 lg:hidden">pTrack</span>
+      <span className="hidden lg:block text-xl font-semibold text-gray-800 dark:text-slate-100">
+        {pageTitle}
+      </span>
 
       <div className="flex items-center gap-3">
         <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">

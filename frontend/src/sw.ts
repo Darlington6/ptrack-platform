@@ -55,7 +55,11 @@ self.addEventListener('activate', (event) => {
 // Guarded because in dev mode (devOptions.enabled) __WB_MANIFEST is empty —
 // there's no production build to glob index.html from — so the lookup would
 // otherwise throw "non-precached-url" on every dev server start.
-if (manifest.some((entry) => typeof entry !== 'string' && entry.url === '/index.html')) {
+// Guard: only register when index.html is actually in the precache manifest
+// (it isn't in dev mode where __WB_MANIFEST is always []).
+// Accept both '/index.html' and 'index.html' since Workbox normalises
+// the leading slash differently across plugin versions.
+if (manifest.some((entry) => typeof entry !== 'string' && entry.url.endsWith('index.html'))) {
   registerRoute(
     new NavigationRoute(createHandlerBoundToURL('/index.html'), {
       denylist: [/^\/api\//],
