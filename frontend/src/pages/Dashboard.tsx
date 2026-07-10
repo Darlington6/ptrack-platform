@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { NudgeBanner } from '../components/feedback/NudgeBanner';
+import { InstallBanner } from '../components/InstallBanner';
 import RecyclingModal from './RecyclingModal';
 import { Skeleton } from '../components/ui/Skeleton';
 import client from '../api/client';
@@ -111,7 +112,7 @@ export default function Dashboard() {
 
   const { data: rewardsData, isLoading: rewardsLoading } = useQuery({
     queryKey: ['rewards', 'dashboard'],
-    queryFn: () => client.get<CursorPaginatedResponse<RewardsResponse>>('/rewards/me/?limit=5'),
+    queryFn: () => client.get<CursorPaginatedResponse<RewardsResponse>>('/rewards/me/?limit=100'),
     staleTime: 60_000,
   });
 
@@ -130,7 +131,8 @@ export default function Dashboard() {
   // The /rewards/me/ endpoint returns cursor-paginated { next, previous, results: { total_points, rewards } }
   const rewardsPayload =
     (rewardsData?.data as unknown as { results?: RewardsResponse })?.results ?? null;
-  const rewards: Reward[] = rewardsPayload?.rewards?.slice(0, 5) ?? [];
+  const allRewards: Reward[] = rewardsPayload?.rewards ?? [];
+  const rewards: Reward[] = allRewards.slice(0, 5);
 
   const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;
   const communityStats = statsData?.data ?? null;
@@ -138,9 +140,15 @@ export default function Dashboard() {
   const plasticDisplay =
     plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)}kg`;
 
-  const oneWeekAgo = Date.now() - 7 * 86_400_000;
-  const weeklyReports = rewards.filter(
-    (r) => r.reward_type === 'report_submitted' && new Date(r.date_earned).getTime() > oneWeekAgo
+  // Count report_submitted rewards since Monday 00:00 of the current week
+  const now = new Date();
+  const mondayMidnight = new Date(now);
+  mondayMidnight.setHours(0, 0, 0, 0);
+  mondayMidnight.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const weeklyReports = allRewards.filter(
+    (r) =>
+      r.reward_type === 'report_submitted' &&
+      new Date(r.date_earned).getTime() >= mondayMidnight.getTime()
   ).length;
 
   const weeklyGoal = user?.weekly_goal ?? 5;
@@ -165,6 +173,7 @@ export default function Dashboard() {
         />
       )}
 
+      <InstallBanner />
       {/* NudgeBanner */}
       <NudgeBanner />
 
