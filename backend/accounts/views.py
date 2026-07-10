@@ -47,6 +47,7 @@ from .throttles import AuthThrottle, GoogleAuthThrottle
 _ME_CACHE_TTL = 60  # seconds
 
 _UPDATABLE_PROFILE_FIELDS = [
+    "full_name",
     "bio",
     "sector",
     "preferred_language",

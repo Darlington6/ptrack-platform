@@ -22,6 +22,9 @@ export function useInstallPrompt() {
 
     const handler = (e: Event) => {
       e.preventDefault();
+      // Browser is re-offering the install prompt — clear any previous dismissal
+      // so the 14-day snooze doesn't silently block what the browser itself wants to show.
+      localStorage.removeItem(DISMISSED_KEY);
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 

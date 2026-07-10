@@ -45,8 +45,9 @@ export default function PrivacyPolicy() {
           type), recycling logs (type, date), and reward points history.
         </p>
         <p>
-          <strong>Technical data:</strong> device IP address, user-agent string, and request IDs
-          used for distributed tracing and abuse prevention.
+          <strong>Technical data:</strong> IP address and user-agent string, collected only for
+          administrator accounts and used exclusively for audit logging and accountability. Users
+          are informed of this collection before being granted administrator access.
         </p>
         <p>
           <strong>Preferences:</strong> language, theme, notification settings, and leaderboard
