@@ -33,23 +33,30 @@ export function BottomNav() {
 
     // Flush the queue and then re-read the count so the badge clears promptly.
     const flushAndCheck = () => {
-      void flushQueue().then(({ reports, recycling, rejectedRecycling }) => {
-        void checkQueue();
-        if (reports + recycling > 0) {
-          const parts: string[] = [];
-          if (reports > 0) parts.push(`${reports} report${reports > 1 ? 's' : ''}`);
-          if (recycling > 0)
-            parts.push(`${recycling} recycling activit${recycling > 1 ? 'ies' : 'y'}`);
-          toast.success(`Synced: ${parts.join(' and ')} submitted!`);
-          void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
-          void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      void flushQueue().then(
+        ({ reports, recycling, rejectedRecycling, abandonedReports, abandonedRecycling }) => {
+          void checkQueue();
+          if (reports + recycling > 0) {
+            const parts: string[] = [];
+            if (reports > 0) parts.push(`${reports} report${reports > 1 ? 's' : ''}`);
+            if (recycling > 0)
+              parts.push(`${recycling} recycling activit${recycling > 1 ? 'ies' : 'y'}`);
+            toast.success(`Synced: ${parts.join(' and ')} submitted!`);
+            void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
+            void qc.invalidateQueries({ queryKey: ['dashboard'] });
+          }
+          if (rejectedRecycling > 0) {
+            toast.error(
+              "You've already logged a recycling activity today. The saved entry has been removed."
+            );
+          }
+          if (abandonedReports + abandonedRecycling > 0) {
+            toast.error(
+              'Some saved items could not be synced after several attempts and have been removed. Please re-submit them.'
+            );
+          }
         }
-        if (rejectedRecycling > 0) {
-          toast.error(
-            "You've already logged a recycling activity today. The saved entry has been removed."
-          );
-        }
-      });
+      );
     };
 
     const onOnline = flushAndCheck;
@@ -58,8 +65,17 @@ export function BottomNav() {
         reports = 0,
         recycling = 0,
         rejectedRecycling = 0,
-      } = (e as CustomEvent<{ reports: number; recycling: number; rejectedRecycling: number }>)
-        .detail ?? {};
+        abandonedReports = 0,
+        abandonedRecycling = 0,
+      } = (
+        e as CustomEvent<{
+          reports: number;
+          recycling: number;
+          rejectedRecycling: number;
+          abandonedReports: number;
+          abandonedRecycling: number;
+        }>
+      ).detail ?? {};
       void checkQueue();
       if (reports + recycling > 0) {
         void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
@@ -68,6 +84,11 @@ export function BottomNav() {
       if (rejectedRecycling > 0) {
         toast.error(
           "You've already logged a recycling activity today. The saved entry has been removed."
+        );
+      }
+      if (abandonedReports + abandonedRecycling > 0) {
+        toast.error(
+          'Some saved items could not be synced after several attempts and have been removed. Please re-submit them.'
         );
       }
     };

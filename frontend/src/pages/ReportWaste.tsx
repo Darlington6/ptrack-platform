@@ -53,7 +53,8 @@ export default function ReportWaste() {
   const { data: pointConfigs } = useQuery<Record<string, number>>({
     queryKey: ['point-configs'],
     queryFn: () => client.get<Record<string, number>>('/point-configs/').then((r) => r.data),
-    staleTime: 60_000,
+    staleTime: 60 * 60_000,
+    gcTime: 7 * 24 * 60 * 60_000,
   });
   const reportPts = pointConfigs?.['report_submitted'] ?? 10;
 

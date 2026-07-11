@@ -125,22 +125,46 @@ export async function flushQueue(): Promise<{
   reports: number;
   recycling: number;
   rejectedRecycling: number;
+  abandonedReports: number;
+  abandonedRecycling: number;
 }> {
-  if (_flushing) return { reports: 0, recycling: 0, rejectedRecycling: 0 };
+  if (_flushing)
+    return {
+      reports: 0,
+      recycling: 0,
+      rejectedRecycling: 0,
+      abandonedReports: 0,
+      abandonedRecycling: 0,
+    };
   _flushing = true;
   let syncedReports = 0;
   let syncedRecycling = 0;
   let rejectedRecycling = 0;
+  let abandonedReports = 0;
+  let abandonedRecycling = 0;
   try {
     const token = useAuthStore.getState().accessToken;
-    if (!token) return { reports: 0, recycling: 0, rejectedRecycling: 0 };
+    if (!token)
+      return {
+        reports: 0,
+        recycling: 0,
+        rejectedRecycling: 0,
+        abandonedReports: 0,
+        abandonedRecycling: 0,
+      };
 
     const db = await getDB();
 
     // ── Flush pending reports ───────────────────────────────────────────────
     const reports = await db.getAll('pending_reports');
     for (const report of reports) {
-      if (report.retry_count >= MAX_RETRIES || report.id == null) continue;
+      if (report.id == null) continue;
+      if (report.retry_count >= MAX_RETRIES) {
+        // Give up — delete so the badge clears and the user isn't misled
+        await db.delete('pending_reports', report.id);
+        abandonedReports++;
+        continue;
+      }
       try {
         const formData = new FormData();
         formData.append('latitude', String(report.payload.latitude));
@@ -177,7 +201,12 @@ export async function flushQueue(): Promise<{
     // ── Flush pending recycling ─────────────────────────────────────────────
     const recycling = await db.getAll('pending_recycling');
     for (const activity of recycling) {
-      if (activity.retry_count >= MAX_RETRIES || activity.id == null) continue;
+      if (activity.id == null) continue;
+      if (activity.retry_count >= MAX_RETRIES) {
+        await db.delete('pending_recycling', activity.id);
+        abandonedRecycling++;
+        continue;
+      }
       try {
         const response = await fetch(`${BASE_API}/recycling/`, {
           method: 'POST',
@@ -214,11 +243,23 @@ export async function flushQueue(): Promise<{
     _flushing = false;
     window.dispatchEvent(
       new CustomEvent('queue-flushed', {
-        detail: { reports: syncedReports, recycling: syncedRecycling, rejectedRecycling },
+        detail: {
+          reports: syncedReports,
+          recycling: syncedRecycling,
+          rejectedRecycling,
+          abandonedReports,
+          abandonedRecycling,
+        },
       })
     );
   }
-  return { reports: syncedReports, recycling: syncedRecycling, rejectedRecycling };
+  return {
+    reports: syncedReports,
+    recycling: syncedRecycling,
+    rejectedRecycling,
+    abandonedReports,
+    abandonedRecycling,
+  };
 }
 
 export async function getQueueStats(): Promise<{ reports: number; recycling: number }> {
