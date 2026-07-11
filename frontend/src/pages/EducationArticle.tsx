@@ -78,8 +78,12 @@ export default function EducationArticle() {
       />
 
       {article.cover_image && (
-        <div className="w-full h-52 overflow-hidden">
-          <img src={article.cover_image} alt={title} className="w-full h-full object-cover" />
+        <div className="w-full bg-gray-100 dark:bg-slate-800 flex justify-center">
+          <img
+            src={article.cover_image}
+            alt={title}
+            className="max-w-full max-h-[75vh] object-contain"
+          />
         </div>
       )}
 
