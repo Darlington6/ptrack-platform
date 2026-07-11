@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Map, Camera, Gift, User, LogOut, Activity, Recycle, BookOpen } from 'lucide-react';
+import {
+  Home,
+  Map,
+  Camera,
+  Gift,
+  User,
+  LogOut,
+  Activity,
+  Recycle,
+  BookOpen,
+  Trophy,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
 import { getQueueStats } from '../../lib/offlineQueue';
@@ -17,6 +28,7 @@ const SECONDARY_NAV = [
   { to: '/activity', icon: Activity, label: 'My Activity', end: false },
   { to: '/centres', icon: Recycle, label: 'Recycling Centres', end: false },
   { to: '/education', icon: BookOpen, label: 'Education', end: false },
+  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', end: false },
 ] as const;
 
 export function CitizenSidebar() {
