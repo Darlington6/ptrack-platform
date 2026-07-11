@@ -148,8 +148,12 @@ export default function ReportDetail() {
     <div className="pb-24">
       {/* Hero image */}
       {report.image ? (
-        <div className="w-full h-56 bg-gray-200 dark:bg-slate-700 overflow-hidden">
-          <img src={report.image} alt="Waste report" className="w-full h-full object-cover" />
+        <div className="w-full bg-gray-100 dark:bg-slate-800 flex justify-center">
+          <img
+            src={report.image}
+            alt="Waste report"
+            className="max-w-full max-h-[75vh] object-contain"
+          />
         </div>
       ) : (
         <div className="w-full h-40 bg-gray-100 dark:bg-slate-800 flex items-center justify-center">

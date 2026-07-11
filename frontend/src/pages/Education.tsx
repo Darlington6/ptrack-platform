@@ -27,7 +27,7 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
         <img
           src={article.cover_image}
           alt={title}
-          className="w-24 h-24 object-cover flex-shrink-0"
+          className="w-24 self-stretch object-cover flex-shrink-0"
         />
       ) : (
         <div className="w-24 h-24 bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
