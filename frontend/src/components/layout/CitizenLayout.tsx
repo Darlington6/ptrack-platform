@@ -17,7 +17,7 @@ export default function CitizenLayout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       <CitizenSidebar />
-      <div className="lg:ml-64 flex flex-col min-h-screen">
+      <div className="lg:ml-[24vw] flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1 pb-24 lg:pb-6">
           <Outlet />
