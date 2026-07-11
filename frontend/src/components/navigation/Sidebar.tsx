@@ -39,7 +39,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-64 min-h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col fixed top-0 left-0 z-30">
+    <aside className="w-[24vw] min-h-screen bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex flex-col fixed top-0 left-0 z-30">
       <div className="px-6 py-5 border-b border-gray-200 dark:border-slate-700">
         <span className="text-xl font-bold text-green-600">pTrack</span>
         <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Admin Portal</p>

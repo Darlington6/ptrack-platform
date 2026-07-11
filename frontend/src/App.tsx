@@ -68,7 +68,7 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex">
       <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
+      <div className="flex-1 ml-[24vw] flex flex-col">
         <Outlet />
       </div>
     </div>
