@@ -36,11 +36,7 @@ body {
 .dark .gm-style-iw-tc::after {
   background-color: #1e293b !important;
 }
-.dark button.gm-ui-hover-effect {
-  background-color: #334155 !important;
-  border-radius: 50% !important;
-  opacity: 1 !important;
-}
-.dark button.gm-ui-hover-effect span {
-  background-color: #94a3b8 !important;
+.dark button.gm-ui-hover-effect > img,
+.dark button.gm-ui-hover-effect > span {
+  filter: invert(1) !important;
 }
