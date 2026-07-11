@@ -1,9 +1,44 @@
 import json
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
 _SENSITIVE_KEYS = frozenset({"password", "confirm_password", "token", "refresh", "access"})
+
+# Ordered most-specific first so that e.g. /admin/recycling-centres/5/ matches the
+# integer-ID rule before the type-only /recycling-centres/ fallback.
+# Patterns with a capturing group (\d+) populate target_id; others leave it None.
+_TARGET_RULES: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"/reports/(\d+)"), "WasteReport"),
+    (re.compile(r"/admin/users/(\d+)"), "User"),
+    (re.compile(r"/admin/recycling-centres/(\d+)"), "RecyclingCentre"),
+    (re.compile(r"/admin/configurations/points/(\d+)"), "PointConfiguration"),
+    (re.compile(r"/admin/configurations/badges/(\d+)"), "BadgeDefinition"),
+    (re.compile(r"/admin/audit-logs/(\d+)"), "AuditLog"),
+    (re.compile(r"/notifications/(\d+)"), "Notification"),
+    (re.compile(r"/recycling-centres/(\d+)"), "RecyclingCentre"),
+    # Type-only: list/create, bulk, and slug-based routes
+    (re.compile(r"/admin/reports/"), "WasteReport"),
+    (re.compile(r"/reports/"), "WasteReport"),
+    (re.compile(r"/admin/recycling-centres/"), "RecyclingCentre"),
+    (re.compile(r"/recycling-centres/"), "RecyclingCentre"),
+    (re.compile(r"/admin/users/"), "User"),
+    (re.compile(r"/admin/configurations/points"), "PointConfiguration"),
+    (re.compile(r"/admin/configurations/badges"), "BadgeDefinition"),
+    (re.compile(r"/education/articles/"), "Article"),
+    (re.compile(r"/recycling/"), "RecyclingActivity"),
+    (re.compile(r"/notifications/"), "Notification"),
+]
+
+
+def _extract_target(path: str) -> tuple[str, int | None]:
+    for pattern, model_name in _TARGET_RULES:
+        m = pattern.search(path)
+        if m:
+            target_id = int(m.group(1)) if m.lastindex else None
+            return model_name, target_id
+    return "", None
 
 
 def _sanitise_body(raw: bytes) -> dict:
@@ -62,9 +97,12 @@ class AuditLogMiddleware:
         try:
             from .models import AuditLog
 
+            target_type, target_id = _extract_target(request.path)
             AuditLog.objects.create(
                 actor=user,
                 action=f"{request.method} {request.path}",
+                target_type=target_type,
+                target_id=target_id,
                 metadata={
                     "body": _sanitise_body(getattr(request, "_audit_body", b"")),
                     "status_code": response.status_code,
