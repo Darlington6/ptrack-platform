@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("health/", views.health_check, name="health-check"),
+    # Internal: triggered by GitHub Actions cron workflow
     path("internal/cron/<str:command>/", views.run_cron, name="run-cron"),
     # Notifications
     path("notifications/", views.notifications_list, name="notifications-list"),

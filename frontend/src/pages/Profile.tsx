@@ -152,7 +152,8 @@ export default function Profile() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-            <MapPin size={12} /> {user?.sector} · {t('joined', { date: formatDate(user?.created_at ?? '') })}
+            <MapPin size={12} /> {user?.sector} ·{' '}
+            {t('joined', { date: formatDate(user?.created_at ?? '') })}
           </p>
           {user?.bio && (
             <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">{user.bio}</p>

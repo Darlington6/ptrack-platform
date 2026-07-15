@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+// Static about page — content driven by the 'about' i18n namespace
 export default function About() {
   const navigate = useNavigate();
   const { t } = useTranslation('about');

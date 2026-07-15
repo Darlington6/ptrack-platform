@@ -14,12 +14,7 @@ interface Slide {
   body: string;
 }
 
-function buildSlides(
-  report: number,
-  recycling: number,
-  bonus: number,
-  t: TFunction
-): Slide[] {
+function buildSlides(report: number, recycling: number, bonus: number, t: TFunction): Slide[] {
   return [
     {
       bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',

@@ -70,8 +70,7 @@ export default function RecyclingModal({ onClose }: Props) {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
-          const msg =
-            (err.response.data as { detail?: string }).detail ?? t('already_logged');
+          const msg = (err.response.data as { detail?: string }).detail ?? t('already_logged');
           toast.error(msg);
           setLoading(false);
           return;
@@ -140,7 +139,8 @@ export default function RecyclingModal({ onClose }: Props) {
               htmlFor="recycling-note"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              {t('note_label')} <span className="font-normal text-gray-400">{t('note_optional')}</span>
+              {t('note_label')}{' '}
+              <span className="font-normal text-gray-400">{t('note_optional')}</span>
             </label>
             <textarea
               id="recycling-note"

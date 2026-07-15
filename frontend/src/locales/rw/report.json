@@ -29,5 +29,7 @@
   "submit_failed": "Kohereza raporo ntibyakunze. Ongera ugerageze.",
   "points_earn": "Uzateza",
   "points_for": "kuri iyi raporo",
-  "pts_label": "+{{pts}} amanota"
+  "pts_label": "+{{pts}} amanota",
+  "glass": "Viringanyi",
+  "metal": "Icuma"
 }

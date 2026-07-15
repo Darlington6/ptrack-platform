@@ -48,7 +48,9 @@ export default function ThemeSettings() {
               i < THEMES.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''
             }`}
           >
-            <span className="text-sm font-medium text-gray-800 dark:text-slate-200">{th.label}</span>
+            <span className="text-sm font-medium text-gray-800 dark:text-slate-200">
+              {th.label}
+            </span>
             {(user?.theme_preference ?? 'system') === th.value && (
               <Check size={18} className="text-green-600" />
             )}

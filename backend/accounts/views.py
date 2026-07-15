@@ -16,6 +16,7 @@ Endpoints:
   POST /api/v1/auth/verify/confirm/          — confirm OTP and mark channel verified
   POST /api/v1/auth/password/reset/request/  — request password reset OTP
   POST /api/v1/auth/password/reset/confirm/  — confirm OTP and set new password
+  POST /api/v1/auth/google/                  — Google OAuth sign-in / sign-up
 """
 
 import hashlib

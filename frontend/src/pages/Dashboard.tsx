@@ -282,8 +282,14 @@ export default function Dashboard() {
           <div className="grid grid-cols-3 text-center mt-4">
             {[
               { value: communityStats?.total_reports ?? '—', label: t('dashboard:total_reports') },
-              { value: communityStats?.active_citizens ?? '—', label: t('dashboard:active_citizens') },
-              { value: communityStats ? plasticDisplay : '—', label: t('dashboard:plastic_logged') },
+              {
+                value: communityStats?.active_citizens ?? '—',
+                label: t('dashboard:active_citizens'),
+              },
+              {
+                value: communityStats ? plasticDisplay : '—',
+                label: t('dashboard:plastic_logged'),
+              },
             ].map((s) => (
               <div key={s.label}>
                 <p className="text-2xl font-bold text-white">{s.value}</p>

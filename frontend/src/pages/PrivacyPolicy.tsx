@@ -35,10 +35,18 @@ export default function PrivacyPolicy() {
       </Section>
 
       <Section title={t('s2_title')}>
-        <p><strong>{t('s2_account_label')}</strong> {t('s2_account_body')}</p>
-        <p><strong>{t('s2_activity_label')}</strong> {t('s2_activity_body')}</p>
-        <p><strong>{t('s2_technical_label')}</strong> {t('s2_technical_body')}</p>
-        <p><strong>{t('s2_prefs_label')}</strong> {t('s2_prefs_body')}</p>
+        <p>
+          <strong>{t('s2_account_label')}</strong> {t('s2_account_body')}
+        </p>
+        <p>
+          <strong>{t('s2_activity_label')}</strong> {t('s2_activity_body')}
+        </p>
+        <p>
+          <strong>{t('s2_technical_label')}</strong> {t('s2_technical_body')}
+        </p>
+        <p>
+          <strong>{t('s2_prefs_label')}</strong> {t('s2_prefs_body')}
+        </p>
       </Section>
 
       <Section title={t('s3_title')}>
@@ -73,9 +81,15 @@ export default function PrivacyPolicy() {
       </Section>
 
       <Section title={t('s6_title')}>
-        <p><strong>{t('cloudinary_label')}</strong> {t('s6_cloudinary')}</p>
-        <p><strong>{t('render_label')}</strong> {t('s6_render')}</p>
-        <p><strong>{t('maps_label')}</strong> {t('s6_maps')}</p>
+        <p>
+          <strong>{t('cloudinary_label')}</strong> {t('s6_cloudinary')}
+        </p>
+        <p>
+          <strong>{t('render_label')}</strong> {t('s6_render')}
+        </p>
+        <p>
+          <strong>{t('maps_label')}</strong> {t('s6_maps')}
+        </p>
       </Section>
 
       <Section title={t('s7_title')}>

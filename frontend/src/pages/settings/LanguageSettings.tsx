@@ -33,7 +33,9 @@ export default function LanguageSettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t('page_language')}</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+          {t('page_language')}
+        </h1>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">

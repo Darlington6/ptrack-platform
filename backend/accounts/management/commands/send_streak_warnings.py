@@ -5,7 +5,7 @@ Finds users with streaks ≥ 2 who have not logged activity in the last 20 hours
 and sends an in-app notification, an email reminder (if opted in), and a web
 push notification (if push_enabled).
 
-Schedule: daily at 19:00 CAT (UTC+2) via Render cron:
+Schedule: daily at 19:00 CAT (UTC+2) via GitHub Actions cron:
     0 17 * * *   python manage.py send_streak_warnings
 
 Usage:

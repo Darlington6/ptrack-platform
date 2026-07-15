@@ -68,19 +68,25 @@ export default function Landing() {
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? stats.total_reports.toLocaleString() : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('reports_filed')}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                {t('reports_filed')}
+              </p>
             </div>
             <div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? stats.active_citizens.toLocaleString() : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('active_citizens')}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                {t('active_citizens')}
+              </p>
             </div>
             <div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? plasticDisplay : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('plastic_tracked')}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                {t('plastic_tracked')}
+              </p>
             </div>
           </div>
         </div>

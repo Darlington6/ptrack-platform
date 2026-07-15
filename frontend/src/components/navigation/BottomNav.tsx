@@ -74,7 +74,13 @@ export function BottomNav() {
           abandonedReports: number;
           abandonedRecycling: number;
         }>
-      ).detail ?? { reports: 0, recycling: 0, rejectedRecycling: 0, abandonedReports: 0, abandonedRecycling: 0 };
+      ).detail ?? {
+        reports: 0,
+        recycling: 0,
+        rejectedRecycling: 0,
+        abandonedReports: 0,
+        abandonedRecycling: 0,
+      };
       showSyncResult(detail);
     };
     const onSwMessage = (e: MessageEvent) => {

@@ -1,3 +1,4 @@
+{# pTrack bilingual email template (EN/RW) #}
 {% if user.preferred_language == 'rw' %}Muraho {{ user.full_name|default:user.username }},
 
 Iminsi ikurikiranyaho ya pTrack iri mu kaga!

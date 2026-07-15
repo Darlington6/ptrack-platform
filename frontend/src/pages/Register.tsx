@@ -268,9 +268,7 @@ export default function Register() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500 mt-1">{t('password_min')}</p>
-            )}
+            {errors.password && <p className="text-xs text-red-500 mt-1">{t('password_min')}</p>}
             {passwordValue.length > 0 && (
               <>
                 <div className="flex gap-1 mt-1.5">
@@ -370,7 +368,9 @@ export default function Register() {
               </Link>
             </span>
           </label>
-          {errors.agreed && <p className="text-xs text-red-500 -mt-2">{t('agree_terms_required')}</p>}
+          {errors.agreed && (
+            <p className="text-xs text-red-500 -mt-2">{t('agree_terms_required')}</p>
+          )}
 
           <button
             type="submit"

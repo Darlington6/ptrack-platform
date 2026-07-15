@@ -29,5 +29,7 @@
   "submit_failed": "Failed to submit report. Please try again.",
   "points_earn": "You'll earn",
   "points_for": "for this report",
-  "pts_label": "+{{pts}} points"
+  "pts_label": "+{{pts}} points",
+  "glass": "Glass",
+  "metal": "Metal"
 }

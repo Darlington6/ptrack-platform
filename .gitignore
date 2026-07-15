@@ -96,4 +96,4 @@ playwright-report/
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 .env.prod
-ptrack_backup.dump
+*.dump

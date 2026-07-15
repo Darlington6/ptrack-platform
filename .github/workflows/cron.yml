@@ -1,3 +1,4 @@
+# Fires scheduled management commands against the Render backend via a shared CRON_SECRET
 name: Scheduled Tasks
 
 on:

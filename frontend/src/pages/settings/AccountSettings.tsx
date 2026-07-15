@@ -182,9 +182,7 @@ export default function AccountSettings() {
           >
             {[1, 2, 3, 5, 7, 10, 14, 20].map((n) => (
               <option key={n} value={n}>
-                {n === 1
-                  ? t('weekly_report_singular', { n })
-                  : t('weekly_report_plural', { n })}
+                {n === 1 ? t('weekly_report_singular', { n }) : t('weekly_report_plural', { n })}
               </option>
             ))}
           </select>

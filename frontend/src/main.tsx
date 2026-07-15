@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import './lib/i18n';
+import './lib/i18n'; // must be imported before App to initialise react-i18next
 import { Toaster } from 'sonner';
 import { initSentry } from './lib/sentry';
 import { useThemeStore } from './stores/themeStore';

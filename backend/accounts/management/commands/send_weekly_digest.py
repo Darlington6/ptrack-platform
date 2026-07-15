@@ -4,7 +4,7 @@ Management command: send_weekly_digest
 Sends a weekly summary email (and push notification if opted in) to every user
 who has not disabled weekly_digest in their notification preferences.
 
-Schedule: every Sunday at 18:00 CAT (UTC+2) via Render cron:
+Schedule: every Sunday at 18:00 CAT (UTC+2) via GitHub Actions cron:
     0 16 * * 0   python manage.py send_weekly_digest
 
 Usage:

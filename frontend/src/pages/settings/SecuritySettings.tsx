@@ -90,7 +90,9 @@ export default function SecuritySettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t('page_security')}</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+          {t('page_security')}
+        </h1>
       </div>
 
       <div className="mb-2">

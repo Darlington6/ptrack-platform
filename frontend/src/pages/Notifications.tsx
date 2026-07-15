@@ -37,10 +37,7 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 
 type FilterKey = 'all' | 'unread' | 'streak_warning' | 'badge_earned' | 'community';
 
-function groupByDate(
-  items: Notification[],
-  t: TFunction
-): Record<string, Notification[]> {
+function groupByDate(items: Notification[], t: TFunction): Record<string, Notification[]> {
   const today = new Date();
   const todayKey = t('group_today');
   const weekKey = t('group_this_week');

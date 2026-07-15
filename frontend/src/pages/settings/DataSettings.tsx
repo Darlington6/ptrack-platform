@@ -74,7 +74,9 @@ export default function DataSettings() {
           onClick={handleExport}
           className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 text-left hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
         >
-          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">{t('export_title')}</p>
+          <p className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+            {t('export_title')}
+          </p>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('export_desc')}</p>
         </button>
 

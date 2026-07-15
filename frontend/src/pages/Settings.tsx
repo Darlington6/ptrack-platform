@@ -11,7 +11,12 @@ export default function Settings() {
     { icon: Lock, label: t('security'), desc: t('security_desc'), to: '/settings/security' },
     { icon: Globe, label: t('language'), desc: t('language_desc'), to: '/settings/language' },
     { icon: Sun, label: t('theme'), desc: t('theme_desc'), to: '/settings/theme' },
-    { icon: Bell, label: t('notifications'), desc: t('notifications_desc'), to: '/settings/notifications' },
+    {
+      icon: Bell,
+      label: t('notifications'),
+      desc: t('notifications_desc'),
+      to: '/settings/notifications',
+    },
     { icon: Eye, label: t('privacy'), desc: t('privacy_desc'), to: '/settings/privacy' },
     { icon: Database, label: t('data'), desc: t('data_desc'), to: '/settings/data' },
   ] as const;

@@ -64,7 +64,8 @@ export default function Verify() {
     }
   }
 
-  const channelLabel = channel === 'email' ? t('email_tab').toLowerCase() : t('phone_tab').toLowerCase();
+  const channelLabel =
+    channel === 'email' ? t('email_tab').toLowerCase() : t('phone_tab').toLowerCase();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4">
