@@ -9,5 +9,6 @@
   "filter_rejected": "Rejected",
   "no_reports": "No reports in this area.",
   "view_detail": "View detail →",
-  "citizen": "Citizen"
+  "citizen": "Citizen",
+  "_locale": "en"
 }

@@ -10,5 +10,6 @@
   "chart_recycling": "Recycling",
   "your_contribution": "Your contribution",
   "contribution_body": "You have {{points}} points and rank in the top citizens of {{sector}}.",
-  "streak_label": "Current streak: {{days}} days"
+  "streak_label": "Current streak: {{days}} days",
+  "_locale": "en"
 }

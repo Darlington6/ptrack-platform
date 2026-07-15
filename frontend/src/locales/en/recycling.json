@@ -15,5 +15,6 @@
   "saved_offline": "Saved offline — will sync automatically when you're back online.",
   "saved_network": "Saved — will sync when you're back online.",
   "success": "+{{points}} points! Recycling activity logged.",
-  "failed": "Failed to log activity. Please try again."
+  "failed": "Failed to log activity. Please try again.",
+  "_locale": "en"
 }

@@ -19,5 +19,6 @@
   "mat_hdpe": "HDPE",
   "mat_pp": "PP",
   "dist_m": "{{dist}} m away",
-  "dist_km": "{{dist}} km away"
+  "dist_km": "{{dist}} km away",
+  "_locale": "en"
 }

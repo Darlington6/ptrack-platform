@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { createPortal } from 'react-dom';
 import { MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

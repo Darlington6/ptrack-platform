@@ -9,5 +9,6 @@
   "group_this_week": "This week",
   "group_earlier": "Earlier",
   "all_caught_up": "You're all caught up.",
-  "load_failed": "Failed to load notifications."
+  "load_failed": "Failed to load notifications.",
+  "_locale": "en"
 }

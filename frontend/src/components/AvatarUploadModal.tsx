@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import Cropper from 'react-easy-crop';
 import imageCompression from 'browser-image-compression';
 import { useState, useCallback } from 'react';

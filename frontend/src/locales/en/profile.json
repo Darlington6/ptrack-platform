@@ -27,5 +27,6 @@
   "remove_photo_confirm": "Remove",
   "photo_removed": "Profile photo removed.",
   "photo_remove_failed": "Failed to remove photo.",
-  "version": "pTrack v1.0.0 · Built for Kigali."
+  "version": "pTrack v1.0.0 · Built for Kigali.",
+  "_locale": "en"
 }

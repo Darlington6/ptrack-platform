@@ -31,5 +31,6 @@
   "points_for": "kuri iyi raporo",
   "pts_label": "+{{pts}} amanota",
   "glass": "Viringanyi",
-  "metal": "Icuma"
+  "metal": "Icuma",
+  "_locale": "rw"
 }

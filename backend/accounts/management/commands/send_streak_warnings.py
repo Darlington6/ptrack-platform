@@ -43,8 +43,8 @@ class Command(BaseCommand):
             ).exists():
                 continue
 
-            lang = getattr(user, 'preferred_language', 'en') or 'en'
-            if lang == 'rw':
+            lang = getattr(user, "preferred_language", "en") or "en"
+            if lang == "rw":
                 title = "Iminsi ikurikiranyaho iri mu kaga!"
                 body = (
                     f"Ufite iminsi {user.current_streak} ikurikiranyaho. "

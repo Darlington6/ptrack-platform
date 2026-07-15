@@ -28,5 +28,6 @@
   "resolve_confirm": "Emeza Gukemuwa",
   "delete_title": "Siba raporo iyi?",
   "delete_message": "Ibi bizasiba raporo yawe burundu. Ntibivuka.",
-  "delete_confirm": "Siba"
+  "delete_confirm": "Siba",
+  "_locale": "rw"
 }

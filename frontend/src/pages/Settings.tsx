@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { NavLink, useNavigate } from 'react-router-dom';
 import { User, Lock, Globe, Sun, Bell, Eye, Database, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

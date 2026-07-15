@@ -38,5 +38,6 @@
   "page_report_detail": "Report Detail",
   "sync_success": "Synced: {{count}} submission(s) uploaded!",
   "sync_rejected_recycling": "You've already logged a recycling activity today. The saved entry has been removed.",
-  "sync_abandoned": "Some saved items could not be synced after several attempts and have been removed. Please re-submit them."
+  "sync_abandoned": "Some saved items could not be synced after several attempts and have been removed. Please re-submit them.",
+  "_locale": "en"
 }

@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { Download, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';

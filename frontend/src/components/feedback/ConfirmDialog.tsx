@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';

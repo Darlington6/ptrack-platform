@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {

@@ -44,5 +44,6 @@
   "contact_pre": "Ibibazo? Tuandikire kuri",
   "cloudinary_label": "Cloudinary",
   "render_label": "Render",
-  "maps_label": "Google Maps"
+  "maps_label": "Google Maps",
+  "_locale": "rw"
 }

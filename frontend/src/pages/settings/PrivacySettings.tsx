@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';

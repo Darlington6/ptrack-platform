@@ -30,5 +30,6 @@
   "s9_body": "These Terms are governed by the laws of the Republic of Rwanda. Any disputes shall be resolved in the courts of Kigali, Rwanda.",
   "s10_title": "10. Contact",
   "s10_body": "For questions about these Terms, email",
-  "copyright": "© {{year}} pTrack · MIT License"
+  "copyright": "© {{year}} pTrack · MIT License",
+  "_locale": "en"
 }

@@ -121,5 +121,6 @@
   "page_theme": "Theme",
   "page_notifications": "Notifications",
   "page_privacy": "Privacy",
-  "page_data": "Data & Privacy"
+  "page_data": "Data & Privacy",
+  "_locale": "en"
 }

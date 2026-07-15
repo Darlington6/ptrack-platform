@@ -38,5 +38,6 @@
   "page_report_detail": "Incamake ya Raporo",
   "sync_success": "Byoherejwe: ibintu {{count}} bishyikirijwe!",
   "sync_rejected_recycling": "Waramaze gushyikiriza igikorwa cya recyclage uyu munsi. Ibyabitswe byakuritswe.",
-  "sync_abandoned": "Ibintu bimwe ntibyanashobora gusubizwa nyuma y'igerageza ryinshi kandi byakuritswe. Nyamuneka subiramo kubishyikiriza."
+  "sync_abandoned": "Ibintu bimwe ntibyanashobora gusubizwa nyuma y'igerageza ryinshi kandi byakuritswe. Nyamuneka subiramo kubishyikiriza.",
+  "_locale": "rw"
 }

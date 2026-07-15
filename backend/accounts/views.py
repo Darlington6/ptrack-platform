@@ -116,8 +116,8 @@ def register(request):
             from core.email import send_email
 
             code = create_verification_code(user, "email", "register_verify")
-            lang = getattr(user, 'preferred_language', 'en') or 'en'
-            subject = "Kwemeza imeyili ya pTrack" if lang == 'rw' else "Verify your pTrack email"
+            lang = getattr(user, "preferred_language", "en") or "en"
+            subject = "Kwemeza imeyili ya pTrack" if lang == "rw" else "Verify your pTrack email"
             send_email(
                 user.email,
                 subject,
@@ -592,8 +592,10 @@ def verify_send(request):
     if channel == "email":
         from core.email import send_email
 
-        lang = getattr(request.user, 'preferred_language', 'en') or 'en'
-        subject = "Kode yawe yo kwemeza kuri pTrack" if lang == 'rw' else "Your pTrack verification code"
+        lang = getattr(request.user, "preferred_language", "en") or "en"
+        subject = (
+            "Kode yawe yo kwemeza kuri pTrack" if lang == "rw" else "Your pTrack verification code"
+        )
         send_email(
             request.user.email,
             subject,
@@ -675,8 +677,12 @@ def password_reset_request(request):
             try:
                 from core.email import send_email
 
-                lang = getattr(user, 'preferred_language', 'en') or 'en'
-                subject = "Kode yo gusubiza ijambo ry'ibanga rya pTrack" if lang == 'rw' else "Your pTrack password reset code"
+                lang = getattr(user, "preferred_language", "en") or "en"
+                subject = (
+                    "Kode yo gusubiza ijambo ry'ibanga rya pTrack"
+                    if lang == "rw"
+                    else "Your pTrack password reset code"
+                )
                 send_email(
                     user.email,
                     subject,

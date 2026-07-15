@@ -8,5 +8,6 @@
   "label_report_submitted": "Raporo y'Imyanda Yoherejwe",
   "label_recycling_logged": "Ugusubiza Kwanditswe",
   "label_verification_bonus": "Raporo Yemejwe",
-  "waste_label": "Raporo y'imyanda ya {{type}}"
+  "waste_label": "Raporo y'imyanda ya {{type}}",
+  "_locale": "rw"
 }

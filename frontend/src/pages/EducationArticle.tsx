@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Clock, Share2 } from 'lucide-react';

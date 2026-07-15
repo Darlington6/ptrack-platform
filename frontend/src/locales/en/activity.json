@@ -8,5 +8,6 @@
   "label_report_submitted": "Waste Report Submitted",
   "label_recycling_logged": "Recycling Logged",
   "label_verification_bonus": "Report Verified",
-  "waste_label": "{{type}} waste report"
+  "waste_label": "{{type}} waste report",
+  "_locale": "en"
 }

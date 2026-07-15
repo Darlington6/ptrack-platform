@@ -50,3 +50,4 @@ jobs:
             echo "Command failed with HTTP $HTTP_STATUS"
             exit 1
           fi
+# ---

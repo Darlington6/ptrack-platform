@@ -19,5 +19,6 @@
   "mat_hdpe": "HDPE",
   "mat_pp": "PP",
   "dist_m": "metero {{dist}} uvuye hano",
-  "dist_km": "km {{dist}} uvuye hano"
+  "dist_km": "km {{dist}} uvuye hano",
+  "_locale": "rw"
 }

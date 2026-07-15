@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { NavLink, useNavigate } from 'react-router-dom';

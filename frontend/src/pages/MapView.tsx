@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Map, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';

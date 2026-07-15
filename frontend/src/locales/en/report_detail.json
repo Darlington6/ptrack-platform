@@ -28,5 +28,6 @@
   "resolve_confirm": "Mark Resolved",
   "delete_title": "Delete this report?",
   "delete_message": "This will permanently remove your report. This cannot be undone.",
-  "delete_confirm": "Delete"
+  "delete_confirm": "Delete",
+  "_locale": "en"
 }

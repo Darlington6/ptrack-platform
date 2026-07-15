@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 // Onboarding nudges shown on the dashboard to guide new users toward key actions
 import { useEffect, useState, type ReactNode } from 'react';
 import {

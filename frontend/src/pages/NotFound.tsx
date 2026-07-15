@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

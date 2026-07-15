@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Recycle } from 'lucide-react';

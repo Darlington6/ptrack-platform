@@ -46,5 +46,6 @@
   "geo_not_now": "Not now",
   "install_prompt": "Install pTrack for offline access and quick reports.",
   "install": "Install",
-  "take_action": "Take action"
+  "take_action": "Take action",
+  "_locale": "en"
 }

@@ -46,5 +46,6 @@
   "geo_not_now": "Ubu oya",
   "install_prompt": "Shyira pTrack kugira ngo ukoreshe nta mbaho no gutanga raporo vuba.",
   "install": "Shyiraho",
-  "take_action": "Fata ingamba"
+  "take_action": "Fata ingamba",
+  "_locale": "rw"
 }

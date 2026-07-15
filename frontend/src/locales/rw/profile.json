@@ -27,5 +27,6 @@
   "remove_photo_confirm": "Siba",
   "photo_removed": "Ifoto ya profayile yasibwe.",
   "photo_remove_failed": "Guhagarika ifoto ntibyakunze.",
-  "version": "pTrack v1.0.0 · Yakozwe kuri Kigali."
+  "version": "pTrack v1.0.0 · Yakozwe kuri Kigali.",
+  "_locale": "rw"
 }

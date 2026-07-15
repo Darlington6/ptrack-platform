@@ -10,5 +10,6 @@
   "chart_recycling": "Ugusubiza",
   "your_contribution": "Uruhare rwawe",
   "contribution_body": "Ufite amanota {{points}} kandi uri mu ba mbere b'abaturage ba {{sector}}.",
-  "streak_label": "Iminsi ikurikiranyaho: {{days}} iminsi"
+  "streak_label": "Iminsi ikurikiranyaho: {{days}} iminsi",
+  "_locale": "rw"
 }

@@ -15,5 +15,6 @@
   "saved_offline": "Byabitswe ntukiyo — bizohereza igihe uzasubira kuri interineti.",
   "saved_network": "Byabitswe — bizohereza igihe uzasubira kuri interineti.",
   "success": "+{{points}} amanota! Igikorwa cy'ugusubiza cyanditswe.",
-  "failed": "Kwandika igikorwa ntibyakunze. Ongera ugerageze."
+  "failed": "Kwandika igikorwa ntibyakunze. Ongera ugerageze.",
+  "_locale": "rw"
 }

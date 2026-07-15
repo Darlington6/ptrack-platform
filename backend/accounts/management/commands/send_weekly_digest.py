@@ -54,8 +54,8 @@ class Command(BaseCommand):
                 or 0
             )
 
-            lang = getattr(user, 'preferred_language', 'en') or 'en'
-            if lang == 'rw':
+            lang = getattr(user, "preferred_language", "en") or "en"
+            if lang == "rw":
                 title = "Incamake ya buri cyumweru ya pTrack"
                 body = (
                     f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "

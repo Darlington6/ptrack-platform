@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MapPin, Recycle, CheckCircle, Flame, Lock, Star, Lightbulb } from 'lucide-react';

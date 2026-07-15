@@ -30,3 +30,4 @@ Open pTrack: https://ptrack-platform.vercel.app/dashboard
 
 — The pTrack Team
 {% endif %}
+{# pTrack v2 #}

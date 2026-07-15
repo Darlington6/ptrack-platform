@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

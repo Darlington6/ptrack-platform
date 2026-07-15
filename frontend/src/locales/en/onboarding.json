@@ -9,5 +9,6 @@
   "slide4_body": "Start your first report and earn {{report}} points right now. Kigali is counting on you!",
   "next": "Next",
   "get_started": "Get Started",
-  "skip": "Skip"
+  "skip": "Skip",
+  "_locale": "en"
 }

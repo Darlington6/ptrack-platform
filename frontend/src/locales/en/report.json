@@ -31,5 +31,6 @@
   "points_for": "for this report",
   "pts_label": "+{{pts}} points",
   "glass": "Glass",
-  "metal": "Metal"
+  "metal": "Metal",
+  "_locale": "en"
 }

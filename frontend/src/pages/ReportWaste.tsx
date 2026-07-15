@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate } from 'lucide-react';
