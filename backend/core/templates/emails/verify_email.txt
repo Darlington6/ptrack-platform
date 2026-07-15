@@ -1,4 +1,14 @@
-Hi {{ user.full_name|default:user.username }},
+{# pTrack bilingual email template (EN/RW) #}
+{% if user.preferred_language == 'rw' %}Muraho {{ user.full_name|default:user.username }},
+
+Kode yawe yo kwemeza kuri pTrack ni:
+
+  {{ code }}
+
+Iyi kode irangira mu minota 10. Niba utasabye ibi, urashobora gusuzugura iyi imeyili.
+
+— Itsinda rya pTrack
+{% else %}Hi {{ user.full_name|default:user.username }},
 
 Your pTrack verification code is:
 
@@ -7,3 +17,5 @@ Your pTrack verification code is:
 This code expires in 10 minutes. If you did not request this, you can safely ignore this email.
 
 — The pTrack Team
+{% endif %}
+{# pTrack v2 #}

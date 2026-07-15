@@ -1,8 +1,10 @@
+// i18n-ready: see src/locales/{en,rw}/
 import Cropper from 'react-easy-crop';
 import imageCompression from 'browser-image-compression';
 import { useState, useCallback } from 'react';
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import client from '../api/client';
@@ -39,6 +41,7 @@ async function getCroppedImg(imageSrc: string, cropArea: CropArea): Promise<Blob
 }
 
 export function AvatarUploadModal({ isOpen, onClose, onSuccess }: Props) {
+  const { t } = useTranslation('common');
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -49,7 +52,7 @@ export function AvatarUploadModal({ isOpen, onClose, onSuccess }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+      toast.error(t('photo_too_large'));
       return;
     }
     const reader = new FileReader();
@@ -76,11 +79,11 @@ export function AvatarUploadModal({ isOpen, onClose, onSuccess }: Props) {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       onSuccess(res.data.profile_picture ?? '');
-      toast.success('Profile photo updated.');
+      toast.success(t('photo_updated'));
       setImageSrc(null);
       onClose();
     } catch {
-      toast.error('Upload failed. Please try again.');
+      toast.error(t('upload_failed'));
     } finally {
       setUploading(false);
     }
@@ -92,13 +95,13 @@ export function AvatarUploadModal({ isOpen, onClose, onSuccess }: Props) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Update profile photo">
+    <Modal isOpen={isOpen} onClose={handleClose} title={t('update_photo_title')}>
       {!imageSrc ? (
         <div className="flex flex-col items-center gap-4 py-4">
           <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors">
             <Upload size={32} className="text-gray-400 mb-2" />
-            <p className="text-sm text-gray-600 dark:text-slate-400">Click to select photo</p>
-            <p className="text-xs text-gray-400 mt-0.5">JPG, PNG or WebP · max 5MB</p>
+            <p className="text-sm text-gray-600 dark:text-slate-400">{t('click_to_select')}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{t('photo_max_size')}</p>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -134,10 +137,10 @@ export function AvatarUploadModal({ isOpen, onClose, onSuccess }: Props) {
           />
           <div className="flex gap-3 mt-4">
             <Button variant="outline" onClick={() => setImageSrc(null)} className="flex-1">
-              Change
+              {t('change')}
             </Button>
             <Button onClick={handleUpload} disabled={uploading} className="flex-1">
-              {uploading ? 'Uploading…' : 'Save photo'}
+              {uploading ? t('uploading') : t('save_photo')}
             </Button>
           </div>
         </>

@@ -4,7 +4,7 @@ Management command: send_weekly_digest
 Sends a weekly summary email (and push notification if opted in) to every user
 who has not disabled weekly_digest in their notification preferences.
 
-Schedule: every Sunday at 18:00 CAT (UTC+2) via Render cron:
+Schedule: every Sunday at 18:00 CAT (UTC+2) via GitHub Actions cron:
     0 16 * * 0   python manage.py send_weekly_digest
 
 Usage:
@@ -54,11 +54,19 @@ class Command(BaseCommand):
                 or 0
             )
 
-            title = "Your weekly pTrack summary"
-            body = (
-                f"This week: {reports} reports, {recycling} recycling activities, "
-                f"{points_earned} pts."
-            )
+            lang = getattr(user, "preferred_language", "en") or "en"
+            if lang == "rw":
+                title = "Incamake ya buri cyumweru ya pTrack"
+                body = (
+                    f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
+                    f"amanota {points_earned}."
+                )
+            else:
+                title = "Your weekly pTrack summary"
+                body = (
+                    f"This week: {reports} reports, {recycling} recycling activities, "
+                    f"{points_earned} pts."
+                )
 
             notify(user, "weekly_digest", title, body, action_url="/rewards")
 

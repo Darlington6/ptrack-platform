@@ -1,0 +1,14 @@
+{
+  "title": "Amamenyesha",
+  "filter_all": "Byose",
+  "filter_unread": "Bitasomwe",
+  "filter_streaks": "Iminsi Ikurikiranyaho",
+  "filter_badges": "Ibimenyetso",
+  "filter_community": "Umuryango",
+  "group_today": "Uyu munsi",
+  "group_this_week": "Icyumweru gishize",
+  "group_earlier": "Mbere",
+  "all_caught_up": "Wasomye byose.",
+  "load_failed": "Guhuza amamenyesha ntibyakunze.",
+  "_locale": "rw"
+}

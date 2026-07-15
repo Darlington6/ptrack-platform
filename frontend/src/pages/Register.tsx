@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -12,19 +13,21 @@ import { KIGALI_SECTORS } from '../lib/sectors';
 
 // ── Password strength ─────────────────────────────────────────────────────────
 
-function getStrength(pwd: string): { score: number; label: string; color: string } {
-  if (pwd.length === 0) return { score: 0, label: '', color: '' };
+type StrengthKey = 'weak' | 'fair' | 'good' | 'strong';
+
+function getStrengthKey(pwd: string): { score: number; key: StrengthKey | ''; color: string } {
+  if (pwd.length === 0) return { score: 0, key: '', color: '' };
   let score = 0;
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
   if (/\d/.test(pwd)) score++;
   if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const map = [
-    { score: 0, label: '', color: '' },
-    { score: 1, label: 'Weak', color: 'bg-red-500' },
-    { score: 2, label: 'Fair', color: 'bg-amber-500' },
-    { score: 3, label: 'Good', color: 'bg-blue-500' },
-    { score: 4, label: 'Strong', color: 'bg-green-500' },
+  const map: { score: number; key: StrengthKey | ''; color: string }[] = [
+    { score: 0, key: '', color: '' },
+    { score: 1, key: 'weak', color: 'bg-red-500' },
+    { score: 2, key: 'fair', color: 'bg-amber-500' },
+    { score: 3, key: 'good', color: 'bg-blue-500' },
+    { score: 4, key: 'strong', color: 'bg-green-500' },
   ];
   return map[Math.min(score, 4)]!;
 }
@@ -33,16 +36,15 @@ function getStrength(pwd: string): { score: number; label: string; color: string
 
 const schema = z
   .object({
-    full_name: z.string().min(2, 'Full name required'),
+    full_name: z.string().min(2),
     email: z.string().optional(),
     phone_number: z.string().optional(),
-    password: z.string().min(8, 'Minimum 8 characters'),
+    password: z.string().min(8),
     confirm_password: z.string(),
     sector: z.string(),
-    agreed: z.boolean().refine((v) => v, 'Please agree to the terms'),
+    agreed: z.boolean().refine((v) => v),
   })
   .refine((d) => d.password === d.confirm_password, {
-    message: 'Passwords do not match',
     path: ['confirm_password'],
   });
 
@@ -78,7 +80,7 @@ export default function Register() {
     defaultValues: { sector: 'Kimironko', agreed: false },
   });
 
-  const strength = getStrength(passwordValue);
+  const strength = getStrengthKey(passwordValue);
 
   const triggerGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -92,19 +94,19 @@ export default function Register() {
       } catch (err: unknown) {
         const s = (err as { response?: { status?: number } })?.response?.status;
         if (s === 409) {
-          toast.error('An account with this email already exists. Try signing in instead.');
+          toast.error(t('google_conflict'));
         } else {
-          toast.error('Google sign-up failed. Please try again.');
+          toast.error(t('google_signup_failed'));
         }
       }
     },
-    onError: () => toast.error('Google sign-up failed. Please try again.'),
+    onError: () => toast.error(t('google_signup_failed')),
   });
 
   async function onSubmit(data: FormData) {
     const contact = contactTab === 'email' ? data.email : data.phone_number;
     if (!contact) {
-      toast.error(contactTab === 'email' ? 'Email is required.' : 'Phone number is required.');
+      toast.error(contactTab === 'email' ? t('email_required') : t('phone_required'));
       return;
     }
 
@@ -173,7 +175,6 @@ export default function Register() {
           {t('sign_up_with_google')}
         </button>
 
-        {/* OR divider */}
         <div className="flex items-center gap-3 my-4">
           <hr className="flex-1 border-gray-200 dark:border-slate-700" />
           <span className="text-xs text-gray-400">{t('or')}</span>
@@ -192,7 +193,7 @@ export default function Register() {
               className={INPUT_CLS}
             />
             {errors.full_name && (
-              <p className="text-xs text-red-500 mt-1">{errors.full_name.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('full_name_required')}</p>
             )}
             <p className="text-xs text-gray-400 mt-1">{t('legal_name_hint')}</p>
           </div>
@@ -209,7 +210,7 @@ export default function Register() {
                     : 'flex-1 py-2 text-sm font-semibold rounded-l-xl border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 flex items-center justify-center gap-1.5'
                 }
               >
-                <Mail size={14} /> Email
+                <Mail size={14} /> {t('email_tab')}
               </button>
               <button
                 type="button"
@@ -220,7 +221,7 @@ export default function Register() {
                     : 'flex-1 py-2 text-sm font-semibold rounded-r-xl border border-l-0 border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 flex items-center justify-center gap-1.5'
                 }
               >
-                <Phone size={14} /> Phone
+                <Phone size={14} /> {t('phone_tab')}
               </button>
             </div>
 
@@ -228,7 +229,7 @@ export default function Register() {
               <input
                 type="email"
                 autoComplete="email"
-                placeholder="youremail@example.com"
+                placeholder={t('email_placeholder')}
                 {...register('email')}
                 className={INPUT_CLS}
               />
@@ -236,15 +237,13 @@ export default function Register() {
               <input
                 type="tel"
                 autoComplete="tel"
-                placeholder="+250 7XX XXX XXX"
+                placeholder={t('phone_placeholder')}
                 {...register('phone_number')}
                 className={INPUT_CLS}
               />
             )}
             <p className="text-xs text-gray-400 mt-1">
-              {contactTab === 'email'
-                ? "We'll send a confirmation code to this email address."
-                : "We'll send a confirmation code to this phone number."}
+              {contactTab === 'email' ? t('email_hint') : t('phone_hint')}
             </p>
           </div>
 
@@ -270,10 +269,7 @@ export default function Register() {
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {errors.password && (
-              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
-            )}
-            {/* Strength bar */}
+            {errors.password && <p className="text-xs text-red-500 mt-1">{t('password_min')}</p>}
             {passwordValue.length > 0 && (
               <>
                 <div className="flex gap-1 mt-1.5">
@@ -286,9 +282,9 @@ export default function Register() {
                     />
                   ))}
                 </div>
-                {strength.label && (
+                {strength.key && (
                   <p className="text-xs mt-1 font-medium text-gray-600 dark:text-slate-400">
-                    {strength.label}
+                    {t(`strength_${strength.key}`)}
                   </p>
                 )}
               </>
@@ -315,7 +311,7 @@ export default function Register() {
               </button>
             </div>
             {errors.confirm_password && (
-              <p className="text-xs text-red-500 mt-1">{errors.confirm_password.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('passwords_no_match_inline')}</p>
             )}
             {!errors.confirm_password && watch('confirm_password') && passwordValue && (
               <p
@@ -324,8 +320,8 @@ export default function Register() {
                 }`}
               >
                 {watch('confirm_password') === passwordValue
-                  ? '✓ Passwords match'
-                  : '✗ Passwords do not match'}
+                  ? t('passwords_match_ok')
+                  : t('passwords_no_match_inline')}
               </p>
             )}
           </div>
@@ -351,7 +347,7 @@ export default function Register() {
               className="mt-0.5 accent-green-600"
             />
             <span>
-              I agree to the{' '}
+              {t('agree_to')}{' '}
               <Link
                 to="/terms"
                 target="_blank"
@@ -359,9 +355,9 @@ export default function Register() {
                 onClick={(e) => e.stopPropagation()}
                 className="text-green-600 dark:text-green-400 font-medium hover:underline"
               >
-                Terms of Service
+                {t('terms_of_service')}
               </Link>{' '}
-              and{' '}
+              {t('and')}{' '}
               <Link
                 to="/privacy"
                 target="_blank"
@@ -369,11 +365,13 @@ export default function Register() {
                 onClick={(e) => e.stopPropagation()}
                 className="text-green-600 dark:text-green-400 font-medium hover:underline"
               >
-                Privacy Policy
+                {t('privacy_policy')}
               </Link>
             </span>
           </label>
-          {errors.agreed && <p className="text-xs text-red-500 -mt-2">{errors.agreed.message}</p>}
+          {errors.agreed && (
+            <p className="text-xs text-red-500 -mt-2">{t('agree_terms_required')}</p>
+          )}
 
           <button
             type="submit"

@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
@@ -81,7 +82,7 @@ beforeEach(() => {
 describe('Login page', () => {
   it('renders identifier and password fields', () => {
     renderLogin();
-    expect(screen.getByPlaceholderText(/youremail@example.com/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('identifier_placeholder')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
@@ -94,8 +95,8 @@ describe('Login page', () => {
     renderLogin();
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
     await waitFor(() => {
-      expect(screen.getByText('Email or phone is required')).toBeInTheDocument();
-      expect(screen.getByText('Password is required')).toBeInTheDocument();
+      expect(screen.getByText('identifier_required')).toBeInTheDocument();
+      expect(screen.getByText('password_required')).toBeInTheDocument();
     });
   });
 
@@ -115,7 +116,7 @@ describe('Login page', () => {
     });
     renderLogin();
 
-    fireEvent.change(screen.getByPlaceholderText(/youremail@example.com/i), {
+    fireEvent.change(screen.getByPlaceholderText('identifier_placeholder'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
@@ -133,7 +134,7 @@ describe('Login page', () => {
     mockLogin.mockResolvedValueOnce({ ...baseUser, role: 'admin' });
     renderLogin();
 
-    fireEvent.change(screen.getByPlaceholderText(/youremail@example.com/i), {
+    fireEvent.change(screen.getByPlaceholderText('identifier_placeholder'), {
       target: { value: 'admin@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
@@ -151,7 +152,7 @@ describe('Login page', () => {
     mockLogin.mockRejectedValueOnce(err);
     renderLogin();
 
-    fireEvent.change(screen.getByPlaceholderText(/youremail@example.com/i), {
+    fireEvent.change(screen.getByPlaceholderText('identifier_placeholder'), {
       target: { value: 'wrong@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
@@ -160,7 +161,7 @@ describe('Login page', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Incorrect email/phone or password.');
+      expect(toast.error).toHaveBeenCalledWith('login_failed_creds');
     });
   });
 
@@ -168,7 +169,7 @@ describe('Login page', () => {
     mockLogin.mockRejectedValueOnce(new Error('Network error'));
     renderLogin();
 
-    fireEvent.change(screen.getByPlaceholderText(/youremail@example.com/i), {
+    fireEvent.change(screen.getByPlaceholderText('identifier_placeholder'), {
       target: { value: 'test@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
@@ -177,7 +178,7 @@ describe('Login page', () => {
     fireEvent.click(screen.getByRole('button', { name: /login/i }));
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Login failed. Please try again.');
+      expect(toast.error).toHaveBeenCalledWith('login_failed');
     });
   });
 });

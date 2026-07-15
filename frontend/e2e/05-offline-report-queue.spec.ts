@@ -6,7 +6,7 @@ import { loginAs, MOCK_CITIZEN } from './helpers';
 
 const MOCK_REPORT = {
   id: 99,
-  waste_type: 'plastic',
+  waste_type: 'bottles', // 'plastic' has no i18n key; 'bottles' → t('report:bottles') = "Plastic Bottles"
   description: 'Plastic bags near road',
   latitude: -1.9441,
   longitude: 30.0619,
@@ -34,8 +34,8 @@ test('activity page shows submitted reports', async ({ page }) => {
 
   await page.goto('/activity');
 
-  // MyActivity renders items as "{WasteType} waste report" (e.g. "Plastic waste report")
-  await expect(page.getByText(/plastic waste report/i)).toBeVisible({ timeout: 8000 });
+  // MyActivity renders items as t('report:waste_type') — 'bottles' → "Plastic Bottles"
+  await expect(page.getByText(/Plastic Bottles/i)).toBeVisible({ timeout: 8000 });
 });
 
 test('app remains usable after going offline', async ({ page, context }) => {

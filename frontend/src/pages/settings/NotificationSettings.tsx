@@ -1,37 +1,40 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import client from '../../api/client';
 import type { User } from '../../types';
 import { useWebPush } from '../../hooks/useWebPush';
 
-const PREFS = [
-  {
-    key: 'report_notifications',
-    label: 'Waste report updates',
-    desc: 'Confirm when your report is received or verified',
-  },
-  {
-    key: 'recycling_notifications',
-    label: 'Recycling activity',
-    desc: 'Confirm when a recycling log is recorded',
-  },
-  {
-    key: 'verification_notifications',
-    label: 'Verification bonus',
-    desc: 'Alert when an admin verifies your report and you earn a bonus',
-  },
-  { key: 'badge_earned', label: 'Badge earned', desc: 'Celebrate when you earn a badge' },
-  { key: 'streak_reminders', label: 'Streak reminders', desc: 'Get reminded to keep your streak' },
-  { key: 'weekly_digest', label: 'Weekly digest', desc: 'Summary of your activity each week' },
-  { key: 'community_updates', label: 'Community updates', desc: 'News from your sector' },
-] as const;
-
 export default function NotificationSettings() {
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
   const { user, setUser } = useAuth();
   const { supported, permission, isSubscribed, isLoading, subscribe, unsubscribe } = useWebPush();
+
+  const PREFS = [
+    {
+      key: 'report_notifications',
+      label: t('pref_report'),
+      desc: t('pref_report_desc'),
+    },
+    {
+      key: 'recycling_notifications',
+      label: t('pref_recycling'),
+      desc: t('pref_recycling_desc'),
+    },
+    {
+      key: 'verification_notifications',
+      label: t('pref_verification'),
+      desc: t('pref_verification_desc'),
+    },
+    { key: 'badge_earned', label: t('pref_badge'), desc: t('pref_badge_desc') },
+    { key: 'streak_reminders', label: t('pref_streak'), desc: t('pref_streak_desc') },
+    { key: 'weekly_digest', label: t('pref_digest'), desc: t('pref_digest_desc') },
+    { key: 'community_updates', label: t('pref_community'), desc: t('pref_community_desc') },
+  ] as const;
 
   const prefs: Record<string, boolean> = user?.notification_preferences ?? {
     streak_reminders: true,
@@ -47,7 +50,7 @@ export default function NotificationSettings() {
       const res = await client.patch<User>('/auth/me/', { notification_preferences: updated });
       setUser(res.data);
     } catch {
-      toast.error('Failed to save preference.');
+      toast.error(t('pref_save_failed'));
     }
   }
 
@@ -55,14 +58,14 @@ export default function NotificationSettings() {
     if (isSubscribed) {
       await unsubscribe();
       await handleToggle('push_enabled', false);
-      toast.success('Push notifications disabled.');
+      toast.success(t('push_disabled_toast'));
     } else {
       await subscribe();
       if (permission === 'granted') {
         await handleToggle('push_enabled', true);
-        toast.success('Push notifications enabled.');
+        toast.success(t('push_enabled_toast'));
       } else if (permission === 'denied') {
-        toast.error('Notifications blocked. Enable them in your browser settings.');
+        toast.error(t('push_denied_toast'));
       }
     }
   }
@@ -73,7 +76,9 @@ export default function NotificationSettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Notifications</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+          {t('page_notifications')}
+        </h1>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">
@@ -104,18 +109,16 @@ export default function NotificationSettings() {
           <div className="flex items-center gap-3 p-4">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-800 dark:text-slate-200">
-                Push notifications
+                {t('push_label')}
               </p>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-                {permission === 'denied'
-                  ? 'Blocked in browser — enable in site settings'
-                  : 'Nudges and streak alerts even when the app is closed'}
+                {permission === 'denied' ? t('push_blocked') : t('push_desc')}
               </p>
             </div>
             <button
               disabled={isLoading || permission === 'denied'}
               onClick={() => void handlePushToggle()}
-              aria-label="Toggle push notifications"
+              aria-label={t('push_label')}
               className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-40 ${
                 isSubscribed ? 'bg-green-500' : 'bg-gray-300 dark:bg-slate-600'
               }`}

@@ -1,3 +1,5 @@
+// i18n-ready: see src/locales/{en,rw}/
+import { useTranslation } from 'react-i18next';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 
@@ -20,15 +22,16 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   isLoading,
 }: Props) {
+  const { t } = useTranslation('common');
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <p className="text-sm text-gray-600 dark:text-slate-400 mb-6">{message}</p>
       <div className="flex gap-3">
         <Button variant="outline" onClick={onClose} className="flex-1">
-          Cancel
+          {t('cancel')}
         </Button>
         <Button variant="danger" onClick={onConfirm} disabled={isLoading} className="flex-1">
-          {isLoading ? 'Working…' : confirmLabel}
+          {isLoading ? t('working') : confirmLabel}
         </Button>
       </div>
     </Modal>

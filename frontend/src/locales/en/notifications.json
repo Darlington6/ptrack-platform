@@ -1,0 +1,14 @@
+{
+  "title": "Notifications",
+  "filter_all": "All",
+  "filter_unread": "Unread",
+  "filter_streaks": "Streaks",
+  "filter_badges": "Badges",
+  "filter_community": "Community",
+  "group_today": "Today",
+  "group_this_week": "This week",
+  "group_earlier": "Earlier",
+  "all_caught_up": "You're all caught up.",
+  "load_failed": "Failed to load notifications.",
+  "_locale": "en"
+}

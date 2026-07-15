@@ -1,7 +1,9 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Recycle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import client from '../api/client';
@@ -10,13 +12,6 @@ import {
   hasLoggedRecyclingToday,
   markRecyclingLoggedToday,
 } from '../lib/offlineQueue';
-
-const ACTIVITY_TYPES = [
-  { value: 'drop_off', label: 'Drop-off at centre' },
-  { value: 'pickup', label: 'Community pickup' },
-  { value: 'exchange', label: 'Plastic exchange' },
-  { value: 'other', label: 'Other activity' },
-] as const;
 
 const INPUT_CLS =
   'w-full px-3 py-2.5 border border-gray-300 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-green-500';
@@ -27,9 +22,17 @@ interface Props {
 
 export default function RecyclingModal({ onClose }: Props) {
   const qc = useQueryClient();
+  const { t } = useTranslation('recycling');
   const [activityType, setActivityType] = useState<string>('drop_off');
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const activityTypeOptions = [
+    { value: 'drop_off', label: t('drop_off') },
+    { value: 'pickup', label: t('pickup') },
+    { value: 'exchange', label: t('exchange') },
+    { value: 'other', label: t('other') },
+  ];
 
   const { data: pointConfigs } = useQuery<Record<string, number>>({
     queryKey: ['point-configs'],
@@ -47,20 +50,20 @@ export default function RecyclingModal({ onClose }: Props) {
     try {
       if (!navigator.onLine) {
         if (hasLoggedRecyclingToday()) {
-          toast.error("You've already logged a recycling activity today. Come back tomorrow!");
+          toast.error(t('already_logged'));
           setLoading(false);
           return;
         }
         await enqueueRecycling(payload);
         markRecyclingLoggedToday();
-        toast.success("Saved offline — will sync automatically when you're back online.");
+        toast.success(t('saved_offline'));
         onClose();
         return;
       }
       const res = await client.post<{ points_earned?: number }>('/recycling/', payload);
       markRecyclingLoggedToday();
       const earned = res.data.points_earned ?? recyclingPts;
-      toast.success(`+${earned} points! Recycling activity logged.`);
+      toast.success(t('success', { points: earned }));
       void qc.invalidateQueries({ queryKey: ['rewards'] });
       void qc.invalidateQueries({ queryKey: ['dashboard'] });
       void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
@@ -68,22 +71,20 @@ export default function RecyclingModal({ onClose }: Props) {
     } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 429) {
-          const msg =
-            (err.response.data as { detail?: string }).detail ??
-            "You've already logged a recycling activity today. Come back tomorrow!";
+          const msg = (err.response.data as { detail?: string }).detail ?? t('already_logged');
           toast.error(msg);
           setLoading(false);
           return;
         }
         if (err.response) {
-          toast.error('Failed to log activity. Please try again.');
+          toast.error(t('failed'));
           setLoading(false);
           return;
         }
       }
       // True network failure — queue for later sync
       await enqueueRecycling(payload);
-      toast.success("Saved — will sync when you're back online.");
+      toast.success(t('saved_network'));
       onClose();
     } finally {
       setLoading(false);
@@ -101,7 +102,7 @@ export default function RecyclingModal({ onClose }: Props) {
             <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
               <Recycle size={16} className="text-green-600" />
             </div>
-            <h2 className="text-base font-bold text-gray-900 dark:text-white">Log Recycling</h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('title')}</h2>
           </div>
           <button
             onClick={onClose}
@@ -118,7 +119,7 @@ export default function RecyclingModal({ onClose }: Props) {
               htmlFor="recycling-activity-type"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Activity Type
+              {t('activity_type')}
             </label>
             <select
               id="recycling-activity-type"
@@ -126,9 +127,9 @@ export default function RecyclingModal({ onClose }: Props) {
               onChange={(e) => setActivityType(e.target.value)}
               className={`${INPUT_CLS} bg-white dark:bg-slate-700`}
             >
-              {ACTIVITY_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
+              {activityTypeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>
@@ -139,20 +140,21 @@ export default function RecyclingModal({ onClose }: Props) {
               htmlFor="recycling-note"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Note <span className="font-normal text-gray-400">(optional)</span>
+              {t('note_label')}{' '}
+              <span className="font-normal text-gray-400">{t('note_optional')}</span>
             </label>
             <textarea
               id="recycling-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              placeholder="e.g. Dropped off 3 bags at Kimironko centre"
+              placeholder={t('note_placeholder')}
               className={`${INPUT_CLS} resize-none`}
             />
           </div>
 
           <div className="bg-green-50 dark:bg-green-900/20 rounded-xl px-4 py-2.5 flex items-center justify-between">
-            <span className="text-sm text-gray-700 dark:text-slate-300">Points earned</span>
+            <span className="text-sm text-gray-700 dark:text-slate-300">{t('points_earned')}</span>
             <span className="text-base font-bold text-green-600">+{recyclingPts} pts</span>
           </div>
 
@@ -161,7 +163,7 @@ export default function RecyclingModal({ onClose }: Props) {
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-semibold py-3 rounded-xl transition-colors"
           >
-            {loading ? 'Logging…' : 'Log Activity'}
+            {loading ? t('submitting') : t('submit')}
           </button>
         </form>
       </div>

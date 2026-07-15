@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -33,7 +34,7 @@ export default function Verify() {
 
   async function handleSubmit() {
     if (code.length < 6) {
-      toast.error('Please enter the full 6-digit code.');
+      toast.error(t('verify_code_required'));
       return;
     }
     setLoading(true);
@@ -60,11 +61,12 @@ export default function Verify() {
       setCanResend(false);
       setCode('');
     } catch {
-      toast.error('Failed to resend. Please try again.');
+      toast.error(t('resend_failed'));
     }
   }
 
-  const channelLabel = channel === 'email' ? 'email' : 'phone';
+  const channelLabel =
+    channel === 'email' ? t('email_tab').toLowerCase() : t('phone_tab').toLowerCase();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col items-center justify-center px-4">
@@ -74,11 +76,10 @@ export default function Verify() {
         </div>
 
         <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
-          Check your {channelLabel}
+          {t('verify_title', { channel: channelLabel })}
         </h1>
         <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
-          We sent a 6-digit code to{' '}
-          <span className="font-medium text-gray-700 dark:text-slate-200">{identifier}</span>
+          {t('verify_subtitle', { identifier })}
         </p>
 
         <div className="mb-6">
@@ -90,7 +91,7 @@ export default function Verify() {
           disabled={loading || code.length < 6}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60 mb-4"
         >
-          {loading ? 'Verifying…' : 'Verify'}
+          {loading ? t('verifying') : t('verify_btn')}
         </button>
 
         <div className="text-sm text-gray-500 dark:text-slate-400">
@@ -99,7 +100,7 @@ export default function Verify() {
               {t('resend_code')}
             </button>
           ) : (
-            <span>Resend in {countdown}s</span>
+            <span>{t('resend_in', { seconds: countdown })}</span>
           )}
         </div>
 

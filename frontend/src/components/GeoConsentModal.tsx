@@ -1,5 +1,7 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { createPortal } from 'react-dom';
 import { MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const STORAGE_KEY = 'ptrack_geo_consent';
 
@@ -22,11 +24,12 @@ interface Props {
 }
 
 export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
+  const { t } = useTranslation('common');
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={t('close')}
         className="absolute inset-0 bg-black/40 cursor-default"
         onClick={onClose}
       />
@@ -37,17 +40,12 @@ export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
           </div>
           <div>
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-              Allow location access?
+              {t('geo_title')}
             </h2>
-            <p className="text-xs text-gray-500 dark:text-slate-400">
-              pTrack needs this once per report
-            </p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">{t('geo_subtitle')}</p>
           </div>
         </div>
-        <p className="text-sm text-gray-600 dark:text-slate-300">
-          pTrack uses your location only when you submit a waste report, to verify it is in or near
-          Kigali. We never track you in the background.
-        </p>
+        <p className="text-sm text-gray-600 dark:text-slate-300">{t('geo_body')}</p>
         <div className="flex gap-3">
           <button
             onClick={() => {
@@ -56,7 +54,7 @@ export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
             }}
             className="flex-1 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
           >
-            Not now
+            {t('geo_not_now')}
           </button>
           <button
             onClick={() => {
@@ -65,7 +63,7 @@ export function GeoConsentModal({ onAllow, onDeny, onClose }: Props) {
             }}
             className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold"
           >
-            Allow
+            {t('geo_allow')}
           </button>
         </div>
       </div>

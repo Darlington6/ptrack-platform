@@ -1,0 +1,16 @@
+{
+  "title": "Learn",
+  "cat_all": "All",
+  "cat_recycling": "Recycling",
+  "cat_waste_reduction": "Waste Reduction",
+  "cat_climate": "Climate",
+  "cat_policy": "Policy",
+  "cat_community": "Community",
+  "min_read": "{{count}} min read",
+  "no_articles": "No articles yet. Check back soon!",
+  "article_not_found": "Article not found.",
+  "go_back": "Go back",
+  "back": "Back",
+  "share": "Share",
+  "_locale": "en"
+}

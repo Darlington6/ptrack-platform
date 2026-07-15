@@ -16,6 +16,7 @@ Endpoints:
   POST /api/v1/auth/verify/confirm/          — confirm OTP and mark channel verified
   POST /api/v1/auth/password/reset/request/  — request password reset OTP
   POST /api/v1/auth/password/reset/confirm/  — confirm OTP and set new password
+  POST /api/v1/auth/google/                  — Google OAuth sign-in / sign-up
 """
 
 import hashlib
@@ -115,9 +116,11 @@ def register(request):
             from core.email import send_email
 
             code = create_verification_code(user, "email", "register_verify")
+            lang = getattr(user, "preferred_language", "en") or "en"
+            subject = "Kwemeza imeyili ya pTrack" if lang == "rw" else "Verify your pTrack email"
             send_email(
                 user.email,
-                "Verify your pTrack email",
+                subject,
                 "verify_email",
                 {"user": user, "code": code},
             )
@@ -589,9 +592,13 @@ def verify_send(request):
     if channel == "email":
         from core.email import send_email
 
+        lang = getattr(request.user, "preferred_language", "en") or "en"
+        subject = (
+            "Kode yawe yo kwemeza kuri pTrack" if lang == "rw" else "Your pTrack verification code"
+        )
         send_email(
             request.user.email,
-            "Your pTrack verification code",
+            subject,
             "verify_email",
             {"user": request.user, "code": code},
         )
@@ -670,9 +677,15 @@ def password_reset_request(request):
             try:
                 from core.email import send_email
 
+                lang = getattr(user, "preferred_language", "en") or "en"
+                subject = (
+                    "Kode yo gusubiza ijambo ry'ibanga rya pTrack"
+                    if lang == "rw"
+                    else "Your pTrack password reset code"
+                )
                 send_email(
                     user.email,
-                    "Your pTrack password reset code",
+                    subject,
                     "password_reset",
                     {"user": user, "code": code},
                 )

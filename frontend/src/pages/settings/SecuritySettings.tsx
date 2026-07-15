@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -5,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useGoogleLogin } from '@react-oauth/google';
 import { authApi } from '../../api/endpoints/auth';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +29,7 @@ const INPUT_CLS =
 export default function SecuritySettings() {
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
+  const { t } = useTranslation('settings');
   const [show, setShow] = useState({ current: false, new: false, confirm: false });
   const [unlinking, setUnlinking] = useState(false);
 
@@ -42,11 +45,11 @@ export default function SecuritySettings() {
   async function onSubmit(data: FormData) {
     try {
       await authApi.changePassword(data.current_password ?? '', data.new_password);
-      toast.success(hasPassword ? 'Password changed.' : 'Password set successfully.');
+      toast.success(hasPassword ? t('password_changed') : t('password_set'));
       reset();
       if (!hasPassword) await refreshUser();
     } catch {
-      toast.error(hasPassword ? 'Incorrect current password.' : 'Failed to set password.');
+      toast.error(hasPassword ? t('wrong_current_password') : t('set_password_failed'));
     }
   }
 
@@ -55,17 +58,17 @@ export default function SecuritySettings() {
       try {
         await authApi.googleLink(tokenResponse.access_token);
         await refreshUser();
-        toast.success('Google account connected.');
+        toast.success(t('google_connected_toast'));
       } catch (err: unknown) {
         const s = (err as { response?: { status?: number } })?.response?.status;
         if (s === 409) {
-          toast.error('This Google account is already linked to another user.');
+          toast.error(t('google_already_linked'));
         } else {
-          toast.error('Failed to connect Google account.');
+          toast.error(t('google_connect_failed'));
         }
       }
     },
-    onError: () => toast.error('Failed to connect Google account.'),
+    onError: () => toast.error(t('google_connect_failed')),
   });
 
   async function handleGoogleUnlink() {
@@ -73,10 +76,10 @@ export default function SecuritySettings() {
     try {
       await authApi.googleUnlink();
       await refreshUser();
-      toast.success('Google account disconnected.');
+      toast.success(t('google_disconnected_toast'));
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(msg ?? 'Failed to disconnect Google account.');
+      toast.error(msg ?? t('google_disconnect_failed'));
     } finally {
       setUnlinking(false);
     }
@@ -88,17 +91,18 @@ export default function SecuritySettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Security</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+          {t('page_security')}
+        </h1>
       </div>
 
-      {/* Password section */}
       <div className="mb-2">
         <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">
-          {hasPassword ? 'Change password' : 'Set a password'}
+          {hasPassword ? t('change_password_title') : t('set_password_title')}
         </h2>
         {!hasPassword && (
           <p className="text-xs text-gray-500 dark:text-slate-400 mb-4">
-            You signed in with Google. Set a password to also be able to log in with your email.
+            {t('google_password_hint')}
           </p>
         )}
       </div>
@@ -110,7 +114,7 @@ export default function SecuritySettings() {
               htmlFor="sec-current-password"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Current password
+              {t('current_password')}
             </label>
             <div className="relative">
               <input
@@ -136,16 +140,16 @@ export default function SecuritySettings() {
 
         {(
           [
-            { name: 'new_password', label: 'New password', key: 'new' as const },
-            { name: 'confirm_password', label: 'Confirm new password', key: 'confirm' as const },
+            { name: 'new_password', labelKey: 'new_password_label', key: 'new' as const },
+            { name: 'confirm_password', labelKey: 'confirm_new_password', key: 'confirm' as const },
           ] as const
-        ).map(({ name, label, key }) => (
+        ).map(({ name, labelKey, key }) => (
           <div key={name}>
             <label
               htmlFor={name}
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              {label}
+              {t(labelKey)}
             </label>
             <div className="relative">
               <input
@@ -172,14 +176,17 @@ export default function SecuritySettings() {
           disabled={isSubmitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
         >
-          {isSubmitting ? 'Saving…' : hasPassword ? 'Change password' : 'Set password'}
+          {isSubmitting
+            ? t('saving')
+            : hasPassword
+              ? t('change_password_btn')
+              : t('set_password_btn')}
         </button>
       </form>
 
-      {/* Connected accounts */}
       <div className="mt-8">
         <h2 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3">
-          Connected accounts
+          {t('connected_accounts')}
         </h2>
         <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -205,10 +212,10 @@ export default function SecuritySettings() {
               <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Google</p>
               {user?.google_connected ? (
                 <p className="text-xs text-green-600 dark:text-green-400">
-                  Connected as {user.email}
+                  {t('connected_as', { email: user.email })}
                 </p>
               ) : (
-                <p className="text-xs text-gray-400">Not connected</p>
+                <p className="text-xs text-gray-400">{t('not_connected')}</p>
               )}
             </div>
           </div>
@@ -220,7 +227,7 @@ export default function SecuritySettings() {
               disabled={unlinking}
               className="text-sm text-red-500 hover:text-red-600 font-medium disabled:opacity-50"
             >
-              {unlinking ? 'Disconnecting…' : 'Disconnect'}
+              {unlinking ? t('disconnecting') : t('disconnect')}
             </button>
           ) : (
             <button
@@ -246,7 +253,7 @@ export default function SecuritySettings() {
                   d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 6.294C4.672 4.167 6.656 3.58 9 3.58z"
                 />
               </svg>
-              Connect
+              {t('connect')}
             </button>
           )}
         </div>
