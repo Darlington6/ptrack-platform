@@ -15,5 +15,19 @@
   "other": "Other",
   "pending": "Pending",
   "verified": "Verified",
-  "resolved": "Resolved"
+  "resolved": "Resolved",
+  "rejected": "Rejected",
+  "pin_location": "Pin the exact location",
+  "description_label": "Describe what you found (optional but recommended)",
+  "description_placeholder": "e.g., Large pile of plastic bottles near the road…",
+  "my_location": "My location",
+  "photo_required": "Please add a photo of the waste before submitting.",
+  "saved_offline": "Saved offline — will sync automatically when you're back online.",
+  "saved_network": "Saved — will sync when you're back online.",
+  "submit_success": "Report submitted! +{{pts}} pts — Balance: {{bal}} pts",
+  "submit_success_no_bal": "Report submitted! +{{pts}} pts",
+  "submit_failed": "Failed to submit report. Please try again.",
+  "points_earn": "You'll earn",
+  "points_for": "for this report",
+  "pts_label": "+{{pts}} points"
 }

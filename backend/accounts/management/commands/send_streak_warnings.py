@@ -43,11 +43,21 @@ class Command(BaseCommand):
             ).exists():
                 continue
 
-            title = "Your streak is at risk!"
-            body = (
-                f"You have a {user.current_streak}-day streak. "
-                "Log activity today to keep it going."
-            )
+            lang = getattr(user, 'preferred_language', 'en') or 'en'
+            if lang == 'rw':
+                title = "Iminsi ikurikiranyaho iri mu kaga!"
+                body = (
+                    f"Ufite iminsi {user.current_streak} ikurikiranyaho. "
+                    "Tanga raporo uyu munsi kugira ngo ukomeze."
+                )
+                email_subject = "Iminsi ikurikiranyaho ya pTrack iri mu kaga!"
+            else:
+                title = "Your streak is at risk!"
+                body = (
+                    f"You have a {user.current_streak}-day streak. "
+                    "Log activity today to keep it going."
+                )
+                email_subject = "Your pTrack streak is at risk!"
 
             notify(user, "streak_warning", title, body, action_url="/dashboard")
 
@@ -55,7 +65,7 @@ class Command(BaseCommand):
             if prefs.get("streak_reminders", True) and not user.email.startswith("phone_"):
                 send_email(
                     user.email,
-                    "Your pTrack streak is at risk!",
+                    email_subject,
                     "streak_warning",
                     {"user": user, "streak": user.current_streak},
                 )

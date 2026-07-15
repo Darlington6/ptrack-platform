@@ -12,7 +12,7 @@ import type { Article } from '../api/types';
 export default function EducationArticle() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('education');
   const lang = (i18n.language?.startsWith('rw') ? 'rw' : 'en') as 'en' | 'rw';
   const [readPct, setReadPct] = useState(0);
   const articleRef = useRef<HTMLDivElement>(null);
@@ -26,7 +26,6 @@ export default function EducationArticle() {
 
   const article: Article | undefined = data?.data;
 
-  // Reading progress bar
   useEffect(() => {
     function onScroll() {
       const el = articleRef.current;
@@ -50,9 +49,9 @@ export default function EducationArticle() {
   if (isError || !article) {
     return (
       <div className="px-4 py-16 text-center">
-        <p className="text-gray-500 dark:text-slate-400">Article not found.</p>
+        <p className="text-gray-500 dark:text-slate-400">{t('article_not_found')}</p>
         <button onClick={() => navigate(-1)} className="mt-4 text-green-600 font-medium text-sm">
-          Go back
+          {t('go_back')}
         </button>
       </div>
     );
@@ -71,7 +70,6 @@ export default function EducationArticle() {
 
   return (
     <div className="pb-24" ref={articleRef}>
-      {/* Reading progress bar */}
       <div
         className="fixed top-0 left-0 h-1 bg-green-600 z-50 transition-all"
         style={{ width: `${readPct}%` }}
@@ -89,29 +87,26 @@ export default function EducationArticle() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400"
           >
-            <ArrowLeft size={14} /> Back
+            <ArrowLeft size={14} /> {t('back')}
           </button>
           <button
             onClick={share}
             className="flex items-center gap-1.5 text-sm text-green-600"
-            aria-label="Share article"
+            aria-label={t('share')}
           >
-            <Share2 size={14} /> Share
+            <Share2 size={14} /> {t('share')}
           </button>
         </div>
 
         <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
-            {article.category
-              .split('_')
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join(' ')}
+            {t('cat_' + article.category)}
           </span>
           <h1 className="text-xl font-bold text-gray-900 dark:text-white mt-1 leading-snug">
             {title}
           </h1>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-2 flex items-center gap-1">
-            <Clock size={11} /> {article.reading_time_minutes} min read
+            <Clock size={11} /> {t('min_read', { count: article.reading_time_minutes })}
             {article.published_at && ` · ${new Date(article.published_at).toLocaleDateString()}`}
           </p>
         </div>

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { authApi } from '../api/endpoints/auth';
 
 const schema = z.object({
-  identifier: z.string().min(1, 'Email or phone is required'),
+  identifier: z.string().min(1),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -26,11 +26,8 @@ export default function ForgotPassword() {
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
   async function onSubmit(data: FormData) {
-    // Always show success (don't leak user existence)
-    toast.success('If an account exists, a reset code has been sent.');
-    // Fire the request but don't await its result for UX
+    toast.success(t('reset_code_sent'));
     authApi.resetPasswordRequest(data.identifier).catch(() => undefined);
-    // Navigate after 1.5s
     setTimeout(() => {
       navigate('/reset-password', { state: { identifier: data.identifier } });
     }, 1500);
@@ -43,7 +40,7 @@ export default function ForgotPassword() {
           to="/login"
           className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 mb-6"
         >
-          <ArrowLeft size={16} /> Back to login
+          <ArrowLeft size={16} /> {t('back_to_login')}
         </Link>
 
         <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-1">
@@ -57,18 +54,18 @@ export default function ForgotPassword() {
               htmlFor="identifier"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Email or phone number
+              {t('identifier_label')}
             </label>
             <input
               id="identifier"
               type="text"
               autoComplete="username"
-              placeholder="youremail@example.com or +250 7XX XXX XXX"
+              placeholder={t('identifier_placeholder')}
               {...register('identifier')}
               className={INPUT_CLS}
             />
             {errors.identifier && (
-              <p className="text-xs text-red-500 mt-1">{errors.identifier.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('identifier_required')}</p>
             )}
           </div>
 
@@ -77,7 +74,7 @@ export default function ForgotPassword() {
             disabled={isSubmitting}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
           >
-            {isSubmitting ? 'Sending…' : t('send_reset_code')}
+            {isSubmitting ? t('sending') : t('send_reset_code')}
           </button>
         </form>
       </div>

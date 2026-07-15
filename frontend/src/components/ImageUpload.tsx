@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Camera, X, ImageIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import imageCompression from 'browser-image-compression';
 
 interface Props {
@@ -17,6 +18,7 @@ export function ImageUpload({
   maxWidthOrHeight = 1920,
   label = 'Photo',
 }: Props) {
+  const { t } = useTranslation('common');
   const [progress, setProgress] = useState(0);
   const [compressing, setCompressing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -41,8 +43,6 @@ export function ImageUpload({
       onChange(renamed);
     } catch {
       onChange(file);
-      // Use FileReader so the preview URL is a data: string, not a blob: URL
-      // derived directly from the raw user File (which CodeQL flags as tainted).
       const reader = new FileReader();
       reader.onload = (ev) => {
         if (typeof ev.target?.result === 'string') setPreview(ev.target.result);
@@ -96,15 +96,17 @@ export function ImageUpload({
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 dark:text-slate-400">Compressing… {progress}%</p>
+            <p className="text-xs text-gray-500 dark:text-slate-400">
+              {t('compressing', { percent: progress })}
+            </p>
           </div>
         ) : (
           <>
             <Camera size={28} className="text-gray-400 dark:text-slate-500 mb-1" />
             <p className="text-sm font-medium text-gray-600 dark:text-slate-300">
-              Tap to add a photo
+              {t('tap_to_photo')}
             </p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">Help us verify the waste</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{t('verify_waste')}</p>
           </>
         )}
         <input

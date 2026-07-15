@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
+  const { t } = useTranslation('privacy');
 
   return (
     <div className="px-4 pt-4 pb-24 max-w-lg mx-auto space-y-6">
@@ -22,115 +24,70 @@ export default function PrivacyPolicy() {
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Privacy Policy</h1>
-          <p className="text-xs text-gray-400 dark:text-slate-500">Effective: 1 June 2026</p>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
+          <p className="text-xs text-gray-400 dark:text-slate-500">{t('effective_date')}</p>
         </div>
       </div>
 
-      <Section title="1. Who we are">
-        <p>
-          pTrack ("we", "us", "our") is a plastic waste tracking application developed as an ALU
-          capstone project, currently piloting in the Kimironko sector of Kigali, Rwanda.
-        </p>
-        <p>Data controller: Desmond Tunyinko · d.tunyinko@alustudent.com</p>
+      <Section title={t('s1_title')}>
+        <p>{t('s1_body1')}</p>
+        <p>{t('s1_body2')}</p>
       </Section>
 
-      <Section title="2. Data we collect">
-        <p>
-          <strong>Account data:</strong> full name, email address, phone number, sector, profile
-          picture, and role.
-        </p>
-        <p>
-          <strong>Activity data:</strong> waste reports (photo, description, GPS coordinates, waste
-          type), recycling logs (type, date), and reward points history.
-        </p>
-        <p>
-          <strong>Technical data:</strong> IP address and user-agent string, collected only for
-          administrator accounts and used exclusively for audit logging and accountability. Users
-          are informed of this collection before being granted administrator access.
-        </p>
-        <p>
-          <strong>Preferences:</strong> language, theme, notification settings, and leaderboard
-          visibility choice.
-        </p>
+      <Section title={t('s2_title')}>
+        <p><strong>{t('s2_account_label')}</strong> {t('s2_account_body')}</p>
+        <p><strong>{t('s2_activity_label')}</strong> {t('s2_activity_body')}</p>
+        <p><strong>{t('s2_technical_label')}</strong> {t('s2_technical_body')}</p>
+        <p><strong>{t('s2_prefs_label')}</strong> {t('s2_prefs_body')}</p>
       </Section>
 
-      <Section title="3. How we use your data">
-        <p>We use collected data to:</p>
+      <Section title={t('s3_title')}>
+        <p>{t('s3_intro')}</p>
         <ul className="list-disc list-inside space-y-1 ml-2">
-          <li>Authenticate and manage your account.</li>
-          <li>Display your activity and points on the leaderboard (opt-in).</li>
-          <li>Compile anonymised community impact statistics.</li>
-          <li>Send push/email notifications you have opted into.</li>
-          <li>Identify and prevent fraudulent activity.</li>
+          {(['s3_li1', 's3_li2', 's3_li3', 's3_li4', 's3_li5'] as const).map((k) => (
+            <li key={k}>{t(k)}</li>
+          ))}
+        </ul>
+        <p>{t('s3_footer')}</p>
+      </Section>
+
+      <Section title={t('s4_title')}>
+        <p>{t('s4_body1')}</p>
+        <p>{t('s4_body2')}</p>
+      </Section>
+
+      <Section title={t('s5_title')}>
+        <p>{t('s5_intro')}</p>
+        <ul className="list-disc list-inside space-y-1 ml-2">
+          {(['s5_li1', 's5_li2', 's5_li3', 's5_li4', 's5_li5'] as const).map((k) => (
+            <li key={k}>{t(k)}</li>
+          ))}
         </ul>
         <p>
-          We do <strong>not</strong> sell your data to third parties or use it for advertising.
-        </p>
-      </Section>
-
-      <Section title="4. Data storage and security">
-        <p>
-          Data is stored on Neon's PostgreSQL (AWS US East 1 (N. Virginia)) and media files on
-          Cloudinary (served over HTTPS). JWT access tokens expire after 60 minutes; refresh tokens
-          after 7 days.
-        </p>
-        <p>
-          We apply encryption in transit (TLS 1.2+), input sanitisation, and rate-limiting on all
-          API endpoints. Passwords are hashed with PBKDF2-SHA256.
-        </p>
-      </Section>
-
-      <Section title="5. Your rights">
-        <p>You may at any time:</p>
-        <ul className="list-disc list-inside space-y-1 ml-2">
-          <li>Request a copy of all data we hold about you.</li>
-          <li>Request correction of inaccurate information.</li>
-          <li>Request deletion of your account and all associated data.</li>
-          <li>Opt out of the leaderboard in Settings → Privacy.</li>
-          <li>Withdraw consent for notifications in Settings → Notifications.</li>
-        </ul>
-        <p>
-          To exercise these rights email{' '}
+          {t('s5_footer_pre')}{' '}
           <a href="mailto:support@ptrack.rw" className="text-green-600 dark:text-green-400">
             support@ptrack.rw
           </a>
-          . We respond within 7 days.
+          {t('s5_footer_post')}
         </p>
       </Section>
 
-      <Section title="6. Third-party services">
-        <p>
-          <strong>Cloudinary</strong> stores uploaded images. Images are publicly accessible via
-          their URL; do not upload photos containing sensitive personal information.
-        </p>
-        <p>
-          <strong>Render</strong> hosts our backend. See Render's DPA for their data-handling
-          obligations.
-        </p>
-        <p>
-          <strong>Google Maps</strong> is linked to for directions (opens externally). We do not
-          share user data with Google Maps proactively.
-        </p>
+      <Section title={t('s6_title')}>
+        <p><strong>{t('cloudinary_label')}</strong> {t('s6_cloudinary')}</p>
+        <p><strong>{t('render_label')}</strong> {t('s6_render')}</p>
+        <p><strong>{t('maps_label')}</strong> {t('s6_maps')}</p>
       </Section>
 
-      <Section title="7. Children">
-        <p>
-          pTrack is not directed to children under 16. We do not knowingly collect data from minors.
-          If you believe a minor has created an account, contact us and we will delete it.
-        </p>
+      <Section title={t('s7_title')}>
+        <p>{t('s7_body')}</p>
       </Section>
 
-      <Section title="8. Changes to this policy">
-        <p>
-          We may update this policy to reflect changes in the app or legal requirements. Material
-          changes will be notified via an in-app nudge. Continued use after 30 days constitutes
-          acceptance.
-        </p>
+      <Section title={t('s8_title')}>
+        <p>{t('s8_body')}</p>
       </Section>
 
       <p className="text-xs text-gray-400 dark:text-slate-400 text-center pt-2">
-        Questions? Email{' '}
+        {t('contact_pre')}{' '}
         <a href="mailto:support@ptrack.rw" className="underline">
           support@ptrack.rw
         </a>

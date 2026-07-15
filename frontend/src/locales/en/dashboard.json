@@ -14,5 +14,20 @@
   "active_citizens": "Active Citizens",
   "plastic_logged": "Plastic Logged",
   "neighbours_reported": "{{count}} neighbours reported this week",
-  "be_nth": "Be the {{n}}th — your community needs you!"
+  "be_nth": "Be the {{n}}th — your community needs you!",
+  "sector_picker_title": "Select your sector",
+  "sector_picker_body": "We need your Kigali sector so your reports and recycling logs are counted in the right area.",
+  "sector_save_error": "Could not save — please try again.",
+  "sector_saving": "Saving…",
+  "sector_save": "Save sector",
+  "view_more": "View more",
+  "view_less": "Less",
+  "see_all": "See all",
+  "goal_complete": "Goal complete! Amazing work this week.",
+  "goal_remaining": "{{count}} more reports to hit your goal this week",
+  "reward_report": "Waste Report",
+  "reward_recycling": "Recycling Activity",
+  "reward_bonus": "Verification Bonus",
+  "education_link": "Recycling tips & education",
+  "explore": "Explore"
 }

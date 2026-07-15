@@ -1,0 +1,15 @@
+{
+  "title": "Kwiga",
+  "cat_all": "Byose",
+  "cat_recycling": "Recyclage",
+  "cat_waste_reduction": "Kugabanya Imyanda",
+  "cat_climate": "Ikirere",
+  "cat_policy": "Politiki",
+  "cat_community": "Umuryango",
+  "min_read": "Iminota {{count}} yo gusoma",
+  "no_articles": "Nta makuru arahari. Subira vuba!",
+  "article_not_found": "Inkuru ntiyabonetse.",
+  "go_back": "Subira inyuma",
+  "back": "Subira",
+  "share": "Sangira"
+}

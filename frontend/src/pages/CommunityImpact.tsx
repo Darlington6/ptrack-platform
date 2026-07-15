@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, MapPin, Users, Recycle, Globe, Flame } from 'lucide-react';
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import type { CommunityStats, CommunityTrends } from '../api/types';
@@ -37,6 +38,7 @@ function KpiCard({
 export default function CommunityImpact() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation('impact');
 
   const { data: statsData } = useQuery({
     queryKey: ['community', 'stats'],
@@ -70,10 +72,10 @@ export default function CommunityImpact() {
           <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Community Impact</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
         </div>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 pl-8">
-          {user?.sector ?? 'Your area'} · All time
+          {user?.sector ?? 'Your area'} · {t('all_time')}
         </p>
       </div>
 
@@ -81,22 +83,22 @@ export default function CommunityImpact() {
       <div className="grid grid-cols-2 gap-3">
         <KpiCard
           value={stats?.total_reports ?? '—'}
-          label="Total Reports"
+          label={t('kpi_reports')}
           icon={<MapPin size={22} className="text-green-600" />}
         />
         <KpiCard
           value={stats?.active_citizens ?? '—'}
-          label="Active Citizens"
+          label={t('kpi_citizens')}
           icon={<Users size={22} className="text-blue-500" />}
         />
         <KpiCard
           value={stats?.total_recycling_activities ?? '—'}
-          label="Recycling Activities"
+          label={t('kpi_recycling')}
           icon={<Recycle size={22} className="text-green-600" />}
         />
         <KpiCard
           value={plasticDisplay}
-          label="Plastic Prevented"
+          label={t('kpi_plastic')}
           icon={<Globe size={22} className="text-blue-500" />}
         />
       </div>
@@ -105,7 +107,7 @@ export default function CommunityImpact() {
       {chartData.length > 0 && (
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
           <p className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
-            Reports &amp; Recycling — Last 12 Weeks
+            {t('chart_title')}
           </p>
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={chartData}>
@@ -137,7 +139,7 @@ export default function CommunityImpact() {
                 stroke="#16a34a"
                 strokeWidth={2}
                 dot={false}
-                name="Reports"
+                name={t('chart_reports')}
               />
               <Line
                 type="monotone"
@@ -145,16 +147,16 @@ export default function CommunityImpact() {
                 stroke="#60a5fa"
                 strokeWidth={2}
                 dot={false}
-                name="Recycling"
+                name={t('chart_recycling')}
               />
             </LineChart>
           </ResponsiveContainer>
           <div className="flex gap-4 mt-2">
             <span className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
-              <span className="w-3 h-0.5 bg-green-600 inline-block" /> Reports
+              <span className="w-3 h-0.5 bg-green-600 inline-block" /> {t('chart_reports')}
             </span>
             <span className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1">
-              <span className="w-3 h-0.5 bg-blue-400 inline-block" /> Recycling
+              <span className="w-3 h-0.5 bg-blue-400 inline-block" /> {t('chart_recycling')}
             </span>
           </div>
         </div>
@@ -164,14 +166,13 @@ export default function CommunityImpact() {
       {user && (
         <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl border border-green-200 dark:border-green-800 p-4">
           <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
-            Your contribution
+            {t('your_contribution')}
           </p>
           <p className="text-sm text-green-700 dark:text-green-400">
-            You have <span className="font-bold">{user.points} points</span> and rank in the top
-            citizens of {user.sector}.
+            {t('contribution_body', { points: user.points, sector: user.sector })}
           </p>
           <p className="text-sm text-green-700 dark:text-green-400 mt-1">
-            Current streak: <span className="font-bold">{user.current_streak} days</span>{' '}
+            {t('streak_label', { days: user.current_streak })}{' '}
             <Flame size={14} className="inline text-orange-400" />
           </p>
         </div>

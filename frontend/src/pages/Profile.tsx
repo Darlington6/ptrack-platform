@@ -20,6 +20,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { useAuth } from '../context/AuthContext';
 import { Avatar } from '../components/ui/Avatar';
@@ -34,23 +35,24 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-RW', { month: 'short', year: 'numeric' });
 }
 
-const MENU = [
-  { icon: Activity, label: 'My Activity', to: '/activity' },
-  { icon: Trophy, label: 'My Achievements', to: '/rewards' },
-  { icon: Recycle, label: 'Recycling Centres', to: '/centres' },
-  { icon: BookOpen, label: 'Recycling Tips & Education', to: '/education' },
-  { icon: Bell, label: 'Notifications', to: '/notifications' },
-  { icon: Settings, label: 'Settings', to: '/settings' },
-  { icon: HelpCircle, label: 'Help & Support', to: '/help' },
-  { icon: Info, label: 'About pTrack', to: '/about' },
-  { icon: FileText, label: 'Terms of Service', to: '/terms' },
-  { icon: Shield, label: 'Privacy Policy', to: '/privacy' },
-] as const;
-
 export default function Profile() {
   const { user, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const networkStatus = useNetworkStatus();
+  const { t } = useTranslation('profile');
+
+  const MENU = [
+    { icon: Activity, label: t('my_activity'), to: '/activity' },
+    { icon: Trophy, label: t('my_achievements'), to: '/rewards' },
+    { icon: Recycle, label: t('recycling_centres'), to: '/centres' },
+    { icon: BookOpen, label: t('education'), to: '/education' },
+    { icon: Bell, label: t('notifications'), to: '/notifications' },
+    { icon: Settings, label: t('settings'), to: '/settings' },
+    { icon: HelpCircle, label: t('help'), to: '/help' },
+    { icon: Info, label: t('about'), to: '/about' },
+    { icon: FileText, label: t('terms'), to: '/terms' },
+    { icon: Shield, label: t('privacy'), to: '/privacy' },
+  ];
 
   const [reportsCount, setReportsCount] = useState(0);
   const [recyclingCount, setRecyclingCount] = useState(0);
@@ -94,19 +96,19 @@ export default function Profile() {
     try {
       await client.delete('/auth/me/avatar/');
       setUser({ ...user!, profile_picture: null });
-      toast.success('Profile photo removed.');
+      toast.success(t('photo_removed'));
     } catch {
-      toast.error('Failed to remove photo.');
+      toast.error(t('photo_remove_failed'));
     }
     setShowDeleteAvatarConfirm(false);
   }
 
   const stats = [
-    { label: 'Reports', value: String(reportsCount) },
-    { label: 'Recycling', value: String(recyclingCount) },
-    { label: 'Points', value: String(user?.points ?? 0) },
-    { label: 'Badges', value: String(earnedBadgesCount) },
-    { label: 'Streak', value: `${user?.current_streak ?? 0}d` },
+    { label: t('stat_reports'), value: String(reportsCount) },
+    { label: t('stat_recycling'), value: String(recyclingCount) },
+    { label: t('stat_points'), value: String(user?.points ?? 0) },
+    { label: t('stat_badges'), value: String(earnedBadgesCount) },
+    { label: t('stat_streak'), value: `${user?.current_streak ?? 0}d` },
   ];
 
   return (
@@ -150,7 +152,7 @@ export default function Profile() {
             </div>
           </div>
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-            <MapPin size={12} /> {user?.sector} · Joined {formatDate(user?.created_at ?? '')}
+            <MapPin size={12} /> {user?.sector} · {t('joined', { date: formatDate(user?.created_at ?? '') })}
           </p>
           {user?.bio && (
             <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">{user.bio}</p>
@@ -188,12 +190,10 @@ export default function Profile() {
       {impact && (
         <div className="mx-4 mt-4 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-100 dark:border-green-800">
           <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
-            Your Environmental Impact
+            {t('environmental_impact')}
           </p>
           <p className="text-sm text-green-700 dark:text-green-400">
-            You've helped prevent ~
-            <span className="font-bold">{impact.estimated_plastic_kg}kg</span> of plastic from
-            reaching Kigali's drainage.
+            {t('plastic_prevented', { kg: impact.estimated_plastic_kg })}
           </p>
           <button
             onClick={() => {
@@ -207,12 +207,12 @@ export default function Profile() {
               } else {
                 void navigator.clipboard
                   .writeText(text)
-                  .then(() => toast.success('Impact copied to clipboard!'));
+                  .then(() => toast.success(t('impact_copied')));
               }
             }}
             className="mt-3 text-xs font-medium text-green-600 flex items-center gap-1 hover:underline"
           >
-            <Share2 size={12} /> Share my impact
+            <Share2 size={12} /> {t('share_impact')}
           </button>
         </div>
       )}
@@ -238,22 +238,20 @@ export default function Profile() {
           className="flex items-center gap-3 p-4 w-full text-left hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
         >
           <LogOut size={18} className="text-red-500" />
-          <span className="text-sm font-medium text-red-600">Logout</span>
+          <span className="text-sm font-medium text-red-600">{t('logout')}</span>
         </button>
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-6 pb-2">
-        pTrack v1.0.0 · Built for Kigali.
-      </p>
+      <p className="text-center text-xs text-gray-400 mt-6 pb-2">{t('version')}</p>
 
       {/* Logout confirm */}
       <ConfirmDialog
         isOpen={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
-        title="Logout"
-        message="Are you sure you want to log out?"
-        confirmLabel="Logout"
+        title={t('logout_title')}
+        message={t('logout_message')}
+        confirmLabel={t('logout')}
       />
 
       {/* Delete avatar confirm */}
@@ -261,9 +259,9 @@ export default function Profile() {
         isOpen={showDeleteAvatarConfirm}
         onClose={() => setShowDeleteAvatarConfirm(false)}
         onConfirm={() => void handleDeleteAvatar()}
-        title="Remove photo"
-        message="This will permanently remove your profile photo."
-        confirmLabel="Remove"
+        title={t('remove_photo_title')}
+        message={t('remove_photo_message')}
+        confirmLabel={t('remove_photo_confirm')}
       />
 
       {/* Avatar upload */}

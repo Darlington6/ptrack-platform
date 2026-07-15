@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Map, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Locate, MapPin } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { reportsApi } from '../api/endpoints/reports';
 import type { WasteReport, ReportStatus } from '../api/types';
 
@@ -10,19 +11,11 @@ const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
 
 const STATUS_COLOR: Record<ReportStatus, string> = {
-  pending: '#f59e0b', // amber-500
-  verified: '#16a34a', // green-600
-  resolved: '#60a5fa', // blue-400
-  rejected: '#ef4444', // red-500
+  pending: '#f59e0b',
+  verified: '#16a34a',
+  resolved: '#60a5fa',
+  rejected: '#ef4444',
 };
-
-const FILTERS: Array<{ label: string; value: ReportStatus | 'all' }> = [
-  { label: 'All', value: 'all' },
-  { label: 'Pending', value: 'pending' },
-  { label: 'Verified', value: 'verified' },
-  { label: 'Resolved', value: 'resolved' },
-  { label: 'Rejected', value: 'rejected' },
-];
 
 interface BBox {
   north: number;
@@ -39,6 +32,7 @@ interface MapContentProps {
 
 function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
   const map = useMap();
+  const { t } = useTranslation(['map', 'report']);
 
   useEffect(() => {
     if (map && targetPos) map.panTo(targetPos);
@@ -48,7 +42,6 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const [selected, setSelected] = useState<WasteReport | null>(null);
 
-  // Bbox on idle
   useEffect(() => {
     if (!map) return;
     const listener = map.addListener('idle', () => {
@@ -61,11 +54,9 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
     return () => google.maps.event.removeListener(listener);
   }, [map, onBboxChange]);
 
-  // Imperative markers + clusterer
   useEffect(() => {
     if (!map || !markerLib) return;
 
-    // Clear previous
     markersRef.current.forEach((m) => {
       m.map = null;
     });
@@ -106,7 +97,7 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
           <div className="text-sm min-w-[180px]">
             <div className="flex items-center justify-between gap-4 mb-1">
               <span className="font-semibold capitalize text-gray-800">
-                {selected.waste_type.replace('_', ' ')}
+                {t('report:' + selected.waste_type)}
               </span>
               <span
                 className="text-xs px-1.5 py-0.5 rounded-full font-medium"
@@ -115,7 +106,7 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
                   color: STATUS_COLOR[selected.status],
                 }}
               >
-                {selected.status}
+                {t('report:' + selected.status)}
               </span>
             </div>
             {selected.description && (
@@ -123,13 +114,13 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
             )}
             <p className="text-[10px] text-gray-400 mb-2">
               {new Date(selected.created_at).toLocaleDateString()} —{' '}
-              {selected.user_detail?.full_name ?? 'Citizen'}
+              {selected.user_detail?.full_name ?? t('map:citizen')}
             </p>
             <Link
               to={`/reports/${selected.id}`}
               className="block text-center text-xs font-semibold text-green-700 hover:underline"
             >
-              View detail →
+              {t('map:view_detail')}
             </Link>
           </div>
         </InfoWindow>
@@ -139,12 +130,21 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
 }
 
 export default function MapView() {
+  const { t } = useTranslation(['map', 'report']);
   const [filter, setFilter] = useState<ReportStatus | 'all'>('all');
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loading, setLoading] = useState(false);
   const [userPos, setUserPos] = useState<google.maps.LatLngLiteral | null>(null);
   const bboxRef = useRef<BBox | null>(null);
   const fetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const filters: Array<{ label: string; value: ReportStatus | 'all' }> = [
+    { label: t('map:filter_all'), value: 'all' },
+    { label: t('map:filter_pending'), value: 'pending' },
+    { label: t('map:filter_verified'), value: 'verified' },
+    { label: t('map:filter_resolved'), value: 'resolved' },
+    { label: t('map:filter_rejected'), value: 'rejected' },
+  ];
 
   const fetchReports = useCallback(
     async (bbox: BBox) => {
@@ -175,7 +175,6 @@ export default function MapView() {
     [fetchReports]
   );
 
-  // Re-fetch when filter changes without waiting for a map move event
   useEffect(() => {
     if (bboxRef.current) void fetchReports(bboxRef.current);
   }, [fetchReports]);
@@ -188,21 +187,21 @@ export default function MapView() {
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100dvh - 64px)' }}>
-      {/* Header */}
       <div className="px-4 py-3 border-b border-gray-200 bg-white dark:bg-slate-900 dark:border-slate-700 flex items-center justify-between flex-shrink-0">
         <h1 className="text-base font-semibold text-gray-800 dark:text-slate-100">
-          Waste Reports Near You
-          {loading && <span className="ml-2 text-xs text-gray-400 font-normal">Loading…</span>}
+          {t('map:title')}
+          {loading && (
+            <span className="ml-2 text-xs text-gray-400 font-normal">{t('map:loading')}</span>
+          )}
         </h1>
         <button
           onClick={recentre}
           className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
         >
-          <Locate size={13} /> Re-centre
+          <Locate size={13} /> {t('map:recentre')}
         </button>
       </div>
 
-      {/* Map — fixed height */}
       <div className="flex-shrink-0" style={{ height: '45%' }}>
         <Map
           mapId={MAP_ID ?? null}
@@ -221,10 +220,9 @@ export default function MapView() {
         </Map>
       </div>
 
-      {/* Status filter chips */}
       <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
         <div className="flex gap-2 px-4 py-2.5 overflow-x-auto">
-          {FILTERS.map((f) => {
+          {filters.map((f) => {
             const color = f.value !== 'all' ? STATUS_COLOR[f.value] : undefined;
             return (
               <button
@@ -249,12 +247,11 @@ export default function MapView() {
         </div>
       </div>
 
-      {/* Reports list */}
       <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-slate-950 pb-6">
         {reports.length === 0 && !loading && (
           <div className="flex flex-col items-center justify-center py-12 text-center px-4">
             <MapPin size={32} className="text-gray-300 dark:text-slate-600 mb-2" />
-            <p className="text-sm text-gray-500 dark:text-slate-400">No reports in this area.</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400">{t('map:no_reports')}</p>
           </div>
         )}
         <div className="space-y-2 px-3 pt-3">
@@ -270,7 +267,7 @@ export default function MapView() {
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 dark:text-slate-100 capitalize">
-                  {r.waste_type.replace('_', ' ')}
+                  {t('report:' + r.waste_type)}
                 </p>
                 {r.description && (
                   <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
@@ -279,7 +276,7 @@ export default function MapView() {
                 )}
                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                   {new Date(r.created_at).toLocaleDateString('en-GB')} —{' '}
-                  {r.user_detail?.full_name ?? 'Citizen'}
+                  {r.user_detail?.full_name ?? t('map:citizen')}
                 </p>
               </div>
               <span
@@ -289,7 +286,7 @@ export default function MapView() {
                   color: STATUS_COLOR[r.status],
                 }}
               >
-                {r.status}
+                {t('report:' + r.status)}
               </span>
             </Link>
           ))}

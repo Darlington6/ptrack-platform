@@ -1,0 +1,13 @@
+{
+  "title": "Waste Reports Near You",
+  "loading": "Loading…",
+  "recentre": "Re-centre",
+  "filter_all": "All",
+  "filter_pending": "Pending",
+  "filter_verified": "Verified",
+  "filter_resolved": "Resolved",
+  "filter_rejected": "Rejected",
+  "no_reports": "No reports in this area.",
+  "view_detail": "View detail →",
+  "citizen": "Citizen"
+}

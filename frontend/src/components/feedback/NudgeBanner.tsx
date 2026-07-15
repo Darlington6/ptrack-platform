@@ -28,7 +28,7 @@ const CATEGORY_ICON: Record<string, ReactNode> = {
 const AUTO_ADVANCE_MS = 6000;
 
 export function NudgeBanner() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('common');
   const navigate = useNavigate();
   const qc = useQueryClient();
   const lang = i18n.language?.startsWith('rw') ? 'rw' : 'en';
@@ -136,7 +136,7 @@ export function NudgeBanner() {
           }}
           className="mt-2 text-xs font-semibold text-green-700 dark:text-green-400 underline underline-offset-2"
         >
-          Take action →
+          {t('take_action')} →
         </button>
       )}
     </div>

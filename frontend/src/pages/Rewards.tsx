@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MapPin, Recycle, CheckCircle, Flame, Lock, Star, Lightbulb } from 'lucide-react';
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { badgesApi } from '../api/endpoints/badges';
 import client from '../api/client';
@@ -22,13 +23,6 @@ function formatDate(dateStr: string): string {
   });
 }
 
-const REWARD_LABELS: Record<string, string> = {
-  report_submitted: 'Reported plastic waste',
-  recycling_logged: 'Recycling activity logged',
-  verification_bonus: 'Admin verification bonus',
-  streak_bonus: 'Streak bonus',
-};
-
 const REWARD_ICONS: Record<string, ReactNode> = {
   report_submitted: <MapPin size={14} className="text-green-600" />,
   recycling_logged: <Recycle size={14} className="text-green-600" />,
@@ -37,6 +31,7 @@ const REWARD_ICONS: Record<string, ReactNode> = {
 };
 
 function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPoints: number }) {
+  const { t } = useTranslation('rewards');
   const earned = currentPoints >= badge.required_points;
   const pct = Math.min((currentPoints / badge.required_points) * 100, 100);
 
@@ -66,7 +61,7 @@ function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPo
       </div>
       {earned ? (
         <p className="text-xs font-semibold text-green-600 dark:text-green-400 flex items-center gap-1">
-          ✓ Earned
+          &#x2713; {t('badge_earned')}
         </p>
       ) : (
         <div>
@@ -87,6 +82,14 @@ function BadgeCard({ badge, currentPoints }: { badge: BadgeDefinition; currentPo
 
 export default function Rewards() {
   const { user } = useAuth();
+  const { t } = useTranslation('rewards');
+
+  const rewardLabels: Record<string, string> = {
+    report_submitted: t('label_report'),
+    recycling_logged: t('label_recycling'),
+    verification_bonus: t('label_verification'),
+    streak_bonus: t('label_streak'),
+  };
 
   const { data: badgesData } = useQuery({
     queryKey: ['badges'],
@@ -141,13 +144,13 @@ export default function Rewards() {
       {/* Points card */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
         <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">
-          Total Points
+          {t('total_points')}
         </p>
         <p className="text-4xl font-extrabold text-green-600 tabular-nums">{points}</p>
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mb-1">
-            <span>Progress to next badge</span>
-            {nextBadge && <span>{nextBadgePts} pts needed</span>}
+            <span>{t('progress_label')}</span>
+            {nextBadge && <span>{t('pts_needed', { pts: nextBadgePts })}</span>}
           </div>
           <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
             <div
@@ -161,9 +164,9 @@ export default function Rewards() {
       {/* Stats strip */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Badges Earned', value: String(earnedCount) },
-          { label: 'Day Streak', value: String(streak) },
-          { label: 'Sector Rank', value: rank ? `#${rank}` : '—' },
+          { label: t('badges_earned_stat'), value: String(earnedCount) },
+          { label: t('day_streak'), value: String(streak) },
+          { label: t('sector_rank'), value: rank ? `#${rank}` : '—' },
         ].map(({ label, value }) => (
           <div
             key={label}
@@ -180,7 +183,9 @@ export default function Rewards() {
       {/* Badges grid */}
       {badges.length > 0 && (
         <div>
-          <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-3">Badges</h2>
+          <h2 className="text-base font-bold text-gray-900 dark:text-slate-100 mb-3">
+            {t('badges')}
+          </h2>
           <div className="grid grid-cols-2 gap-3">
             {badges.map((b) => (
               <BadgeCard key={b.id} badge={b} currentPoints={points} />
@@ -192,15 +197,17 @@ export default function Rewards() {
       {/* Points history */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">Points History</h2>
+          <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">
+            {t('points_history')}
+          </h2>
           <Link to="/activity" className="text-sm text-green-600 dark:text-green-400 font-medium">
-            See all
+            {t('see_all')}
           </Link>
         </div>
 
         {allRewards.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-6 text-center text-sm text-gray-400 dark:text-slate-500">
-            No activity yet — submit your first report!
+            {t('no_activity')}
           </div>
         ) : (
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700">
@@ -211,7 +218,7 @@ export default function Rewards() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
-                    {REWARD_LABELS[r.reward_type] ?? r.reward_type}
+                    {rewardLabels[r.reward_type] ?? r.reward_type}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">
                     {formatDate(r.date_earned)}
@@ -231,7 +238,7 @@ export default function Rewards() {
             disabled={isFetchingNextPage}
             className="mt-3 w-full py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800"
           >
-            {isFetchingNextPage ? 'Loading…' : 'Load more'}
+            {isFetchingNextPage ? 'Loading…' : t('load_more')}
           </button>
         )}
       </div>
@@ -240,8 +247,7 @@ export default function Rewards() {
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 flex items-start gap-2">
         <Lightbulb size={16} className="flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
-          <span className="font-bold">Coming soon:</span> Redeem points for airtime, local business
-          vouchers, and eco-products.
+          <span className="font-bold">{t('coming_soon_label')}</span> {t('coming_soon')}
         </p>
       </div>
     </div>

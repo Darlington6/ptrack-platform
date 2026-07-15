@@ -1,4 +1,19 @@
-Hi {{ user.full_name|default:user.username }},
+{% if user.preferred_language == 'rw' %}Muraho {{ user.full_name|default:user.username }},
+
+Incamake ya buri cyumweru ya pTrack:
+
+  Raporo zatanzwe iki cyumweru : {{ reports }}
+  Ibikorwa by'ugusubiza       : {{ recycling }}
+  Amanota yatanzwe iki cyumweru: {{ points_earned }}
+  Amanota yose                : {{ user.points }}
+  Iminsi ikurikiranyaho       : Iminsi {{ user.current_streak }}
+
+Komeza kurinda ibidukikije bya Kigali!
+
+Fungura pTrack: https://ptrack-platform.vercel.app/dashboard
+
+— Itsinda rya pTrack
+{% else %}Hi {{ user.full_name|default:user.username }},
 
 Here's your pTrack weekly summary:
 
@@ -13,3 +28,4 @@ Keep up the great work protecting Kigali's environment!
 Open pTrack: https://ptrack-platform.vercel.app/dashboard
 
 — The pTrack Team
+{% endif %}

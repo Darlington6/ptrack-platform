@@ -2,24 +2,19 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { User, Lock, Globe, Sun, Bell, Eye, Database, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-const ITEMS = [
-  { icon: User, label: 'Account', desc: 'Name, email, phone', to: '/settings/account' },
-  { icon: Lock, label: 'Security', desc: 'Password, sessions', to: '/settings/security' },
-  { icon: Globe, label: 'Language', desc: 'English / Kinyarwanda', to: '/settings/language' },
-  { icon: Sun, label: 'Theme', desc: 'Light / Dark / System', to: '/settings/theme' },
-  { icon: Bell, label: 'Notifications', desc: 'Alerts and digests', to: '/settings/notifications' },
-  { icon: Eye, label: 'Privacy', desc: 'Leaderboard, public reports', to: '/settings/privacy' },
-  {
-    icon: Database,
-    label: 'Data & Privacy',
-    desc: 'Export or delete account',
-    to: '/settings/data',
-  },
-] as const;
-
 export default function Settings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
+
+  const ITEMS = [
+    { icon: User, label: t('account'), desc: t('account_desc'), to: '/settings/account' },
+    { icon: Lock, label: t('security'), desc: t('security_desc'), to: '/settings/security' },
+    { icon: Globe, label: t('language'), desc: t('language_desc'), to: '/settings/language' },
+    { icon: Sun, label: t('theme'), desc: t('theme_desc'), to: '/settings/theme' },
+    { icon: Bell, label: t('notifications'), desc: t('notifications_desc'), to: '/settings/notifications' },
+    { icon: Eye, label: t('privacy'), desc: t('privacy_desc'), to: '/settings/privacy' },
+    { icon: Database, label: t('data'), desc: t('data_desc'), to: '/settings/data' },
+  ] as const;
 
   return (
     <div className="pb-24 px-4">

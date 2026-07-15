@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = "mailto:d.tunyinko@alustudent.com"
 
+    # Cron job trigger secret (shared between GitHub Actions and this backend)
+    CRON_SECRET: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

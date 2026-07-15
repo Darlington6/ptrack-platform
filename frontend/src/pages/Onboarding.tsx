@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Hand, Star, Trophy, Rocket } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 
@@ -12,31 +14,36 @@ interface Slide {
   body: string;
 }
 
-function buildSlides(report: number, recycling: number, bonus: number): Slide[] {
+function buildSlides(
+  report: number,
+  recycling: number,
+  bonus: number,
+  t: TFunction
+): Slide[] {
   return [
     {
       bg: 'linear-gradient(135deg, #F0FDF4, #DCFCE7)',
       icon: <Hand size={56} className="text-green-700" />,
-      title: 'Welcome to pTrack!',
-      body: "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
+      title: t('slide1_title'),
+      body: t('slide1_body'),
     },
     {
       bg: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
       icon: <Star size={56} className="text-amber-500" />,
-      title: 'Earn points for every action',
-      body: `Report waste (+${report} pts), log recycling (+${recycling} pts), get verified (+${bonus} bonus). Points unlock rewards and badges.`,
+      title: t('slide2_title'),
+      body: t('slide2_body', { report, recycling, bonus }),
     },
     {
       bg: 'linear-gradient(135deg, #EFF6FF, #DBEAFE)',
       icon: <Trophy size={56} className="text-blue-500" />,
-      title: 'Climb the leaderboard',
-      body: 'Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.',
+      title: t('slide3_title'),
+      body: t('slide3_body'),
     },
     {
       bg: 'linear-gradient(135deg, #FDF4FF, #FAE8FF)',
       icon: <Rocket size={56} className="text-purple-600" />,
-      title: 'Ready to get started?',
-      body: `Start your first report and earn ${report} points right now. Kigali is counting on you!`,
+      title: t('slide4_title'),
+      body: t('slide4_body', { report }),
     },
   ];
 }
@@ -46,6 +53,7 @@ const SLIDE_COUNT = 4;
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
+  const { t } = useTranslation('onboarding');
   const [slide, setSlide] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -59,7 +67,8 @@ export default function Onboarding() {
   const slides = buildSlides(
     pts.report_submitted ?? 5,
     pts.recycling_logged ?? 5,
-    pts.verification_bonus ?? 10
+    pts.verification_bonus ?? 10,
+    t
   );
 
   function resetTimer() {
@@ -137,10 +146,10 @@ export default function Onboarding() {
       >
         {slide < SLIDE_COUNT - 1 ? (
           <>
-            Next <ChevronRight size={18} />
+            {t('next')} <ChevronRight size={18} />
           </>
         ) : (
-          'Get Started'
+          t('get_started')
         )}
       </button>
 
@@ -150,7 +159,7 @@ export default function Onboarding() {
           onClick={() => void finishOnboarding()}
           className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
-          Skip
+          {t('skip')}
         </button>
       )}
     </div>

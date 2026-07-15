@@ -1,0 +1,23 @@
+{
+  "title": "Aho Gusubiza Imyanda",
+  "near_me": "Hafi yanjye",
+  "no_centres": "Nta hantu huboneka kuri iyi nyifato y'imyanda.",
+  "open": "Bifunguye",
+  "closed": "Bifunzwe",
+  "get_directions": "Fumura Inzira",
+  "get_directions_arrow": "Fumura Inzira →",
+  "mat_all": "Byose",
+  "mat_plastic_bottles": "Icupa rya plastike",
+  "mat_cardboard": "Ikaritoni",
+  "mat_glass": "Viringanyi",
+  "mat_metal": "Icuma",
+  "mat_ewaste": "Ikoranabuhanga rya kera",
+  "mat_organic": "Imyanda y'imikoko",
+  "mat_paper": "Urupapuro",
+  "mat_textiles": "Imyenda",
+  "mat_pet": "PET",
+  "mat_hdpe": "HDPE",
+  "mat_pp": "PP",
+  "dist_m": "metero {{dist}} uvuye hano",
+  "dist_km": "km {{dist}} uvuye hano"
+}

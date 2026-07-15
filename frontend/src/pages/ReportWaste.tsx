@@ -4,6 +4,7 @@ import { ArrowLeft, Locate } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import client from '../api/client';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -15,13 +16,6 @@ import { enqueueReport } from '../lib/offlineQueue';
 
 const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
-
-const WASTE_TYPES = [
-  { value: 'bottles', label: 'Plastic bottles' },
-  { value: 'bags', label: 'Plastic bags' },
-  { value: 'mixed', label: 'Mixed plastic' },
-  { value: 'other', label: 'Other' },
-];
 
 // Module-level reverse-geocode cache (LRU, max 50)
 const geocodeCache = new Map<string, string>();
@@ -49,6 +43,14 @@ export default function ReportWaste() {
   const location = useLocation();
   const { refreshUser } = useAuth();
   const qc = useQueryClient();
+  const { t } = useTranslation('report');
+
+  const wasteTypeOptions = [
+    { value: 'bottles', label: t('bottles') },
+    { value: 'bags', label: t('bags') },
+    { value: 'mixed', label: t('mixed') },
+    { value: 'other', label: t('other') },
+  ];
 
   const { data: pointConfigs } = useQuery<Record<string, number>>({
     queryKey: ['point-configs'],
@@ -113,7 +115,7 @@ export default function ReportWaste() {
   async function handleSubmit(e: { preventDefault(): void }) {
     e.preventDefault();
     if (!image) {
-      toast.error('Please add a photo of the waste before submitting.');
+      toast.error(t('photo_required'));
       return;
     }
     setLoading(true);
@@ -128,7 +130,7 @@ export default function ReportWaste() {
       // If offline, queue locally and show a friendly message
       if (!navigator.onLine) {
         await enqueueReport(payload, image);
-        toast.success("Saved offline — will sync automatically when you're back online.");
+        toast.success(t('saved_offline'));
         setTimeout(() => navigate('/dashboard'), 2000);
         return;
       }
@@ -150,24 +152,26 @@ export default function ReportWaste() {
         void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
         const pts = (res.data as { points_earned?: number }).points_earned ?? 10;
         const bal = (res.data as { new_points_balance?: number }).new_points_balance;
-        toast.success(
-          `Report submitted! +${pts} pts${bal !== undefined ? ` — Balance: ${bal} pts` : ''}`
-        );
+        if (bal !== undefined) {
+          toast.success(t('submit_success', { pts, bal }));
+        } else {
+          toast.success(t('submit_success_no_bal', { pts }));
+        }
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
         if (axios.isAxiosError(networkErr) && networkErr.response) {
           // API returned an error response — don't queue, show error
-          toast.error('Failed to submit report. Please try again.');
+          toast.error(t('submit_failed'));
           setLoading(false);
           return;
         }
         // True network failure — queue for offline sync
         await enqueueReport(payload, image);
-        toast.success("Saved — will sync when you're back online.");
+        toast.success(t('saved_network'));
         setTimeout(() => navigate('/dashboard'), 2000);
       }
     } catch {
-      toast.error('Failed to submit report. Please try again.');
+      toast.error(t('submit_failed'));
     } finally {
       setLoading(false);
     }
@@ -197,16 +201,14 @@ export default function ReportWaste() {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-semibold text-gray-800 dark:text-slate-100">
-          Report Plastic Waste
-        </h1>
+        <h1 className="text-lg font-semibold text-gray-800 dark:text-slate-100">{t('title')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="px-4 py-4 space-y-5">
         {/* Map */}
         <div>
           <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-            Pin the exact location
+            {t('pin_location')}
           </p>
           <div
             className="rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700"
@@ -248,7 +250,7 @@ export default function ReportWaste() {
               }}
               className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400 flex-shrink-0"
             >
-              <Locate size={12} /> My location
+              <Locate size={12} /> {t('my_location')}
             </button>
           </div>
         </div>
@@ -259,7 +261,7 @@ export default function ReportWaste() {
           onChange={setImage}
           maxSizeMB={0.5}
           maxWidthOrHeight={1920}
-          label="Photo"
+          label={t('photo')}
         />
 
         {/* Description */}
@@ -268,14 +270,14 @@ export default function ReportWaste() {
             htmlFor="report-description"
             className="text-sm font-medium text-gray-700 dark:text-slate-300"
           >
-            Describe what you found (optional but recommended)
+            {t('description_label')}
           </label>
           <textarea
             id="report-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            placeholder="e.g., Large pile of plastic bottles near the road..."
+            placeholder={t('description_placeholder')}
             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100"
           />
         </div>
@@ -286,7 +288,7 @@ export default function ReportWaste() {
             htmlFor="report-waste-type"
             className="text-sm font-medium text-gray-700 dark:text-slate-300"
           >
-            Waste Type
+            {t('waste_type')}
           </label>
           <select
             id="report-waste-type"
@@ -294,21 +296,22 @@ export default function ReportWaste() {
             onChange={(e) => setWasteType(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100"
           >
-            {WASTE_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
+            {wasteTypeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
         </div>
 
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? 'Submitting…' : 'Submit Report'}
+          {loading ? t('submitting') : t('submit_report')}
         </Button>
 
         <p className="text-center text-sm text-gray-500 dark:text-slate-400">
-          You'll earn <span className="font-semibold text-green-600">+{reportPts} points</span> for
-          this report
+          {t('points_earn')}{' '}
+          <span className="font-semibold text-green-600">{t('pts_label', { pts: reportPts })}</span>{' '}
+          {t('points_for')}
         </p>
       </form>
     </div>

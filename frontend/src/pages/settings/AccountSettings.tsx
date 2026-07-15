@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/endpoints/auth';
 import client from '../../api/client';
@@ -22,6 +23,7 @@ const INPUT_CLS =
 export default function AccountSettings() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('settings');
 
   const {
     register,
@@ -40,18 +42,18 @@ export default function AccountSettings() {
     try {
       const res = await client.patch<User>('/auth/me/', data);
       setUser(res.data);
-      toast.success('Saved');
+      toast.success(t('saved'));
     } catch {
-      toast.error('Failed to save changes.');
+      toast.error(t('save_failed'));
     }
   }
 
   async function handleResendEmail() {
     try {
       await authApi.sendVerification('email', 'register_verify');
-      toast.success('Verification email sent!');
+      toast.success(t('resend_email_sent'));
     } catch {
-      toast.error('Failed to send verification email.');
+      toast.error(t('resend_email_failed'));
     }
   }
 
@@ -65,7 +67,7 @@ export default function AccountSettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Account</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t('page_account')}</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -74,7 +76,7 @@ export default function AccountSettings() {
             htmlFor="full_name"
             className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
           >
-            Full name
+            {t('full_name')}
           </label>
           <input id="full_name" {...register('full_name')} className={INPUT_CLS} />
           {errors.full_name && (
@@ -87,14 +89,14 @@ export default function AccountSettings() {
             htmlFor="bio"
             className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
           >
-            Bio
+            {t('bio')}
           </label>
           <textarea
             id="bio"
             {...register('bio')}
             rows={3}
             className={`${INPUT_CLS} resize-none`}
-            placeholder="Tell your community about yourself…"
+            placeholder={t('bio_placeholder')}
           />
         </div>
 
@@ -104,7 +106,7 @@ export default function AccountSettings() {
               htmlFor="email"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Email
+              {t('email_label')}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -116,11 +118,11 @@ export default function AccountSettings() {
               />
               {user?.email_verified ? (
                 <span className="flex items-center gap-1 text-xs font-medium text-green-600 whitespace-nowrap">
-                  <CheckCircle size={13} /> Verified
+                  <CheckCircle size={13} /> {t('verified')}
                 </span>
               ) : (
                 <span className="text-xs font-medium text-amber-600 whitespace-nowrap">
-                  Unverified
+                  {t('unverified')}
                 </span>
               )}
             </div>
@@ -130,7 +132,7 @@ export default function AccountSettings() {
                 onClick={() => void handleResendEmail()}
                 className="text-xs text-green-600 hover:underline mt-1"
               >
-                Resend verification email
+                {t('resend_email')}
               </button>
             )}
           </div>
@@ -142,7 +144,7 @@ export default function AccountSettings() {
               htmlFor="phone"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Phone
+              {t('phone_label')}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -154,11 +156,11 @@ export default function AccountSettings() {
               />
               {user?.phone_verified ? (
                 <span className="flex items-center gap-1 text-xs font-medium text-green-600 whitespace-nowrap">
-                  <CheckCircle size={13} /> Verified
+                  <CheckCircle size={13} /> {t('verified')}
                 </span>
               ) : (
                 <span className="text-xs font-medium text-amber-600 whitespace-nowrap">
-                  Unverified
+                  {t('unverified')}
                 </span>
               )}
             </div>
@@ -170,11 +172,9 @@ export default function AccountSettings() {
             htmlFor="weekly_goal"
             className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
           >
-            Weekly goal
+            {t('weekly_goal')}
           </label>
-          <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
-            How many waste reports you aim to submit each week
-          </p>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{t('weekly_goal_desc')}</p>
           <select
             id="weekly_goal"
             {...register('weekly_goal', { valueAsNumber: true })}
@@ -182,7 +182,9 @@ export default function AccountSettings() {
           >
             {[1, 2, 3, 5, 7, 10, 14, 20].map((n) => (
               <option key={n} value={n}>
-                {n} {n === 1 ? 'report' : 'reports'} per week
+                {n === 1
+                  ? t('weekly_report_singular', { n })
+                  : t('weekly_report_plural', { n })}
               </option>
             ))}
           </select>
@@ -193,7 +195,7 @@ export default function AccountSettings() {
           disabled={isSubmitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
         >
-          {isSubmitting ? 'Saving…' : 'Save changes'}
+          {isSubmitting ? t('saving') : t('save_changes')}
         </button>
       </form>
     </div>

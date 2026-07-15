@@ -1,0 +1,23 @@
+{
+  "title": "Recycling Centres",
+  "near_me": "Near me",
+  "no_centres": "No centres found for the selected material.",
+  "open": "Open",
+  "closed": "Closed",
+  "get_directions": "Get Directions",
+  "get_directions_arrow": "Get Directions →",
+  "mat_all": "All",
+  "mat_plastic_bottles": "Plastic bottles",
+  "mat_cardboard": "Cardboard",
+  "mat_glass": "Glass",
+  "mat_metal": "Metal",
+  "mat_ewaste": "E-waste",
+  "mat_organic": "Organic",
+  "mat_paper": "Paper",
+  "mat_textiles": "Textiles",
+  "mat_pet": "PET",
+  "mat_hdpe": "HDPE",
+  "mat_pp": "PP",
+  "dist_m": "{{dist}} m away",
+  "dist_km": "{{dist}} km away"
+}

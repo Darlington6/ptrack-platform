@@ -1,0 +1,19 @@
+{
+  "title": "Andika Ugusubiza",
+  "activity_type": "Ubwoko bw'Igikorwa",
+  "note_label": "Icyitonderwa",
+  "note_optional": "(ntibisabwa)",
+  "note_placeholder": "Urugero: Natanze amasakoshi 3 ku kigo cya Kimironko",
+  "points_earned": "Amanota yahawe",
+  "drop_off": "Gutanga ku kigo",
+  "pickup": "Gutwara mu muryango",
+  "exchange": "Guhana plastike",
+  "other": "Ikindi gikorwa",
+  "submit": "Andika Igikorwa",
+  "submitting": "Kwandika…",
+  "already_logged": "Wanditse igikorwa cy'ugusubiza uyu munsi. Garuka ejo!",
+  "saved_offline": "Byabitswe ntukiyo — bizohereza igihe uzasubira kuri interineti.",
+  "saved_network": "Byabitswe — bizohereza igihe uzasubira kuri interineti.",
+  "success": "+{{points}} amanota! Igikorwa cy'ugusubiza cyanditswe.",
+  "failed": "Kwandika igikorwa ntibyakunze. Ongera ugerageze."
+}

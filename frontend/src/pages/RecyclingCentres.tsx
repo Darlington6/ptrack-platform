@@ -13,23 +13,13 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
+import { useTranslation } from 'react-i18next';
 import { recyclingCentresApi } from '../api/endpoints/recyclingCentres';
 import { Spinner } from '../components/ui/Spinner';
 import type { RecyclingCentre } from '../api/types';
 
 const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID as string | undefined;
-const MATERIALS = [
-  'All',
-  'Plastic bottles',
-  'Cardboard',
-  'Glass',
-  'Metal',
-  'E-waste',
-  'Organic',
-  'Paper',
-  'Textiles',
-];
 
 function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -41,9 +31,27 @@ function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function formatDist(km: number): string {
-  return km < 1 ? `${(km * 1000).toFixed(0)} m away` : `${km.toFixed(1)} km away`;
+type TDist = (key: string, opts?: { dist: string }) => string;
+
+function formatDist(km: number, t: TDist): string {
+  return km < 1
+    ? t('dist_m', { dist: (km * 1000).toFixed(0) })
+    : t('dist_km', { dist: km.toFixed(1) });
 }
+
+const MATERIAL_KEY_MAP: Record<string, string> = {
+  PET: 'mat_pet',
+  HDPE: 'mat_hdpe',
+  PP: 'mat_pp',
+  'Plastic bottles': 'mat_plastic_bottles',
+  Cardboard: 'mat_cardboard',
+  Glass: 'mat_glass',
+  Metal: 'mat_metal',
+  'E-waste': 'mat_ewaste',
+  Organic: 'mat_organic',
+  Paper: 'mat_paper',
+  Textiles: 'mat_textiles',
+};
 
 function isOpenNow(centre: RecyclingCentre): boolean | null {
   if (!centre.open_time || !centre.close_time) return null;
@@ -80,6 +88,7 @@ function CentreCard({
   userLat: number | null;
   userLon: number | null;
 }) {
+  const { t } = useTranslation('centres');
   const dist =
     userLat !== null && userLon !== null
       ? haversineKm(userLat, userLon, centre.latitude, centre.longitude)
@@ -94,23 +103,24 @@ function CentreCard({
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-4 space-y-3">
-      {/* Name row */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm">{centre.name}</h3>
             {openStatus === null ? null : openStatus ? (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-                Open
+                {t('open')}
               </span>
             ) : (
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400">
-                Closed
+                {t('closed')}
               </span>
             )}
           </div>
           {dist !== null && (
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{formatDist(dist)}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+              {formatDist(dist, t as TDist)}
+            </p>
           )}
         </div>
         <ChevronRight
@@ -119,7 +129,6 @@ function CentreCard({
         />
       </div>
 
-      {/* Address / hours / phone / email */}
       <div className="space-y-1.5">
         {centre.address && (
           <p className="text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
@@ -143,7 +152,6 @@ function CentreCard({
         )}
       </div>
 
-      {/* Material tags */}
       {centre.accepted_materials.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {centre.accepted_materials.map((m) => (
@@ -151,7 +159,7 @@ function CentreCard({
               key={m}
               className="text-[10px] font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800 px-2 py-0.5 rounded-full"
             >
-              {m}
+              {MATERIAL_KEY_MAP[m] ? t(MATERIAL_KEY_MAP[m]!) : m}
             </span>
           ))}
         </div>
@@ -163,7 +171,7 @@ function CentreCard({
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors"
       >
-        <ExternalLink size={14} /> Get Directions
+        <ExternalLink size={14} /> {t('get_directions')}
       </a>
     </div>
   );
@@ -171,10 +179,23 @@ function CentreCard({
 
 export default function RecyclingCentres() {
   const navigate = useNavigate();
+  const { t } = useTranslation('centres');
   const [materialFilter, setMaterialFilter] = useState('All');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [userPos, setUserPos] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedCentre, setSelectedCentre] = useState<RecyclingCentre | null>(null);
+
+  const MATERIALS: { value: string; label: string }[] = [
+    { value: 'All', label: t('mat_all') },
+    { value: 'Plastic bottles', label: t('mat_plastic_bottles') },
+    { value: 'Cardboard', label: t('mat_cardboard') },
+    { value: 'Glass', label: t('mat_glass') },
+    { value: 'Metal', label: t('mat_metal') },
+    { value: 'E-waste', label: t('mat_ewaste') },
+    { value: 'Organic', label: t('mat_organic') },
+    { value: 'Paper', label: t('mat_paper') },
+    { value: 'Textiles', label: t('mat_textiles') },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ['recycling-centres', materialFilter],
@@ -201,21 +222,20 @@ export default function RecyclingCentres() {
 
   return (
     <div className="flex flex-col h-full pb-24">
-      {/* Header */}
       <div className="px-4 pt-4 pb-2 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Recycling Centres</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={requestLocation}
               className="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
             >
-              <MapPin size={13} /> Near me
+              <MapPin size={13} /> {t('near_me')}
             </button>
             <div className="flex rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
               <button
@@ -234,19 +254,18 @@ export default function RecyclingCentres() {
           </div>
         </div>
 
-        {/* Material filter chips */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {MATERIALS.map((m) => (
             <button
-              key={m}
-              onClick={() => setMaterialFilter(m)}
+              key={m.value}
+              onClick={() => setMaterialFilter(m.value)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-                materialFilter === m
+                materialFilter === m.value
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400'
               }`}
             >
-              {m}
+              {m.label}
             </button>
           ))}
         </div>
@@ -260,11 +279,10 @@ export default function RecyclingCentres() {
 
       {!isLoading && sorted.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm px-4">
-          No centres found for the selected material.
+          {t('no_centres')}
         </div>
       )}
 
-      {/* Map mode */}
       {viewMode === 'map' && !isLoading && (
         <div
           className="mx-4 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700"
@@ -301,7 +319,7 @@ export default function RecyclingCentres() {
                           key={m}
                           className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full"
                         >
-                          {m}
+                          {MATERIAL_KEY_MAP[m] ? t(MATERIAL_KEY_MAP[m]!) : m}
                         </span>
                       ))}
                     </div>
@@ -312,7 +330,7 @@ export default function RecyclingCentres() {
                     rel="noopener noreferrer"
                     className="block text-center text-xs font-semibold text-green-700 hover:underline mt-2"
                   >
-                    Get Directions →
+                    {t('get_directions_arrow')}
                   </a>
                 </div>
               </InfoWindow>
@@ -321,7 +339,6 @@ export default function RecyclingCentres() {
         </div>
       )}
 
-      {/* List mode */}
       {viewMode === 'list' && !isLoading && (
         <div className="px-4 mt-2 space-y-3">
           {sorted.map((c) => (

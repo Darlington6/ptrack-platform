@@ -12,30 +12,32 @@ import {
   BookOpen,
   Trophy,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
 import { getQueueStats } from '../../lib/offlineQueue';
 
-const NAV_ITEMS = [
-  { to: '/dashboard', icon: Home, label: 'Home', end: true },
-  { to: '/map', icon: Map, label: 'Map', end: false },
-  { to: '/report', icon: Camera, label: 'Report', end: false },
-  { to: '/rewards', icon: Gift, label: 'Rewards', end: false },
-  { to: '/profile', icon: User, label: 'Profile', end: false },
-] as const;
-
-const SECONDARY_NAV = [
-  { to: '/activity', icon: Activity, label: 'My Activity', end: false },
-  { to: '/centres', icon: Recycle, label: 'Recycling Centres', end: false },
-  { to: '/education', icon: BookOpen, label: 'Education', end: false },
-  { to: '/leaderboard', icon: Trophy, label: 'Leaderboard', end: false },
-] as const;
-
 export function CitizenSidebar() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('nav');
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+
+  const NAV_ITEMS = [
+    { to: '/dashboard', icon: Home, label: t('home'), end: true, isReport: false },
+    { to: '/map', icon: Map, label: t('map'), end: false, isReport: false },
+    { to: '/report', icon: Camera, label: t('report'), end: false, isReport: true },
+    { to: '/rewards', icon: Gift, label: t('rewards'), end: false, isReport: false },
+    { to: '/profile', icon: User, label: t('profile'), end: false, isReport: false },
+  ] as const;
+
+  const SECONDARY_NAV = [
+    { to: '/activity', icon: Activity, label: t('my_activity'), end: false },
+    { to: '/centres', icon: Recycle, label: t('recycling_centres'), end: false },
+    { to: '/education', icon: BookOpen, label: t('education'), end: false },
+    { to: '/leaderboard', icon: Trophy, label: t('leaderboard'), end: false },
+  ] as const;
 
   useEffect(() => {
     let mounted = true;
@@ -75,9 +77,9 @@ export function CitizenSidebar() {
 
       <nav className="flex-1 py-4 overflow-y-auto">
         <div className="space-y-0.5 px-3">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
+          {NAV_ITEMS.map(({ to, icon: Icon, label, end, isReport }) => (
             <NavLink
-              key={label}
+              key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
@@ -90,7 +92,7 @@ export function CitizenSidebar() {
             >
               <div className="relative">
                 <Icon size={18} />
-                {label === 'Report' && pendingCount > 0 && (
+                {isReport && pendingCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold leading-none px-0.5">
                     {pendingCount > 9 ? '9+' : String(pendingCount)}
                   </span>
@@ -106,7 +108,7 @@ export function CitizenSidebar() {
         <div className="space-y-0.5 px-3">
           {SECONDARY_NAV.map(({ to, icon: Icon, label, end }) => (
             <NavLink
-              key={label}
+              key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
@@ -130,7 +132,7 @@ export function CitizenSidebar() {
           className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
         >
           <LogOut size={18} />
-          Logout
+          {t('logout')}
         </button>
       </div>
 
@@ -138,9 +140,9 @@ export function CitizenSidebar() {
         isOpen={confirmLogout}
         onClose={() => setConfirmLogout(false)}
         onConfirm={handleLogout}
-        title="Logout"
-        message="Are you sure you want to log out?"
-        confirmLabel="Logout"
+        title={t('logout_title')}
+        message={t('logout_message')}
+        confirmLabel={t('logout')}
       />
     </aside>
   );

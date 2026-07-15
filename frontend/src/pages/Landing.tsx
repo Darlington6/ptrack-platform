@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { communityApi } from '../api/endpoints/community';
 
 export default function Landing() {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('landing');
 
   const { data: statsData } = useQuery({
     queryKey: ['community', 'stats', 'public'],
@@ -42,7 +42,7 @@ export default function Landing() {
       <main className="flex-1 flex flex-col items-center justify-center px-6 text-center -mt-8">
         {/* Coverage badge */}
         <div className="mb-6 px-4 py-1.5 rounded-full border border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950 text-sm text-green-700 dark:text-green-400 font-medium">
-          Piloting in Kimironko, Kigali
+          {t('pilot_badge')}
         </div>
 
         {/* Icon */}
@@ -52,60 +52,57 @@ export default function Landing() {
 
         {/* Heading */}
         <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-3 leading-tight">
-          Report. Recycle. Reward.
+          {t('hero_title')}
         </h1>
 
-        {/* Subtitle */}
         <p className="text-gray-500 dark:text-slate-400 max-w-xs mb-8 text-base leading-relaxed">
-          Help keep cities clean. Earn points for every action.
+          {t('hero_subtitle')}
         </p>
 
-        {/* Community Impact card */}
         <div className="w-full max-w-sm mb-8 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm p-4">
           <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-            <Users size={13} /> Community Impact
+            <Users size={13} /> {t('community_impact')}
           </p>
           <div className="flex justify-between text-center">
             <div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? stats.total_reports.toLocaleString() : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Reports Filed</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('reports_filed')}</p>
             </div>
             <div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? stats.active_citizens.toLocaleString() : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Active Citizens</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('active_citizens')}</p>
             </div>
             <div>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
                 {stats ? plasticDisplay : '—'}
               </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Plastic Tracked</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{t('plastic_tracked')}</p>
             </div>
           </div>
         </div>
 
-        {/* CTAs */}
         <div className="flex flex-col gap-3 w-full max-w-sm">
           <Link
             to="/register"
             className="w-full py-4 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold transition-colors text-center text-base flex items-center justify-center gap-2"
           >
-            Get Started <span aria-hidden="true">›</span>
+            {t('get_started')} <span aria-hidden="true">›</span>
           </Link>
           <Link
             to="/login"
             className="w-full py-4 border-2 border-green-600 text-green-600 rounded-2xl font-bold hover:bg-green-50 dark:hover:bg-green-950 transition-colors text-center text-base"
           >
-            Login
+            {t('login')}
           </Link>
         </div>
       </main>
 
       <footer className="text-center py-6 text-gray-400 dark:text-slate-600 text-sm">
-        Built for Kigali. For Africa.
+        {t('footer')}
       </footer>
     </div>
   );

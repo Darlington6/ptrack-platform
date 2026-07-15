@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Recycle, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import client from '../api/client';
 import type { Reward, RecyclingActivity, WasteReport } from '../types';
 
@@ -17,35 +19,36 @@ interface ActivityItem {
   linkTo?: string;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TFunction): string {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 3600) return t('common:time_minutes', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('common:time_hours', { count: Math.floor(diff / 3600) });
+  if (diff < 7 * 86400) return t('common:time_days', { count: Math.floor(diff / 86400) });
   return new Date(dateStr).toLocaleDateString();
 }
 
-const REWARD_LABELS: Record<string, string> = {
-  report_submitted: 'Waste Report Submitted',
-  recycling_logged: 'Recycling Logged',
-  verification_bonus: 'Report Verified',
-};
-
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'reports', label: 'Reports' },
-  { key: 'recycling', label: 'Recycling' },
-  { key: 'points', label: 'Points' },
-];
-
 export default function MyActivity() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['activity', 'common', 'report', 'recycling']);
   const [filter, setFilter] = useState<Filter>('all');
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rewardsCursor, setRewardsCursor] = useState<string | null>('/rewards/me/');
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  const FILTERS: { key: Filter; label: string }[] = [
+    { key: 'all', label: t('filter_all') },
+    { key: 'reports', label: t('filter_reports') },
+    { key: 'recycling', label: t('filter_recycling') },
+    { key: 'points', label: t('filter_points') },
+  ];
+
+  const rewardLabels: Record<string, string> = {
+    report_submitted: t('label_report_submitted'),
+    recycling_logged: t('label_recycling_logged'),
+    verification_bonus: t('label_verification_bonus'),
+  };
 
   const fetchMore = useCallback(async () => {
     if (!rewardsCursor || !hasMore) return;
@@ -67,7 +70,7 @@ export default function MyActivity() {
           ) : (
             <CheckCircle size={16} className="text-green-600" />
           ),
-        label: REWARD_LABELS[r.reward_type] ?? r.reward_type,
+        label: rewardLabels[r.reward_type] ?? r.reward_type,
         sublabel: `+${r.points_earned} pts`,
         points: r.points_earned,
         date: r.date_earned,
@@ -86,9 +89,8 @@ export default function MyActivity() {
     } finally {
       setLoading(false);
     }
-  }, [rewardsCursor, hasMore]);
+  }, [rewardsCursor, hasMore]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initial load: fetch reports + recycling too
   useEffect(() => {
     async function init() {
       setLoading(true);
@@ -103,8 +105,8 @@ export default function MyActivity() {
               id: `report-${r.id}`,
               type: 'report' as const,
               icon: <MapPin size={16} className="text-green-600" />,
-              label: `${r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)} waste report`,
-              sublabel: r.status,
+              label: t('report:' + r.waste_type),
+              sublabel: t('report:' + r.status),
               date: r.created_at,
               linkTo: `/reports/${r.id}`,
             }))
@@ -116,7 +118,7 @@ export default function MyActivity() {
               id: `recycling-${a.id}`,
               type: 'recycling' as const,
               icon: <Recycle size={16} className="text-green-600" />,
-              label: `Recycling — ${a.activity_type.replace('_', ' ')}`,
+              label: t('recycling:' + a.activity_type),
               sublabel: `+${a.points_awarded} pts`,
               points: a.points_awarded,
               date: a.date,
@@ -134,7 +136,6 @@ export default function MyActivity() {
     void fetchMore();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Infinite scroll
   useEffect(() => {
     const el = loaderRef.current;
     if (!el) return;
@@ -162,10 +163,9 @@ export default function MyActivity() {
         <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Activity</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
       </div>
 
-      {/* Filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {FILTERS.map((f) => (
           <button
@@ -182,10 +182,9 @@ export default function MyActivity() {
         ))}
       </div>
 
-      {/* Timeline */}
       {filtered.length === 0 && !loading ? (
         <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
-          No activity yet.
+          {t('no_activity')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -200,7 +199,7 @@ export default function MyActivity() {
                     {item.label}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">
-                    {timeAgo(item.date)}
+                    {timeAgo(item.date, t)}
                     {item.sublabel ? ` · ${item.sublabel}` : ''}
                   </p>
                 </div>

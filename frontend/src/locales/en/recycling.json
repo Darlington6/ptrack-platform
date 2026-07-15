@@ -1,0 +1,19 @@
+{
+  "title": "Log Recycling",
+  "activity_type": "Activity Type",
+  "note_label": "Note",
+  "note_optional": "(optional)",
+  "note_placeholder": "e.g. Dropped off 3 bags at Kimironko centre",
+  "points_earned": "Points earned",
+  "drop_off": "Drop-off at centre",
+  "pickup": "Community pickup",
+  "exchange": "Plastic exchange",
+  "other": "Other activity",
+  "submit": "Log Activity",
+  "submitting": "Logging…",
+  "already_logged": "You've already logged a recycling activity today. Come back tomorrow!",
+  "saved_offline": "Saved offline — will sync automatically when you're back online.",
+  "saved_network": "Saved — will sync when you're back online.",
+  "success": "+{{points}} points! Recycling activity logged.",
+  "failed": "Failed to log activity. Please try again."
+}

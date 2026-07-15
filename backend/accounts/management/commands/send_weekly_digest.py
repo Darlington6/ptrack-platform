@@ -54,11 +54,19 @@ class Command(BaseCommand):
                 or 0
             )
 
-            title = "Your weekly pTrack summary"
-            body = (
-                f"This week: {reports} reports, {recycling} recycling activities, "
-                f"{points_earned} pts."
-            )
+            lang = getattr(user, 'preferred_language', 'en') or 'en'
+            if lang == 'rw':
+                title = "Incamake ya buri cyumweru ya pTrack"
+                body = (
+                    f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
+                    f"amanota {points_earned}."
+                )
+            else:
+                title = "Your weekly pTrack summary"
+                body = (
+                    f"This week: {reports} reports, {recycling} recycling activities, "
+                    f"{points_earned} pts."
+                )
 
             notify(user, "weekly_digest", title, body, action_url="/rewards")
 

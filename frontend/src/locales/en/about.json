@@ -1,0 +1,10 @@
+{
+  "title": "About pTrack",
+  "mission_title": "Our mission",
+  "mission_body": "pTrack helps Kigali citizens track, report, and reduce plastic waste in their neighbourhoods. By combining community reporting with gamified recycling incentives, we aim to make environmental accountability a daily habit — one point at a time.",
+  "capstone_title": "ALU Capstone Project",
+  "capstone_body": "pTrack was developed as a final-year BSc Software Engineering capstone at the African Leadership University (ALU). It pilots a digital incentive model to drive measurable behavioural change in plastic waste management — grounding the research in the lived reality of Kimironko Sector, Gasabo District, Kigali.",
+  "pilot_title": "Piloting in Kimironko, Kigali",
+  "pilot_body": "pTrack is currently piloting with residents of Kimironko Sector, Gasabo District. The platform is designed to scale across all of Kigali — and eventually Rwanda — as the programme expands.",
+  "version": "MIT License · © {{year}} pTrack"
+}
