@@ -1,4 +1,5 @@
 // i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, Map, Camera, Gift, User } from 'lucide-react';

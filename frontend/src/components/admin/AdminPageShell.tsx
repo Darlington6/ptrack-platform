@@ -1,3 +1,4 @@
+// Admin shell: sticky header, scrollable content area.
 import { AdminAvatar } from '../AdminAvatar';
 import { OfflineBanner } from '../status/OfflineBanner';
 

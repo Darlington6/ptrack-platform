@@ -1,3 +1,4 @@
+// Admin layout: fixed sidebar + overflow-constrained main column.
 import { Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { Sidebar } from '../navigation/Sidebar';

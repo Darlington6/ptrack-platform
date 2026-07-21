@@ -1,3 +1,4 @@
+# pTrack Django configuration.
 """
 pTrack Django settings.
 

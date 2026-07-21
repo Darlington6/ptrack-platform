@@ -1,3 +1,4 @@
+// Offline queue: IndexedDB stores for reports, recycling, and profile updates.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { useAuthStore } from '../stores/authStore';
 import type { User } from '../api/types';

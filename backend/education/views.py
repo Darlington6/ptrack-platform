@@ -1,3 +1,4 @@
+# Education views: cached article list/detail, admin CRUD with cache busting.
 from django.core.cache import cache
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
