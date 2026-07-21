@@ -70,6 +70,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "csp.middleware.CSPMiddleware",
+    "core.middleware.IdempotencyMiddleware",
     "core.middleware.AuditLogMiddleware",
 ]
 

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Clock, ArrowLeft, Newspaper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { educationApi } from '../api/endpoints/education';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { Article } from '../api/types';
 
 function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' }) {
@@ -91,8 +92,21 @@ export default function Education() {
       </div>
 
       {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden"
+            >
+              <Skeleton className="h-36 w-full rounded-none" />
+              <div className="p-4 space-y-2">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

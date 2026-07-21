@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { notificationsApi } from '../api/endpoints/notifications';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { Notification } from '../types';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -186,8 +187,20 @@ export default function Notifications() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" />
+        <div className="space-y-2 mt-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 dark:border-slate-700"
+            >
+              <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">

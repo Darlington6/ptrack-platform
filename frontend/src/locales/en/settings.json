@@ -122,5 +122,6 @@
   "page_notifications": "Notifications",
   "page_privacy": "Privacy",
   "page_data": "Data & Privacy",
-  "_locale": "en"
+  "_locale": "en",
+  "saved_offline": "Saved offline — will sync when you reconnect"
 }

@@ -115,7 +115,7 @@ export function BottomNav() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex-1 flex flex-col items-center justify-center pb-1 gap-0.5 text-xs transition-colors relative ${
+                `flex-1 min-w-0 flex flex-col items-center justify-center pb-1 gap-0.5 transition-colors relative ${
                   isActive
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-gray-500 dark:text-slate-400 hover:text-gray-700'
@@ -130,7 +130,9 @@ export function BottomNav() {
                   </span>
                 )}
               </div>
-              <span>{label}</span>
+              <span className="block w-full text-center leading-tight text-[clamp(9px,2.5vw,11px)] overflow-hidden">
+                {label}
+              </span>
             </NavLink>
           );
         })}

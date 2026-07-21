@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../api/endpoints/auth';
 import client from '../../api/client';
+import { enqueueProfileUpdate } from '../../lib/offlineQueue';
 import type { User } from '../../types';
 
 const schema = z.object({
@@ -40,6 +41,20 @@ export default function AccountSettings() {
   });
 
   async function onSubmit(data: FormData) {
+    if (!navigator.onLine) {
+      if (user) {
+        // Cast needed: TS can't narrow conditional-spread to exclude bio:undefined
+        setUser({
+          ...user,
+          full_name: data.full_name,
+          weekly_goal: data.weekly_goal,
+          ...(data.bio !== undefined && { bio: data.bio }),
+        } as User);
+      }
+      await enqueueProfileUpdate(data as unknown as Record<string, unknown>);
+      toast.success(t('saved_offline'));
+      return;
+    }
     try {
       const res = await client.patch<User>('/auth/me/', data);
       setUser(res.data);

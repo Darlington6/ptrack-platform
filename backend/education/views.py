@@ -30,21 +30,38 @@ _ARTICLE_LIST_CACHE_TTL = 600  # 10 minutes
 @permission_classes([IsAuthenticated])
 def article_list(request):
     """Return published articles; supports ?category= and ?q= filters."""
-    qs = Article.objects.filter(is_published=True)
+    category = request.query_params.get("category", "")
+    q = request.query_params.get("q", "")
+    page_num = request.query_params.get("page", "1")
 
-    category = request.query_params.get("category")
+    # Only cache unfiltered or category-filtered requests; skip free-text search
+    # results since those vary too much to be worth caching.
+    use_cache = not q
+    cache_key = f"education:article_list:{category}:{page_num}"
+
+    if use_cache:
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
+    qs = Article.objects.filter(is_published=True)
     if category:
         qs = qs.filter(category=category)
-
-    q = request.query_params.get("q")
     if q:
         qs = qs.filter(title_en__icontains=q)
 
     paginator = StandardPagination()
     page = paginator.paginate_queryset(qs, request)
     if page is not None:
-        return paginator.get_paginated_response(ArticleListSerializer(page, many=True).data)
-    return Response(ArticleListSerializer(qs, many=True).data)
+        data = paginator.get_paginated_response(ArticleListSerializer(page, many=True).data).data
+        if use_cache:
+            cache.set(cache_key, data, timeout=_ARTICLE_LIST_CACHE_TTL)
+        return Response(data)
+
+    data = ArticleListSerializer(qs, many=True).data
+    if use_cache:
+        cache.set(cache_key, data, timeout=_ARTICLE_LIST_CACHE_TTL)
+    return Response(data)
 
 
 @extend_schema(
@@ -92,6 +109,13 @@ def admin_article_list(request):
     responses={201: ArticleDetailSerializer},
     summary="Create an article (admin only)",
 )
+def _bust_article_list_cache():
+    """Delete all paginated article list cache entries (all categories, first 20 pages)."""
+    categories = ["", "recycling", "waste_reduction", "climate", "policy", "community"]
+    keys = [f"education:article_list:{cat}:{pg}" for cat in categories for pg in range(1, 21)]
+    cache.delete_many(keys)
+
+
 @api_view(["POST"])
 @permission_classes([IsAdminRole])
 def admin_article_create(request):
@@ -99,6 +123,7 @@ def admin_article_create(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     article = serializer.save()
+    _bust_article_list_cache()
     return Response(ArticleDetailSerializer(article).data, status=status.HTTP_201_CREATED)
 
 
@@ -120,6 +145,7 @@ def admin_article_update(request, slug):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
     cache.delete(f"education:article:{slug}")
+    _bust_article_list_cache()
     return Response(serializer.data)
 
 
@@ -137,4 +163,5 @@ def admin_article_delete(request, slug):
         return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
     article.delete()
     cache.delete(f"education:article:{slug}")
+    _bust_article_list_cache()
     return Response(status=status.HTTP_204_NO_CONTENT)
