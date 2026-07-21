@@ -1,4 +1,5 @@
 // i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { VerifyReportModal, RejectReportModal } from '../components/admin/ReportActionModals';
 import client from '../api/client';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { WasteReport } from '../types';
 
 type Confirm = 'verify' | 'reject' | 'resolve' | 'delete' | null;
@@ -114,8 +116,23 @@ export default function ReportDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+      <div className="px-4 pt-4 pb-24 space-y-4 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-8 h-8 rounded-full" />
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <Skeleton className="h-56 w-full rounded-2xl" />
+        <div className="space-y-3 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+          <Skeleton className="h-5 w-24 rounded-full" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+        <div className="space-y-2 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
       </div>
     );
   }

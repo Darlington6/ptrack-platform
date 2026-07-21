@@ -1,3 +1,5 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
@@ -5,6 +7,7 @@ import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import { KIGALI_SECTORS } from '../../lib/sectors';
 import type { RecyclingCentre } from '../../api/types';
 
 const ALL_MATERIALS = [
@@ -16,19 +19,6 @@ const ALL_MATERIALS = [
   'Organic',
   'Paper',
   'Textiles',
-];
-
-const SECTORS = [
-  'Kimironko',
-  'Kacyiru',
-  'Remera',
-  'Kinyinya',
-  'Gisozi',
-  'Ndera',
-  'Nduba',
-  'Rusororo',
-  'Jabana',
-  'Bumbogo',
 ];
 
 type FormState = {
@@ -174,7 +164,7 @@ function CentreModal({
                 className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">— select —</option>
-                {SECTORS.map((s) => (
+                {KIGALI_SECTORS.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>

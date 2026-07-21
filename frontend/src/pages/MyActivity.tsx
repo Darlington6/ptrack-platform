@@ -1,6 +1,8 @@
 // i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Skeleton } from '../components/ui/Skeleton';
 import { ArrowLeft, MapPin, Recycle, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -183,7 +185,23 @@ export default function MyActivity() {
         ))}
       </div>
 
-      {filtered.length === 0 && !loading ? (
+      {loading && filtered.length === 0 ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4"
+            >
+              <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-4 w-12 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 && !loading ? (
         <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
           {t('no_activity')}
         </div>

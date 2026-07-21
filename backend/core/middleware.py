@@ -1,8 +1,79 @@
+# Middleware: idempotency key deduplication and audit logging.
 import json
 import logging
 import re
 
+from django.core.cache import cache
+from django.http import HttpResponse
+
 logger = logging.getLogger(__name__)
+
+_IDEMPOTENCY_TTL = 86_400  # 24 hours
+_IDEMPOTENCY_METHODS = frozenset({"POST", "PUT", "PATCH"})
+
+
+class IdempotencyMiddleware:
+    """
+    Prevents duplicate state-changing requests from being processed twice.
+
+    When a client sends X-Idempotency-Key on a POST/PUT/PATCH request, the
+    middleware caches the first successful response in Redis.  Subsequent
+    requests with the same key + same authenticated user return the cached
+    response immediately without hitting the view or the database.
+
+    The key is scoped to the authenticated user so two different users can
+    coincidentally reuse the same UUID without colliding.
+
+    Gracefully degrades when Redis is unavailable (IGNORE_EXCEPTIONS=True in
+    the cache config): cache.get returns None and the request is processed
+    normally — no duplicate suppression but also no failure.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        idem_key = request.META.get("HTTP_X_IDEMPOTENCY_KEY")
+
+        # Only intercept state-changing requests from authenticated users
+        if (
+            idem_key
+            and request.method in _IDEMPOTENCY_METHODS
+            and hasattr(request, "user")
+            and request.user.is_authenticated
+        ):
+            cache_key = f"idem:{request.user.pk}:{idem_key}"
+            cached = cache.get(cache_key)
+            if cached is not None:
+                resp = HttpResponse(
+                    content=cached["body"],
+                    status=cached["status"],
+                    content_type=cached.get("content_type", "application/json"),
+                )
+                resp["X-Idempotency-Replayed"] = "true"
+                return resp
+
+            response = self.get_response(request)
+
+            # Cache only successful responses; don't cache validation errors or
+            # server errors — the client should be able to retry those freely.
+            if 200 <= response.status_code < 300:
+                try:
+                    cache.set(
+                        cache_key,
+                        {
+                            "body": response.content,
+                            "status": response.status_code,
+                            "content_type": response.get("Content-Type", "application/json"),
+                        },
+                        timeout=_IDEMPOTENCY_TTL,
+                    )
+                except Exception:
+                    logger.exception("IdempotencyMiddleware failed to cache response")
+            return response
+
+        return self.get_response(request)
+
 
 _SENSITIVE_KEYS = frozenset({"password", "confirm_password", "token", "refresh", "access"})
 
