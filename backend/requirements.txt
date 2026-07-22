@@ -1,17 +1,17 @@
-asgiref==3.11.1
+asgiref==3.12.1
 attrs==26.1.0
-certifi==2026.6.17
-charset-normalizer==3.4.7
+certifi==2026.7.22
+charset-normalizer==3.4.9
 cloudinary==1.45.0
 django-cloudinary-storage==0.3.0
-Django==6.0.6
+Django==6.0.7
 gunicorn==26.0.0
 whitenoise==6.12.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
 djangorestframework==3.17.1
 djangorestframework-simplejwt[token_blacklist]==5.5.1
-drf-spectacular==0.29.0
+drf-spectacular==0.30.0
 idna==3.18
 inflection==0.5.1
 jsonschema==4.26.0
@@ -23,7 +23,7 @@ PyYAML==6.0.3
 referencing==0.37.0
 requests==2.34.2
 rpds-py==2026.6.3
-sentry-sdk==2.64.0
+sentry-sdk==2.66.0
 six==1.17.0
 sqlparse==0.5.5
 typing_extensions==4.16.0
@@ -54,4 +54,4 @@ python-json-logger==4.1.0
 pywebpush==2.3.0
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
-google-auth==2.55.1
+google-auth==2.56.2
