@@ -25,18 +25,27 @@ body {
   min-height: 100vh;
 }
 
-/* Google Maps InfoWindow — dark mode overrides */
+/* Google Maps InfoWindow — dark mode: colour only, no overflow/shadow/size changes. */
 .dark .gm-style-iw-c {
   background-color: #1e293b !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5) !important;
+}
+.dark .gm-style-iw-chr {
+  background-color: #1e293b !important;
 }
 .dark .gm-style-iw-d {
-  overflow: hidden !important;
+  background-color: #1e293b !important;
 }
 .dark .gm-style-iw-tc::after {
   background-color: #1e293b !important;
 }
-.dark button.gm-ui-hover-effect > img,
-.dark button.gm-ui-hover-effect > span {
-  filter: invert(1) !important;
+/* Colour the scrollbar track/thumb to match dark bg — avoids layout shifts from display:none. */
+.dark .gm-style-iw-d::-webkit-scrollbar-track {
+  background: #1e293b !important;
+}
+.dark .gm-style-iw-d::-webkit-scrollbar-thumb {
+  background: #475569 !important;
+}
+/* Google sets the X icon via inline background-color on this span — !important beats it. */
+.dark button.gm-ui-hover-effect span {
+  background-color: #e2e8f0 !important;
 }

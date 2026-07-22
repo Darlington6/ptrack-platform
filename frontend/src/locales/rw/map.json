@@ -1,0 +1,14 @@
+{
+  "title": "Raporo z'Imyanda Hafi Yawe",
+  "loading": "Tegereza…",
+  "recentre": "Garuka hagati",
+  "filter_all": "Byose",
+  "filter_pending": "Bitegereje",
+  "filter_verified": "Byemejwe",
+  "filter_resolved": "Byakemuwe",
+  "filter_rejected": "Byanzwe",
+  "no_reports": "Nta raporo ziboneka muri aka karere.",
+  "view_detail": "Reba amakuru →",
+  "citizen": "Umuturage",
+  "_locale": "rw"
+}

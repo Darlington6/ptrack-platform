@@ -61,6 +61,8 @@ const mockNotifications: CursorPaginatedResponse<Notification> & { unread_count:
       category: 'system',
       title: 'Welcome to pTrack',
       body: 'Thanks for joining!',
+      title_rw: 'Murakaza neza kuri pTrack',
+      body_rw: 'Murakoze kwiyandikisha!',
       action_url: '',
       is_read: false,
       read_at: null,

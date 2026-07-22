@@ -1,0 +1,15 @@
+{
+  "title": "Community Impact",
+  "all_time": "All time",
+  "kpi_reports": "Total Reports",
+  "kpi_citizens": "Active Citizens",
+  "kpi_recycling": "Recycling Activities",
+  "kpi_plastic": "Plastic Prevented",
+  "chart_title": "Reports & Recycling — Last 12 Weeks",
+  "chart_reports": "Reports",
+  "chart_recycling": "Recycling",
+  "your_contribution": "Your contribution",
+  "contribution_body": "You have {{points}} points and rank in the top citizens of {{sector}}.",
+  "streak_label": "Current streak: {{days}} days",
+  "_locale": "en"
+}

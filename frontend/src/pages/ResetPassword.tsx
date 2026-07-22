@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -10,31 +11,31 @@ import { OtpInput } from '../components/ui/OtpInput';
 import { authApi } from '../api/endpoints/auth';
 import { useAuth } from '../context/AuthContext';
 
-// ── Password strength ─────────────────────────────────────────────────────────
-function getStrength(pwd: string): { score: number; label: string; color: string } {
-  if (pwd.length === 0) return { score: 0, label: '', color: '' };
+type StrengthKey = 'weak' | 'fair' | 'good' | 'strong';
+
+function getStrengthKey(pwd: string): { score: number; key: StrengthKey | ''; color: string } {
+  if (pwd.length === 0) return { score: 0, key: '', color: '' };
   let score = 0;
   if (pwd.length >= 8) score++;
   if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
   if (/\d/.test(pwd)) score++;
   if (/[^A-Za-z0-9]/.test(pwd)) score++;
-  const map = [
-    { score: 0, label: '', color: '' },
-    { score: 1, label: 'Weak', color: 'bg-red-500' },
-    { score: 2, label: 'Fair', color: 'bg-amber-500' },
-    { score: 3, label: 'Good', color: 'bg-blue-500' },
-    { score: 4, label: 'Strong', color: 'bg-green-500' },
+  const map: { score: number; key: StrengthKey | ''; color: string }[] = [
+    { score: 0, key: '', color: '' },
+    { score: 1, key: 'weak', color: 'bg-red-500' },
+    { score: 2, key: 'fair', color: 'bg-amber-500' },
+    { score: 3, key: 'good', color: 'bg-blue-500' },
+    { score: 4, key: 'strong', color: 'bg-green-500' },
   ];
   return map[Math.min(score, 4)]!;
 }
 
 const schema = z
   .object({
-    new_password: z.string().min(8, 'Minimum 8 characters'),
+    new_password: z.string().min(8),
     confirm_password: z.string(),
   })
   .refine((d) => d.new_password === d.confirm_password, {
-    message: 'Passwords do not match',
     path: ['confirm_password'],
   });
 
@@ -55,7 +56,7 @@ export default function ResetPassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [newPwdValue, setNewPwdValue] = useState('');
-  const strength = getStrength(newPwdValue);
+  const strength = getStrengthKey(newPwdValue);
 
   const {
     register,
@@ -65,7 +66,7 @@ export default function ResetPassword() {
 
   async function onSubmit(data: FormData) {
     if (code.length < 6) {
-      toast.error('Please enter the 6-digit reset code.');
+      toast.error(t('reset_code_required'));
       return;
     }
     try {
@@ -74,7 +75,7 @@ export default function ResetPassword() {
       toast.success(t('reset_success'));
       navigate('/login');
     } catch {
-      toast.error('Invalid or expired code. Please try again.');
+      toast.error(t('reset_code_invalid'));
     }
   }
 
@@ -86,14 +87,13 @@ export default function ResetPassword() {
         </h1>
         {identifier && (
           <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
-            Sending reset code to{' '}
-            <span className="font-medium text-gray-700 dark:text-slate-200">{identifier}</span>
+            {t('sending_reset_to', { identifier })}
           </p>
         )}
 
         <div className="mb-6">
           <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-3 text-center">
-            Enter the 6-digit code
+            {t('enter_code_label')}
           </p>
           <OtpInput value={code} onChange={setCode} />
         </div>
@@ -128,7 +128,7 @@ export default function ResetPassword() {
               </button>
             </div>
             {errors.new_password && (
-              <p className="text-xs text-red-500 mt-1">{errors.new_password.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('password_min')}</p>
             )}
             {newPwdValue.length > 0 && (
               <>
@@ -142,9 +142,9 @@ export default function ResetPassword() {
                     />
                   ))}
                 </div>
-                {strength.label && (
+                {strength.key && (
                   <p className="text-xs mt-1 font-medium text-gray-600 dark:text-slate-400">
-                    {strength.label}
+                    {t(`strength_${strength.key}`)}
                   </p>
                 )}
               </>
@@ -157,7 +157,7 @@ export default function ResetPassword() {
               htmlFor="confirm_password"
               className="block text-sm font-semibold text-gray-800 dark:text-slate-200 mb-1"
             >
-              Confirm new password
+              {t('confirm_new_password')}
             </label>
             <div className="relative">
               <input
@@ -177,7 +177,7 @@ export default function ResetPassword() {
               </button>
             </div>
             {errors.confirm_password && (
-              <p className="text-xs text-red-500 mt-1">{errors.confirm_password.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('passwords_no_match_inline')}</p>
             )}
           </div>
 
@@ -186,7 +186,7 @@ export default function ResetPassword() {
             disabled={isSubmitting}
             className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"
           >
-            {isSubmitting ? 'Resetting…' : 'Reset password'}
+            {isSubmitting ? t('resetting') : t('reset_password_btn')}
           </button>
         </form>
       </div>

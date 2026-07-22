@@ -1,6 +1,11 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Skeleton } from '../components/ui/Skeleton';
 import { ArrowLeft, MapPin, Recycle, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import client from '../api/client';
 import type { Reward, RecyclingActivity, WasteReport } from '../types';
 
@@ -10,42 +15,38 @@ interface ActivityItem {
   id: string;
   type: 'report' | 'recycling' | 'reward';
   icon: ReactNode;
-  label: string;
-  sublabel: string;
+  labelKey: string;
+  sublabelKey?: string;
+  rawSublabel?: string;
   points?: number;
   date: string;
   linkTo?: string;
 }
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TFunction): string {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 3600) return t('common:time_minutes', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('common:time_hours', { count: Math.floor(diff / 3600) });
+  if (diff < 7 * 86400) return t('common:time_days', { count: Math.floor(diff / 86400) });
   return new Date(dateStr).toLocaleDateString();
 }
 
-const REWARD_LABELS: Record<string, string> = {
-  report_submitted: 'Waste Report Submitted',
-  recycling_logged: 'Recycling Logged',
-  verification_bonus: 'Report Verified',
-};
-
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'reports', label: 'Reports' },
-  { key: 'recycling', label: 'Recycling' },
-  { key: 'points', label: 'Points' },
-];
-
 export default function MyActivity() {
   const navigate = useNavigate();
+  const { t } = useTranslation(['activity', 'common', 'report', 'recycling']);
   const [filter, setFilter] = useState<Filter>('all');
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rewardsCursor, setRewardsCursor] = useState<string | null>('/rewards/me/');
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement>(null);
+
+  const FILTERS: { key: Filter; label: string }[] = [
+    { key: 'all', label: t('filter_all') },
+    { key: 'reports', label: t('filter_reports') },
+    { key: 'recycling', label: t('filter_recycling') },
+    { key: 'points', label: t('filter_points') },
+  ];
 
   const fetchMore = useCallback(async () => {
     if (!rewardsCursor || !hasMore) return;
@@ -67,8 +68,8 @@ export default function MyActivity() {
           ) : (
             <CheckCircle size={16} className="text-green-600" />
           ),
-        label: REWARD_LABELS[r.reward_type] ?? r.reward_type,
-        sublabel: `+${r.points_earned} pts`,
+        labelKey: 'activity:label_' + r.reward_type,
+        rawSublabel: `+${r.points_earned} pts`,
         points: r.points_earned,
         date: r.date_earned,
       }));
@@ -86,9 +87,8 @@ export default function MyActivity() {
     } finally {
       setLoading(false);
     }
-  }, [rewardsCursor, hasMore]);
+  }, [rewardsCursor, hasMore]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Initial load: fetch reports + recycling too
   useEffect(() => {
     async function init() {
       setLoading(true);
@@ -103,8 +103,8 @@ export default function MyActivity() {
               id: `report-${r.id}`,
               type: 'report' as const,
               icon: <MapPin size={16} className="text-green-600" />,
-              label: `${r.waste_type.charAt(0).toUpperCase() + r.waste_type.slice(1)} waste report`,
-              sublabel: r.status,
+              labelKey: 'report:' + r.waste_type,
+              sublabelKey: 'report:' + r.status,
               date: r.created_at,
               linkTo: `/reports/${r.id}`,
             }))
@@ -116,8 +116,8 @@ export default function MyActivity() {
               id: `recycling-${a.id}`,
               type: 'recycling' as const,
               icon: <Recycle size={16} className="text-green-600" />,
-              label: `Recycling — ${a.activity_type.replace('_', ' ')}`,
-              sublabel: `+${a.points_awarded} pts`,
+              labelKey: 'recycling:' + a.activity_type,
+              rawSublabel: `+${a.points_awarded} pts`,
               points: a.points_awarded,
               date: a.date,
             }))
@@ -134,7 +134,6 @@ export default function MyActivity() {
     void fetchMore();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Infinite scroll
   useEffect(() => {
     const el = loaderRef.current;
     if (!el) return;
@@ -162,10 +161,9 @@ export default function MyActivity() {
         <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">My Activity</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
       </div>
 
-      {/* Filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {FILTERS.map((f) => (
           <button
@@ -182,10 +180,25 @@ export default function MyActivity() {
         ))}
       </div>
 
-      {/* Timeline */}
-      {filtered.length === 0 && !loading ? (
+      {loading && filtered.length === 0 ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4"
+            >
+              <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-4 w-12 flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 && !loading ? (
         <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
-          No activity yet.
+          {t('no_activity')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -197,11 +210,15 @@ export default function MyActivity() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
-                    {item.label}
+                    {t(item.labelKey)}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">
-                    {timeAgo(item.date)}
-                    {item.sublabel ? ` · ${item.sublabel}` : ''}
+                    {timeAgo(item.date, t)}
+                    {item.sublabelKey
+                      ? ` · ${t(item.sublabelKey)}`
+                      : item.rawSublabel
+                        ? ` · ${item.rawSublabel}`
+                        : ''}
                   </p>
                 </div>
                 {item.points !== undefined && (

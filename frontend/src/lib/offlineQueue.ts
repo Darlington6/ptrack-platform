@@ -1,5 +1,7 @@
+// Offline queue: IndexedDB stores for reports, recycling, and profile updates.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import { useAuthStore } from '../stores/authStore';
+import type { User } from '../api/types';
 
 // Background Sync API — not yet in the standard TypeScript DOM lib
 interface SyncManager {
@@ -13,6 +15,7 @@ declare global {
 
 interface PendingReport {
   id?: number;
+  idempotency_key: string;
   payload: {
     latitude: number;
     longitude: number;
@@ -27,6 +30,16 @@ interface PendingReport {
 
 interface PendingRecycling {
   id?: number;
+  idempotency_key: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+  retry_count: number;
+  last_error: string;
+}
+
+interface PendingProfileUpdate {
+  id?: number;
+  idempotency_key: string;
   payload: Record<string, unknown>;
   created_at: string;
   retry_count: number;
@@ -42,16 +55,25 @@ interface OfflineDB extends DBSchema {
     key: number;
     value: PendingRecycling;
   };
+  pending_profile: {
+    key: number;
+    value: PendingProfileUpdate;
+  };
 }
 
 let _db: IDBPDatabase<OfflineDB> | null = null;
 
 async function getDB(): Promise<IDBPDatabase<OfflineDB>> {
   if (!_db) {
-    _db = await openDB<OfflineDB>('ptrack-offline', 1, {
-      upgrade(database) {
-        database.createObjectStore('pending_reports', { keyPath: 'id', autoIncrement: true });
-        database.createObjectStore('pending_recycling', { keyPath: 'id', autoIncrement: true });
+    _db = await openDB<OfflineDB>('ptrack-offline', 2, {
+      upgrade(database, oldVersion) {
+        if (oldVersion < 1) {
+          database.createObjectStore('pending_reports', { keyPath: 'id', autoIncrement: true });
+          database.createObjectStore('pending_recycling', { keyPath: 'id', autoIncrement: true });
+        }
+        if (oldVersion < 2) {
+          database.createObjectStore('pending_profile', { keyPath: 'id', autoIncrement: true });
+        }
       },
     });
   }
@@ -64,6 +86,7 @@ export async function enqueueReport(
 ): Promise<void> {
   const db = await getDB();
   await db.add('pending_reports', {
+    idempotency_key: crypto.randomUUID(),
     payload,
     blob_image: imageBlob,
     created_at: new Date().toISOString(),
@@ -97,6 +120,7 @@ export function markRecyclingLoggedToday(): void {
 export async function enqueueRecycling(payload: Record<string, unknown>): Promise<void> {
   const db = await getDB();
   await db.add('pending_recycling', {
+    idempotency_key: crypto.randomUUID(),
     payload,
     created_at: new Date().toISOString(),
     retry_count: 0,
@@ -113,6 +137,17 @@ export async function enqueueRecycling(payload: Record<string, unknown>): Promis
   }
 }
 
+export async function enqueueProfileUpdate(payload: Record<string, unknown>): Promise<void> {
+  const db = await getDB();
+  await db.add('pending_profile', {
+    idempotency_key: crypto.randomUUID(),
+    payload,
+    created_at: new Date().toISOString(),
+    retry_count: 0,
+    last_error: '',
+  });
+}
+
 const MAX_RETRIES = 5;
 const BASE_API = import.meta.env.VITE_API_BASE_URL
   ? `${import.meta.env.VITE_API_BASE_URL as string}/api/v1`
@@ -124,6 +159,7 @@ let _flushing = false;
 export async function flushQueue(): Promise<{
   reports: number;
   recycling: number;
+  profiles: number;
   rejectedRecycling: number;
   abandonedReports: number;
   abandonedRecycling: number;
@@ -132,6 +168,7 @@ export async function flushQueue(): Promise<{
     return {
       reports: 0,
       recycling: 0,
+      profiles: 0,
       rejectedRecycling: 0,
       abandonedReports: 0,
       abandonedRecycling: 0,
@@ -139,6 +176,7 @@ export async function flushQueue(): Promise<{
   _flushing = true;
   let syncedReports = 0;
   let syncedRecycling = 0;
+  let syncedProfiles = 0;
   let rejectedRecycling = 0;
   let abandonedReports = 0;
   let abandonedRecycling = 0;
@@ -148,6 +186,7 @@ export async function flushQueue(): Promise<{
       return {
         reports: 0,
         recycling: 0,
+        profiles: 0,
         rejectedRecycling: 0,
         abandonedReports: 0,
         abandonedRecycling: 0,
@@ -176,7 +215,10 @@ export async function flushQueue(): Promise<{
         }
         const response = await fetch(`${BASE_API}/reports/`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'X-Idempotency-Key': report.idempotency_key,
+          },
           body: formData,
         });
         if (response.ok) {
@@ -213,6 +255,7 @@ export async function flushQueue(): Promise<{
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'X-Idempotency-Key': activity.idempotency_key,
           },
           body: JSON.stringify(activity.payload),
         });
@@ -239,6 +282,44 @@ export async function flushQueue(): Promise<{
         });
       }
     }
+    // ── Flush pending profile updates ──────────────────────────────────────
+    const profileUpdates = await db.getAll('pending_profile');
+    for (const update of profileUpdates) {
+      if (update.id == null) continue;
+      if (update.retry_count >= MAX_RETRIES) {
+        await db.delete('pending_profile', update.id);
+        continue;
+      }
+      try {
+        const response = await fetch(`${BASE_API}/auth/me/`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-Idempotency-Key': update.idempotency_key,
+          },
+          body: JSON.stringify(update.payload),
+        });
+        if (response.ok) {
+          const updated = (await response.json()) as Record<string, unknown>;
+          useAuthStore.getState().setUser(updated as unknown as User);
+          await db.delete('pending_profile', update.id);
+          syncedProfiles++;
+        } else {
+          await db.put('pending_profile', {
+            ...update,
+            retry_count: update.retry_count + 1,
+            last_error: `HTTP ${response.status}`,
+          });
+        }
+      } catch (err) {
+        await db.put('pending_profile', {
+          ...update,
+          retry_count: update.retry_count + 1,
+          last_error: err instanceof Error ? err.message : 'Network error',
+        });
+      }
+    }
   } finally {
     _flushing = false;
     window.dispatchEvent(
@@ -246,6 +327,7 @@ export async function flushQueue(): Promise<{
         detail: {
           reports: syncedReports,
           recycling: syncedRecycling,
+          profiles: syncedProfiles,
           rejectedRecycling,
           abandonedReports,
           abandonedRecycling,
@@ -256,17 +338,23 @@ export async function flushQueue(): Promise<{
   return {
     reports: syncedReports,
     recycling: syncedRecycling,
+    profiles: syncedProfiles,
     rejectedRecycling,
     abandonedReports,
     abandonedRecycling,
   };
 }
 
-export async function getQueueStats(): Promise<{ reports: number; recycling: number }> {
+export async function getQueueStats(): Promise<{
+  reports: number;
+  recycling: number;
+  profiles: number;
+}> {
   const db = await getDB();
-  const [reports, recycling] = await Promise.all([
+  const [reports, recycling, profiles] = await Promise.all([
     db.count('pending_reports'),
     db.count('pending_recycling'),
+    db.count('pending_profile'),
   ]);
-  return { reports, recycling };
+  return { reports, recycling, profiles };
 }

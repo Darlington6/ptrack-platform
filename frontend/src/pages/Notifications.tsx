@@ -1,3 +1,5 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,7 +19,10 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { notificationsApi } from '../api/endpoints/notifications';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { Notification } from '../types';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -34,47 +39,53 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 };
 
 type FilterKey = 'all' | 'unread' | 'streak_warning' | 'badge_earned' | 'community';
-const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'unread', label: 'Unread' },
-  { key: 'streak_warning', label: 'Streaks' },
-  { key: 'badge_earned', label: 'Badges' },
-  { key: 'community', label: 'Community' },
-];
 
-function groupByDate(items: Notification[]): Record<string, Notification[]> {
+function groupByDate(items: Notification[], t: TFunction): Record<string, Notification[]> {
   const today = new Date();
+  const todayKey = t('group_today');
+  const weekKey = t('group_this_week');
+  const earlierKey = t('group_earlier');
   const groups: Record<string, Notification[]> = {
-    Today: [],
-    'This week': [],
-    Earlier: [],
+    [todayKey]: [],
+    [weekKey]: [],
+    [earlierKey]: [],
   };
   items.forEach((n) => {
     const d = new Date(n.created_at);
     const diffDays = Math.floor((today.getTime() - d.getTime()) / 86400000);
-    if (diffDays < 1) groups['Today']!.push(n);
-    else if (diffDays < 7) groups['This week']!.push(n);
-    else groups['Earlier']!.push(n);
+    if (diffDays < 1) groups[todayKey]!.push(n);
+    else if (diffDays < 7) groups[weekKey]!.push(n);
+    else groups[earlierKey]!.push(n);
   });
   return groups;
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: TFunction): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 3600) return t('common:time_minutes', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('common:time_hours', { count: Math.floor(diff / 3600) });
+  return t('common:time_days', { count: Math.floor(diff / 86400) });
 }
 
 export default function Notifications() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const { t, i18n } = useTranslation(['notifications', 'common']);
+  const isRw = i18n.language?.startsWith('rw');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const FILTERS: { key: FilterKey; label: string }[] = [
+    { key: 'all', label: t('filter_all') },
+    { key: 'unread', label: t('filter_unread') },
+    { key: 'streak_warning', label: t('filter_streaks') },
+    { key: 'badge_earned', label: t('filter_badges') },
+    { key: 'community', label: t('filter_community') },
+  ];
 
   const fetchNotifications = useCallback(async (cursor?: string) => {
     try {
@@ -97,13 +108,13 @@ export default function Notifications() {
         setNextCursor(null);
       }
     } catch {
-      toast.error('Failed to load notifications.');
+      toast.error(t('load_failed'));
       setNextCursor(null); // stop the IntersectionObserver retry loop
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void fetchNotifications();
@@ -149,7 +160,7 @@ export default function Notifications() {
     return n.category === filter;
   });
 
-  const groups = groupByDate(filtered);
+  const groups = groupByDate(filtered, t);
 
   return (
     <div className="pb-24 px-4">
@@ -157,7 +168,7 @@ export default function Notifications() {
         <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Notifications</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{t('title')}</h1>
       </div>
 
       {/* Filter chips */}
@@ -178,13 +189,25 @@ export default function Notifications() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600" />
+        <div className="space-y-2 mt-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 dark:border-slate-700"
+            >
+              <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Bell size={40} className="text-gray-300 dark:text-slate-600 mb-3" />
-          <p className="text-gray-500 dark:text-slate-400 font-medium">You're all caught up.</p>
+          <p className="text-gray-500 dark:text-slate-400 font-medium">{t('all_caught_up')}</p>
         </div>
       ) : (
         <>
@@ -238,13 +261,13 @@ export default function Notifications() {
                                 : 'text-gray-900 dark:text-slate-100'
                             }`}
                           >
-                            {n.title}
+                            {isRw && n.title_rw ? n.title_rw : n.title}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                            {n.body}
+                            {isRw && n.body_rw ? n.body_rw : n.body}
                           </p>
                           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                            {timeAgo(n.created_at)}
+                            {timeAgo(n.created_at, t)}
                           </p>
                         </div>
                         {!n.is_read && (

@@ -455,6 +455,8 @@ def reports_bulk_reject(request):
                 "Report not accepted",
                 f"Your waste report was not accepted.{' Reason: ' + reason if reason else ''}",
                 f"/reports/{report.pk}",
+                title_rw="Raporo ntiyemewe",
+                body_rw=f"Raporo yawe y'imyanda ntiyemewe.{' Impamvu: ' + reason if reason else ''}",
             )
         count += 1
 

@@ -1,16 +1,12 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Trophy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { leaderboardApi, type LeaderboardPeriod } from '../api/endpoints/leaderboard';
 import type { LeaderboardEntry } from '../types';
-
-const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
-  { key: 'week', label: 'This Week' },
-  { key: 'month', label: 'This Month' },
-  { key: 'all', label: 'All Time' },
-];
 
 const PODIUM_COLORS = [
   'from-amber-400 to-yellow-300',
@@ -37,8 +33,15 @@ function Avatar({ name, className = '' }: { name: string; className?: string }) 
 export default function Leaderboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation('leaderboard');
   const [period, setPeriod] = useState<LeaderboardPeriod>('week');
   const [sectorOnly, setSectorOnly] = useState(true);
+
+  const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
+    { key: 'week', label: t('this_week') },
+    { key: 'month', label: t('this_month') },
+    { key: 'all', label: t('all_time') },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ['leaderboard', period],
@@ -60,7 +63,7 @@ export default function Leaderboard() {
         <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Leaderboard</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
       </div>
 
       {/* Green gradient section — edge-to-edge from tabs through podium */}
@@ -84,7 +87,7 @@ export default function Leaderboard() {
 
         {/* Sector toggle */}
         <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-2">
-          <span className="text-xs text-gray-500 dark:text-slate-400">Your sector only</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400">{t('sector_only')}</span>
           <button
             onClick={() => setSectorOnly((v) => !v)}
             aria-label="Toggle sector filter"
@@ -108,7 +111,7 @@ export default function Leaderboard() {
 
         {!isLoading && entries.length === 0 && (
           <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
-            No data yet for this period.
+            {t('no_data')}
           </div>
         )}
 
@@ -195,7 +198,9 @@ export default function Leaderboard() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                     {entry.full_name}
-                    {isMe && <span className="ml-1 text-xs text-green-600 font-normal">(You)</span>}
+                    {isMe && (
+                      <span className="ml-1 text-xs text-green-600 font-normal">{t('you')}</span>
+                    )}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">{entry.sector}</p>
                 </div>
@@ -218,7 +223,7 @@ export default function Leaderboard() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {currentUser.full_name}{' '}
-              <span className="text-xs text-green-600 font-normal">(You)</span>
+              <span className="text-xs text-green-600 font-normal">{t('you')}</span>
             </p>
             <p className="text-xs text-gray-400 dark:text-slate-500">{currentUser.sector}</p>
           </div>

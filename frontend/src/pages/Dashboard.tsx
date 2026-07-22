@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useRef, useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +14,8 @@ import {
   Flame,
   PartyPopper,
   Target,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { authApi } from '../api/endpoints/auth';
 import { KIGALI_SECTORS } from '../lib/sectors';
@@ -26,23 +29,20 @@ import { Skeleton } from '../components/ui/Skeleton';
 import client from '../api/client';
 import type { CursorPaginatedResponse, Reward, CommunityStats } from '../types';
 
-function timeAgo(dateStr: string): string {
+type TSimple = (key: string, opts?: { count: number }) => string;
+
+function timeAgo(dateStr: string, t: TSimple): string {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 3600) return t('common:time_minutes', { count: Math.floor(diff / 60) });
+  if (diff < 86400) return t('common:time_hours', { count: Math.floor(diff / 3600) });
+  if (diff < 7 * 86400) return t('common:time_days', { count: Math.floor(diff / 86400) });
+  return new Date(dateStr).toLocaleDateString();
 }
 
 const REWARD_ICONS: Record<string, ReactNode> = {
   report_submitted: <MapPin size={14} className="text-green-600" />,
   recycling_logged: <Recycle size={14} className="text-green-600" />,
   verification_bonus: <CheckCircle size={14} className="text-green-600" />,
-};
-
-const REWARD_LABELS: Record<string, string> = {
-  report_submitted: 'Waste Report',
-  recycling_logged: 'Recycling Activity',
-  verification_bonus: 'Verification Bonus',
 };
 
 interface RewardsResponse {
@@ -54,6 +54,7 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
   const [selected, setSelected] = useState('Kimironko');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useTranslation('dashboard');
 
   async function save() {
     setSaving(true);
@@ -62,7 +63,7 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
       await authApi.updateMe({ sector: selected });
       onDone(selected);
     } catch {
-      setError('Could not save — please try again.');
+      setError(t('sector_save_error'));
       setSaving(false);
     }
   }
@@ -70,11 +71,10 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-xl">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">Select your sector</h2>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
-          We need your Kigali sector so your reports and recycling logs are counted in the right
-          area.
-        </p>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+          {t('sector_picker_title')}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">{t('sector_picker_body')}</p>
         <select
           value={selected}
           onChange={(e) => setSelected(e.target.value)}
@@ -92,7 +92,7 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
           disabled={saving}
           className="w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors"
         >
-          {saving ? 'Saving…' : 'Save sector'}
+          {saving ? t('sector_saving') : t('sector_save')}
         </button>
       </div>
     </div>
@@ -102,10 +102,11 @@ function SectorPickerModal({ onDone }: { onDone: (sector: string) => void }) {
 export default function Dashboard() {
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation('dashboard');
+  const { t } = useTranslation(['dashboard', 'common']);
   const [showRecycling, setShowRecycling] = useState(false);
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const [sectorSaved, setSectorSaved] = useState(false);
+  const [pointsHidden, setPointsHidden] = useState(false);
   const confettiFired = useRef(false);
 
   const needsSector = !sectorSaved && user !== null && !user.sector;
@@ -128,7 +129,6 @@ export default function Dashboard() {
     staleTime: 5 * 60_000,
   });
 
-  // The /rewards/me/ endpoint returns cursor-paginated { next, previous, results: { total_points, rewards } }
   const rewardsPayload =
     (rewardsData?.data as unknown as { results?: RewardsResponse })?.results ?? null;
   const allRewards: Reward[] = rewardsPayload?.rewards ?? [];
@@ -140,7 +140,6 @@ export default function Dashboard() {
   const plasticDisplay =
     plasticKg >= 1000 ? `${(plasticKg / 1000).toFixed(1)}T` : `${plasticKg.toFixed(0)}kg`;
 
-  // Count report_submitted rewards since Monday 00:00 of the current week
   const now = new Date();
   const mondayMidnight = new Date(now);
   mondayMidnight.setHours(0, 0, 0, 0);
@@ -154,6 +153,12 @@ export default function Dashboard() {
   const weeklyGoal = user?.weekly_goal ?? 5;
   const weeklyPct = Math.min((weeklyReports / weeklyGoal) * 100, 100);
   const goalComplete = weeklyReports >= weeklyGoal;
+
+  const REWARD_LABELS: Record<string, string> = {
+    report_submitted: t('dashboard:reward_report'),
+    recycling_logged: t('dashboard:reward_recycling'),
+    verification_bonus: t('dashboard:reward_bonus'),
+  };
 
   useEffect(() => {
     if (goalComplete && !confettiFired.current) {
@@ -174,33 +179,41 @@ export default function Dashboard() {
       )}
 
       <InstallBanner />
-      {/* NudgeBanner */}
       <NudgeBanner />
 
-      {/* C — Points card */}
       {rewardsLoading ? (
         <Skeleton className="h-32 rounded-2xl" />
       ) : (
         <div className="bg-gradient-to-br from-green-600 to-green-800 dark:from-green-700 dark:to-green-900 rounded-2xl p-6 text-white relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10" />
-          <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5" />
-          <p className="text-sm font-medium text-green-100 mb-1">{t('your_points')}</p>
-          <p className="text-5xl font-extrabold tabular-nums mb-3">{user?.points ?? 0}</p>
+          <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between mb-1">
+            <p className="text-sm font-medium text-green-100">{t('dashboard:your_points')}</p>
+            <button
+              onClick={() => setPointsHidden((v) => !v)}
+              className="text-green-200 hover:text-white transition-colors"
+              aria-label={pointsHidden ? 'Show points' : 'Hide points'}
+            >
+              {pointsHidden ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <p className="text-5xl font-extrabold tabular-nums mb-3">
+            {pointsHidden ? '••••' : (user?.points ?? 0)}
+          </p>
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1">
               <Flame size={14} className="text-orange-400" />{' '}
-              {t('streak', { count: user?.current_streak ?? 0 })}
+              {t('dashboard:streak', { count: user?.current_streak ?? 0 })}
             </span>
             {rank !== null && (
               <span className="font-semibold">
-                ↗ {t('rank_in', { rank, sector: user?.sector ?? 'your area' })}
+                ↗ {t('dashboard:rank_in', { rank, sector: user?.sector ?? 'your area' })}
               </span>
             )}
           </div>
         </div>
       )}
 
-      {/* D — Weekly goal */}
       <div
         className={`rounded-xl p-4 border ${
           goalComplete
@@ -210,10 +223,10 @@ export default function Dashboard() {
       >
         <div className="flex items-center justify-between mb-2">
           <p className="font-semibold text-gray-800 dark:text-slate-100 flex items-center gap-1.5">
-            <Target size={15} className="text-green-600" /> {t('weekly_goal')}
+            <Target size={15} className="text-green-600" /> {t('dashboard:weekly_goal')}
           </p>
           <span className="text-sm text-gray-500 dark:text-slate-400">
-            {weeklyReports} / {weeklyGoal} reports
+            {weeklyReports} / {weeklyGoal}
           </span>
         </div>
         <div className="h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -224,19 +237,18 @@ export default function Dashboard() {
         </div>
         {goalComplete ? (
           <p className="text-xs font-semibold text-green-700 dark:text-green-400 mt-1.5">
-            <PartyPopper size={13} className="inline mr-1" /> Goal complete! Amazing work this week.
+            <PartyPopper size={13} className="inline mr-1" /> {t('dashboard:goal_complete')}
           </p>
         ) : (
           <p className="text-xs text-gray-500 dark:text-slate-400 mt-1.5">
-            {Math.max(0, weeklyGoal - weeklyReports)} more reports to hit your goal this week
+            {t('dashboard:goal_remaining', { count: Math.max(0, weeklyGoal - weeklyReports) })}
           </p>
         )}
       </div>
 
-      {/* E — Quick actions */}
       <div>
         <h2 className="font-bold text-gray-900 dark:text-slate-100 text-base mb-3">
-          {t('quick_actions')}
+          {t('dashboard:quick_actions')}
         </h2>
         <div className="grid grid-cols-3 gap-3">
           <Link
@@ -245,7 +257,7 @@ export default function Dashboard() {
           >
             <Plus size={22} className="text-green-600" />
             <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
-              {t('report_waste')}
+              {t('dashboard:report_waste')}
             </span>
           </Link>
           <button
@@ -254,7 +266,7 @@ export default function Dashboard() {
           >
             <Recycle size={22} className="text-green-600" />
             <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
-              {t('log_recycling')}
+              {t('dashboard:log_recycling')}
             </span>
           </button>
           <Link
@@ -263,31 +275,36 @@ export default function Dashboard() {
           >
             <Trophy size={22} className="text-amber-500" />
             <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
-              {t('leaderboard')}
+              {t('dashboard:leaderboard')}
             </span>
           </Link>
         </div>
       </div>
 
-      {/* F — Community impact (collapsible) */}
       <div className="bg-slate-800 dark:bg-slate-900 rounded-2xl overflow-hidden">
         <div className="p-5">
           <div className="flex items-center justify-between mb-1">
             <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase">
-              {t('community_impact')} — {user?.sector ?? 'your area'}
+              {t('dashboard:community_impact')} — {user?.sector ?? 'your area'}
             </p>
             <button
               onClick={() => setCommunityExpanded((v) => !v)}
               className="text-xs text-green-400 hover:text-green-300"
             >
-              {communityExpanded ? 'Less' : 'View more'}
+              {communityExpanded ? t('dashboard:view_less') : t('dashboard:view_more')}
             </button>
           </div>
           <div className="grid grid-cols-3 text-center mt-4">
             {[
-              { value: communityStats?.total_reports ?? '—', label: t('total_reports') },
-              { value: communityStats?.active_citizens ?? '—', label: t('active_citizens') },
-              { value: communityStats ? plasticDisplay : '—', label: t('plastic_logged') },
+              { value: communityStats?.total_reports ?? '—', label: t('dashboard:total_reports') },
+              {
+                value: communityStats?.active_citizens ?? '—',
+                label: t('dashboard:active_citizens'),
+              },
+              {
+                value: communityStats ? plasticDisplay : '—',
+                label: t('dashboard:plastic_logged'),
+              },
             ].map((s) => (
               <div key={s.label}>
                 <p className="text-2xl font-bold text-white">{s.value}</p>
@@ -299,26 +316,25 @@ export default function Dashboard() {
         {communityExpanded && (
           <div className="border-t border-slate-700 px-5 py-3 flex items-center justify-between">
             <p className="text-xs text-slate-400">
-              {communityStats?.active_citizens ?? 0} neighbours reported this week
+              {t('dashboard:neighbours_reported', { count: communityStats?.active_citizens ?? 0 })}
             </p>
             <button
               onClick={() => navigate('/community')}
               className="text-xs font-semibold text-green-400 flex items-center gap-1"
             >
-              Explore <ChevronRight size={12} />
+              {t('dashboard:explore')} <ChevronRight size={12} />
             </button>
           </div>
         )}
       </div>
 
-      {/* G — Recent activity */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold text-gray-900 dark:text-slate-100 text-base">
-            {t('recent_activity')}
+            {t('dashboard:recent_activity')}
           </h2>
           <Link to="/activity" className="text-sm text-green-600 font-medium">
-            See all
+            {t('dashboard:see_all')}
           </Link>
         </div>
 
@@ -330,7 +346,7 @@ export default function Dashboard() {
           </div>
         ) : rewards.length === 0 ? (
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-6 text-center text-gray-500 dark:text-slate-400 text-sm">
-            {t('no_activity')}
+            {t('dashboard:no_activity')}
           </div>
         ) : (
           <div className="space-y-2">
@@ -347,7 +363,7 @@ export default function Dashboard() {
                     {REWARD_LABELS[r.reward_type] ?? r.reward_type}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-slate-400">
-                    {timeAgo(r.date_earned)}
+                    {timeAgo(r.date_earned, t as TSimple)}
                   </p>
                 </div>
                 <span className="text-sm font-semibold text-green-600 flex-shrink-0">
@@ -359,7 +375,6 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* H — Education footer */}
       <Link
         to="/education"
         className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
@@ -367,7 +382,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <BookOpen size={18} className="text-green-600" />
           <span className="text-sm font-medium text-gray-800 dark:text-slate-200">
-            Recycling tips &amp; education
+            {t('dashboard:education_link')}
           </span>
         </div>
         <ChevronRight size={16} className="text-gray-400" />

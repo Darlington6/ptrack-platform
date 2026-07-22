@@ -1,5 +1,7 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { createPortal } from 'react-dom';
 import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 type Intent = 'danger' | 'warning' | 'success';
 
@@ -49,6 +51,7 @@ export function ConfirmModal({
   onConfirm,
   onCancel,
 }: Props) {
+  const { t } = useTranslation('common');
   if (!open) return null;
   const resolved: Intent = intent ?? (danger ? 'danger' : 'warning');
   const { icon, btn, ring } = INTENT_STYLES[resolved];
@@ -70,14 +73,14 @@ export function ConfirmModal({
             disabled={loading}
             className="flex-1 px-4 py-2 border border-gray-200 dark:border-slate-700 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 disabled:opacity-60"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading || confirmDisabled}
             className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 ${btn}`}
           >
-            {loading ? 'Please wait…' : confirmLabel}
+            {loading ? t('please_wait') : confirmLabel}
           </button>
         </div>
       </div>

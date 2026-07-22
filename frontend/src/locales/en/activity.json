@@ -1,0 +1,13 @@
+{
+  "title": "My Activity",
+  "filter_all": "All",
+  "filter_reports": "Reports",
+  "filter_recycling": "Recycling",
+  "filter_points": "Points",
+  "no_activity": "No activity yet.",
+  "label_report_submitted": "Waste Report Submitted",
+  "label_recycling_logged": "Recycling Logged",
+  "label_verification_bonus": "Report Verified",
+  "waste_label": "{{type}} waste report",
+  "_locale": "en"
+}

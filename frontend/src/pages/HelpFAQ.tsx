@@ -51,7 +51,7 @@ const FAQ_EN: FaqItem[] = [
   },
   {
     q: 'Who can I contact for support?',
-    a: 'Send an email to support@ptrack.rw and we will respond within 48 hours. For urgent issues, use the feedback link below.',
+    a: 'Send an email to d.tunyinko@alustudent.com and we will respond within 48 hours. For urgent issues, use the feedback link below.',
   },
   {
     q: 'Is pTrack free to use?',
@@ -102,7 +102,7 @@ const FAQ_RW: FaqItem[] = [
   },
   {
     q: "Nshobora kuvugana na nde nk'inkunga?",
-    a: 'Ohereza email kuri support@ptrack.rw kandi tuzasubiza mu masaha 48.',
+    a: 'Ohereza email kuri d.tunyinko@alustudent.com kandi tuzasubiza mu masaha 48.',
   },
   {
     q: 'pTrack wishyurwa?',
@@ -185,10 +185,10 @@ export default function HelpFAQ() {
           <p className="text-sm text-gray-600 dark:text-slate-400 mt-0.5">
             {isRw ? 'Ohereza email' : 'Email us at'}{' '}
             <a
-              href="mailto:support@ptrack.rw"
+              href="mailto:d.tunyinko@alustudent.com"
               className="text-green-600 dark:text-green-400 font-medium"
             >
-              support@ptrack.rw
+              d.tunyinko@alustudent.com
             </a>
             {isRw ? ' kandi tuzasubiza mu masaha 48.' : " and we'll respond within 48 hours."}
           </p>

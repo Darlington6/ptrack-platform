@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,7 +14,7 @@ const LANGUAGES = [
 
 export default function LanguageSettings() {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('settings');
   const { user, setUser } = useAuth();
 
   async function handleSelect(code: 'en' | 'rw') {
@@ -21,9 +22,9 @@ export default function LanguageSettings() {
     try {
       const res = await client.patch<User>('/auth/me/', { preferred_language: code });
       setUser(res.data);
-      toast.success('Language updated.');
+      toast.success(t('language_updated'));
     } catch {
-      toast.error('Failed to save preference.');
+      toast.error(t('language_failed'));
     }
   }
 
@@ -33,7 +34,9 @@ export default function LanguageSettings() {
         <button onClick={() => navigate(-1)} className="text-gray-500">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">Language</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">
+          {t('page_language')}
+        </h1>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden">

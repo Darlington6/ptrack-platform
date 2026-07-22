@@ -115,6 +115,8 @@ export interface Notification {
     | 'rejection';
   title: string;
   body: string;
+  title_rw: string;
+  body_rw: string;
   action_url: string;
   is_read: boolean;
   read_at: string | null;

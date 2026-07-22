@@ -1,6 +1,46 @@
+{# pTrack bilingual email template (EN/RW) #}
 <!DOCTYPE html>
 <html>
 <body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1f2937;">
+{% if user.preferred_language == 'rw' %}
+  <h2 style="color:#16a34a;">Incamake ya buri cyumweru ya pTrack</h2>
+  <p>Muraho {{ user.full_name|default:user.username }},</p>
+
+  <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+    <tr style="background:#f0fdf4;">
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;">Raporo zatanzwe</td>
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;font-weight:bold;">{{ reports }}</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 12px;border:1px solid #e5e7eb;">Ibikorwa by'ugusubiza</td>
+      <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;">{{ recycling }}</td>
+    </tr>
+    <tr style="background:#f0fdf4;">
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;">Amanota yatanzwe iki cyumweru</td>
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;font-weight:bold;">{{ points_earned }}</td>
+    </tr>
+    <tr>
+      <td style="padding:10px 12px;border:1px solid #e5e7eb;">Amanota yose</td>
+      <td style="padding:10px 12px;border:1px solid #e5e7eb;font-weight:bold;">{{ user.points }}</td>
+    </tr>
+    <tr style="background:#f0fdf4;">
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;">Iminsi ikurikiranyaho</td>
+      <td style="padding:10px 12px;border:1px solid #bbf7d0;font-weight:bold;">Iminsi {{ user.current_streak }}</td>
+    </tr>
+  </table>
+
+  <a href="https://ptrack-platform.vercel.app/dashboard"
+     style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;
+            border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">
+    Fungura pTrack
+  </a>
+
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="color:#9ca3af;font-size:0.75rem;">
+    Ubu butumwa bwagushyikirijwe kuko wemeje gukira incamake ya buri cyumweru.
+    Hindura ibikunda kuri <a href="https://ptrack-platform.vercel.app/profile">ptrack-platform.vercel.app/profile</a>.
+  </p>
+{% else %}
   <h2 style="color:#16a34a;">Your weekly pTrack summary</h2>
   <p>Hi {{ user.full_name|default:user.username }},</p>
 
@@ -38,6 +78,8 @@
     You're receiving this because you opted into weekly digests.
     Update preferences at <a href="https://ptrack-platform.vercel.app/profile">ptrack-platform.vercel.app/profile</a>.
   </p>
+{% endif %}
   <p style="color:#9ca3af;font-size:0.75rem;">The pTrack Team — Built for Kigali. For Africa.</p>
 </body>
 </html>
+{# pTrack v2 #}

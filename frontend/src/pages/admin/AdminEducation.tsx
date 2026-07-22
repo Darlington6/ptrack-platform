@@ -7,6 +7,7 @@ import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import type { Article } from '../../api/types';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 type ArticleForm = {
   title_en: string;
@@ -333,16 +334,16 @@ export default function AdminEducation() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-              {isLoading && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                  >
-                    Loading…
-                  </td>
-                </tr>
-              )}
+              {isLoading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i}>
+                    {Array.from({ length: 6 }).map((__, j) => (
+                      <td key={j} className="px-4 py-3">
+                        <Skeleton className="h-4 w-full" />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
               {!isLoading &&
                 articles.map((a) => (
                   <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/40">

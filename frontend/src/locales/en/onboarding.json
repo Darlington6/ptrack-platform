@@ -1,0 +1,14 @@
+{
+  "slide1_title": "Welcome to pTrack!",
+  "slide1_body": "Kigali's first citizen-led plastic waste tracking platform. Together, we can make a real difference.",
+  "slide2_title": "Earn points for every action",
+  "slide2_body": "Report waste (+{{report}} pts), log recycling (+{{recycling}} pts), get verified (+{{bonus}} bonus). Points unlock rewards and badges.",
+  "slide3_title": "Climb the leaderboard",
+  "slide3_body": "Compete with neighbours in your sector. Top citizens unlock exclusive badges and community recognition.",
+  "slide4_title": "Ready to get started?",
+  "slide4_body": "Start your first report and earn {{report}} points right now. Kigali is counting on you!",
+  "next": "Next",
+  "get_started": "Get Started",
+  "skip": "Skip",
+  "_locale": "en"
+}

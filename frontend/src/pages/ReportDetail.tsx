@@ -1,3 +1,5 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,34 +17,13 @@ import {
 } from 'lucide-react';
 import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { VerifyReportModal, RejectReportModal } from '../components/admin/ReportActionModals';
 import client from '../api/client';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { WasteReport } from '../types';
-
-const STATUS_META = {
-  pending: {
-    label: 'Pending',
-    icon: <Clock size={14} />,
-    cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  },
-  verified: {
-    label: 'Verified',
-    icon: <CheckCircle size={14} />,
-    cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  },
-  resolved: {
-    label: 'Resolved',
-    icon: <PackageCheck size={14} />,
-    cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  },
-  rejected: {
-    label: 'Rejected',
-    icon: <XCircle size={14} />,
-    cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  },
-};
 
 type Confirm = 'verify' | 'reject' | 'resolve' | 'delete' | null;
 
@@ -51,10 +32,34 @@ export default function ReportDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useTranslation(['report_detail', 'report']);
   const [markerOpen, setMarkerOpen] = useState(false);
   const [confirm, setConfirm] = useState<Confirm>(null);
 
-  const { data, isLoading, isError } = useQuery({
+  const STATUS_META = {
+    pending: {
+      label: t('report:pending'),
+      icon: <Clock size={14} />,
+      cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    },
+    verified: {
+      label: t('report:verified'),
+      icon: <CheckCircle size={14} />,
+      cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    },
+    resolved: {
+      label: t('report:resolved'),
+      icon: <PackageCheck size={14} />,
+      cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    },
+    rejected: {
+      label: t('report:rejected'),
+      icon: <XCircle size={14} />,
+      cls: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    },
+  };
+
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['report', id],
     queryFn: () => client.get<WasteReport>(`/reports/${id}/`),
     enabled: !!id,
@@ -73,9 +78,9 @@ export default function ReportDetail() {
       client.patch<WasteReport>(`/reports/${id}/verify/`, note ? { note } : {}),
     onSuccess: ({ data: updated }) => {
       applyUpdate(updated);
-      toast.success('Report verified — citizen awarded +10 pts');
+      toast.success(t('verified_toast'));
     },
-    onError: () => toast.error('Verification failed'),
+    onError: () => toast.error(t('verify_failed')),
     onSettled: () => setConfirm(null),
   });
 
@@ -83,9 +88,9 @@ export default function ReportDetail() {
     mutationFn: (reason: string) => client.patch<WasteReport>(`/reports/${id}/reject/`, { reason }),
     onSuccess: ({ data: updated }) => {
       applyUpdate(updated);
-      toast.success('Report rejected');
+      toast.success(t('rejected_toast'));
     },
-    onError: () => toast.error('Reject failed'),
+    onError: () => toast.error(t('reject_failed')),
     onSettled: () => setConfirm(null),
   });
 
@@ -93,36 +98,64 @@ export default function ReportDetail() {
     mutationFn: () => client.patch<WasteReport>(`/reports/${id}/resolve/`),
     onSuccess: ({ data: updated }) => {
       applyUpdate(updated);
-      toast.success('Report marked as resolved');
+      toast.success(t('resolved_toast'));
     },
-    onError: () => toast.error('Failed to mark as resolved'),
+    onError: () => toast.error(t('resolve_failed')),
     onSettled: () => setConfirm(null),
   });
 
   const deleteReport = useMutation({
     mutationFn: () => client.delete(`/reports/${id}/`),
     onSuccess: () => {
-      toast.success('Report deleted');
+      toast.success(t('deleted_toast'));
       navigate(-1);
     },
-    onError: () => toast.error('Delete failed'),
+    onError: () => toast.error(t('delete_failed')),
     onSettled: () => setConfirm(null),
   });
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+      <div className="px-4 pt-4 pb-24 space-y-4 max-w-2xl mx-auto">
+        <div className="flex items-center gap-3">
+          <Skeleton className="w-8 h-8 rounded-full" />
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <Skeleton className="h-56 w-full rounded-2xl" />
+        <div className="space-y-3 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+          <Skeleton className="h-5 w-24 rounded-full" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+        <div className="space-y-2 rounded-2xl border border-gray-100 dark:border-slate-700 p-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
       </div>
     );
   }
 
   if (isError || !report) {
+    const is403 = (error as { response?: { status?: number } } | null)?.response?.status === 403;
+    if (is403) {
+      return (
+        <div className="px-4 py-16 text-center">
+          <ShieldCheck size={40} className="mx-auto mb-3 text-gray-300 dark:text-slate-600" />
+          <p className="font-medium text-gray-900 dark:text-slate-100 mb-1">{t('access_denied')}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{t('access_denied_detail')}</p>
+          <button onClick={() => navigate(-1)} className="mt-4 text-green-600 font-medium text-sm">
+            {t('go_back')}
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="px-4 py-16 text-center">
-        <p className="text-gray-500 dark:text-slate-400">Report not found.</p>
+        <p className="text-gray-500 dark:text-slate-400">{t('not_found')}</p>
         <button onClick={() => navigate(-1)} className="mt-4 text-green-600 font-medium text-sm">
-          Go back
+          {t('go_back')}
         </button>
       </div>
     );
@@ -133,10 +166,10 @@ export default function ReportDetail() {
     typeof report.user === 'number' ? report.user === user?.id : report.user.id === user?.id;
   const isAdmin = user?.role === 'admin';
   const reporterName = isOwner
-    ? 'You'
+    ? t('you')
     : isAdmin
-      ? (report.user_detail?.full_name ?? report.user_detail?.username ?? 'Unknown user')
-      : 'A citizen';
+      ? (report.user_detail?.full_name ?? report.user_detail?.username ?? t('unknown_user'))
+      : t('a_citizen');
 
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${report.latitude},${report.longitude}`;
 
@@ -162,7 +195,7 @@ export default function ReportDetail() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 -mt-1"
         >
-          <ArrowLeft size={14} /> Back
+          <ArrowLeft size={14} /> {t('back')}
         </button>
 
         {/* Status + waste type */}
@@ -173,34 +206,47 @@ export default function ReportDetail() {
             {statusMeta.icon} {statusMeta.label}
           </span>
           <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-400 px-2.5 py-1 rounded-full font-medium capitalize">
-            {report.waste_type}
+            {t('report:' + report.waste_type)}
           </span>
         </div>
 
         {/* Description */}
         <div>
-          <p className="text-base font-semibold text-gray-900 dark:text-white mb-1">Description</p>
+          <p className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+            {t('description')}
+          </p>
           <p className="text-sm text-gray-600 dark:text-slate-400">
-            {report.description || 'No description provided.'}
+            {report.description || t('no_description')}
           </p>
         </div>
 
         {/* Metadata */}
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 divide-y divide-gray-100 dark:divide-slate-700">
           <div className="flex justify-between px-4 py-3">
-            <span className="text-sm text-gray-500 dark:text-slate-400">Submitted by</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">{t('submitted_by')}</span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {reporterName}
             </span>
           </div>
           <div className="flex justify-between px-4 py-3">
-            <span className="text-sm text-gray-500 dark:text-slate-400">Date</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">{t('date')}</span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {new Date(report.created_at).toLocaleDateString()}
             </span>
           </div>
           <div className="flex justify-between px-4 py-3">
-            <span className="text-sm text-gray-500 dark:text-slate-400">Location</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">{t('time')}</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {new Date(report.created_at).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short',
+              })}
+            </span>
+          </div>
+          <div className="flex justify-between px-4 py-3">
+            <span className="text-sm text-gray-500 dark:text-slate-400">{t('location')}</span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {report.latitude.toFixed(4)}, {report.longitude.toFixed(4)}
             </span>
@@ -236,7 +282,7 @@ export default function ReportDetail() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 text-sm font-medium text-blue-600 whitespace-nowrap"
                 >
-                  <Navigation size={14} /> Get Directions
+                  <Navigation size={14} /> {t('get_directions')}
                 </a>
               </InfoWindow>
             )}
@@ -251,7 +297,7 @@ export default function ReportDetail() {
                 onClick={() => setConfirm('verify')}
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-colors"
               >
-                <ShieldCheck size={16} /> Verify Report
+                <ShieldCheck size={16} /> {t('verify_report')}
               </button>
             )}
             {(isPending || isVerified) && (
@@ -259,7 +305,7 @@ export default function ReportDetail() {
                 onClick={() => setConfirm('reject')}
                 className="w-full flex items-center justify-center gap-2 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 font-semibold py-3 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
               >
-                <Ban size={16} /> Reject Report
+                <Ban size={16} /> {t('reject_report')}
               </button>
             )}
             {isVerified && (
@@ -267,7 +313,7 @@ export default function ReportDetail() {
                 onClick={() => setConfirm('resolve')}
                 className="w-full flex items-center justify-center gap-2 border border-blue-300 dark:border-blue-800 text-blue-600 dark:text-blue-400 font-semibold py-3 rounded-xl transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20"
               >
-                <PackageCheck size={16} /> Mark as Resolved
+                <PackageCheck size={16} /> {t('mark_resolved')}
               </button>
             )}
           </div>
@@ -280,7 +326,7 @@ export default function ReportDetail() {
               onClick={() => setConfirm('delete')}
               className="w-full flex items-center justify-center gap-2 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 font-semibold py-3 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
             >
-              <Trash2 size={16} /> Delete Report
+              <Trash2 size={16} /> {t('delete_report')}
             </button>
           </div>
         )}
@@ -301,9 +347,9 @@ export default function ReportDetail() {
       <ConfirmModal
         open={confirm === 'resolve'}
         intent="warning"
-        title="Mark as resolved?"
-        message="This confirms the waste has been physically collected or cleaned up."
-        confirmLabel="Mark Resolved"
+        title={t('resolve_title')}
+        message={t('resolve_message')}
+        confirmLabel={t('resolve_confirm')}
         loading={resolve.isPending}
         onConfirm={() => resolve.mutate()}
         onCancel={() => setConfirm(null)}
@@ -311,9 +357,9 @@ export default function ReportDetail() {
       <ConfirmModal
         open={confirm === 'delete'}
         intent="danger"
-        title="Delete this report?"
-        message="This will permanently remove your report. This cannot be undone."
-        confirmLabel="Delete"
+        title={t('delete_title')}
+        message={t('delete_message')}
+        confirmLabel={t('delete_confirm')}
         loading={deleteReport.isPending}
         onConfirm={() => deleteReport.mutate()}
         onCancel={() => setConfirm(null)}

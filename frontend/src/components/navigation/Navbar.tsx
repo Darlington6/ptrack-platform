@@ -1,41 +1,13 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useRef, useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Bell, LayoutDashboard, Moon, Sunrise, Sun, Sunset, User, LogOut } from 'lucide-react';
-
-const PAGE_TITLES: Record<string, string> = {
-  '/dashboard': 'Home',
-  '/map': 'Map',
-  '/report': 'Report Waste',
-  '/rewards': 'Rewards',
-  '/leaderboard': 'Leaderboard',
-  '/profile': 'Profile',
-  '/notifications': 'Notifications',
-  '/settings': 'Settings',
-  '/settings/account': 'Account Settings',
-  '/settings/security': 'Security',
-  '/settings/language': 'Language',
-  '/settings/theme': 'Appearance',
-  '/settings/notifications': 'Notification Settings',
-  '/settings/privacy': 'Privacy',
-  '/settings/data': 'My Data',
-  '/activity': 'My Activity',
-  '/community': 'Community Impact',
-  '/centres': 'Recycling Centres',
-  '/education': 'Education',
-  '/help': 'Help & FAQ',
-  '/about': 'About',
-};
-
-function getPageTitle(pathname: string): string {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
-  if (pathname.startsWith('/reports/')) return 'Report Detail';
-  if (pathname.startsWith('/education/')) return 'Education';
-  return 'pTrack';
-}
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { Avatar } from '../ui/Avatar';
 import { ConfirmDialog } from '../feedback/ConfirmDialog';
+import { LanguageToggle } from './LanguageToggle';
 import { notificationsApi } from '../../api/endpoints/notifications';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
@@ -48,16 +20,49 @@ function GreetingIcon() {
   return <Sunset size={15} className={`${cls} text-orange-500`} />;
 }
 
+const PAGE_TITLE_KEYS: Record<string, string> = {
+  '/dashboard': 'page_home',
+  '/map': 'page_map',
+  '/report': 'page_report',
+  '/rewards': 'page_rewards',
+  '/leaderboard': 'page_leaderboard',
+  '/profile': 'page_profile',
+  '/notifications': 'page_notifications',
+  '/settings': 'page_settings',
+  '/settings/account': 'page_account_settings',
+  '/settings/security': 'page_security',
+  '/settings/language': 'page_language',
+  '/settings/theme': 'page_theme',
+  '/settings/notifications': 'page_notification_settings',
+  '/settings/privacy': 'page_privacy',
+  '/settings/data': 'page_data',
+  '/activity': 'page_activity',
+  '/community': 'page_community',
+  '/centres': 'page_centres',
+  '/education': 'page_education',
+  '/help': 'page_help',
+  '/about': 'page_about',
+};
+
 export function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const pageTitle = getPageTitle(pathname);
   const networkStatus = useNetworkStatus();
-  const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? 'there';
+  const { t } = useTranslation('nav');
+  const firstName = user?.full_name?.split(' ')[0] ?? user?.username ?? '';
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const key = PAGE_TITLE_KEYS[pathname];
+  const pageTitle = key
+    ? t(key)
+    : pathname.startsWith('/reports/')
+      ? t('page_report_detail')
+      : pathname.startsWith('/education/')
+        ? t('page_education')
+        : 'pTrack';
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -87,8 +92,9 @@ export function Navbar() {
       </span>
 
       <div className="flex items-center gap-3">
-        <span className="hidden sm:block text-sm font-medium text-gray-700 dark:text-slate-300">
-          Hi, {firstName} <GreetingIcon />
+        <span className="hidden sm:flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-slate-300">
+          {firstName ? t('hi_greeting', { name: firstName }) : ''}
+          {firstName && <GreetingIcon />}
         </span>
 
         {user?.role === 'admin' && (
@@ -96,7 +102,7 @@ export function Navbar() {
             to="/admin"
             className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-green-200 dark:border-green-800 text-xs font-semibold text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
           >
-            <LayoutDashboard size={12} /> Admin Panel
+            <LayoutDashboard size={12} /> {t('admin_panel')}
           </NavLink>
         )}
 
@@ -113,7 +119,7 @@ export function Navbar() {
           <button
             onClick={() => setMenuOpen((o) => !o)}
             className="hover:opacity-80 transition-opacity"
-            aria-label="Profile menu"
+            aria-label={t('profile_menu')}
           >
             <Avatar
               src={user?.profile_picture}
@@ -124,7 +130,7 @@ export function Navbar() {
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-lg z-50 overflow-hidden">
               <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
                   {user?.full_name ?? user?.username}
@@ -139,17 +145,20 @@ export function Navbar() {
                 className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <User size={15} />
-                Profile
+                {t('profile_menu')}
               </button>
+              <div className="px-4 py-2.5 border-t border-gray-100 dark:border-slate-700">
+                <LanguageToggle />
+              </div>
               <button
                 onClick={() => {
                   setMenuOpen(false);
                   setConfirmLogout(true);
                 }}
-                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-gray-100 dark:border-slate-700"
               >
                 <LogOut size={15} />
-                Logout
+                {t('logout')}
               </button>
             </div>
           )}
@@ -162,9 +171,9 @@ export function Navbar() {
             logout();
             navigate('/');
           }}
-          title="Logout"
-          message="Are you sure you want to log out?"
-          confirmLabel="Logout"
+          title={t('logout_title')}
+          message={t('logout_message')}
+          confirmLabel={t('logout')}
         />
       </div>
     </header>

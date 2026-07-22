@@ -1,18 +1,44 @@
 import time
 
 from django.conf import settings
+from django.core.management import call_command
+from django.http import HttpResponse
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from ptrack.config import cfg
+
 from .models import Notification
 from .pagination import FeedCursorPagination
 from .serializers import NotificationSerializer
 
 _START_TIME = time.time()
+
+
+# ── Internal cron trigger ──────────────────────────────────────────────────────
+
+_ALLOWED_COMMANDS = {"send_streak_warnings", "send_weekly_digest"}
+
+
+@csrf_exempt
+@require_POST
+def run_cron(request, command: str):
+    """Called by GitHub Actions on a schedule. Verifies a shared secret then
+    runs the named management command synchronously."""
+    secret = request.headers.get("X-Cron-Secret", "")
+    configured = getattr(cfg, "CRON_SECRET", "")
+    if not configured or secret != configured:
+        return HttpResponse("Forbidden", status=403)
+    if command not in _ALLOWED_COMMANDS:
+        return HttpResponse(f"Unknown command: {command}", status=400)
+    call_command(command)
+    return HttpResponse("ok")
 
 
 # ── Health check ───────────────────────────────────────────────────────────────
@@ -135,3 +161,6 @@ def notification_delete(request, pk):
 
     n.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---

@@ -1,3 +1,5 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ShieldCheck, ShieldOff, UserX, UserCheck, X, ChevronRight, Download } from 'lucide-react';
@@ -8,6 +10,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import client from '../../api/client';
 import type { AdminUser } from '../../api/endpoints/admin';
 import { KIGALI_SECTORS } from '../../lib/sectors';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 async function downloadCsv(url: string, filename: string) {
   try {
@@ -281,7 +284,18 @@ export default function AdminUsers() {
 
           {/* Table */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col className="w-[18%]" />
+                <col className="w-[20%]" />
+                <col className="w-[12%]" />
+                <col className="w-[9%]" />
+                <col className="w-[8%]" />
+                <col className="w-[9%]" />
+                <col className="w-[11%]" />
+                <col className="w-[9%]" />
+                <col className="w-[4%]" />
+              </colgroup>
               <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
                 <tr>
                   {[
@@ -305,16 +319,16 @@ export default function AdminUsers() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                {isLoading && (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                    >
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {isLoading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      {Array.from({ length: 9 }).map((__, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 {!isLoading &&
                   users.map((u) => (
                     <tr
@@ -323,19 +337,21 @@ export default function AdminUsers() {
                       onClick={() => setDrawer(u)}
                     >
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
                           <div className="w-7 h-7 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                             {(u.full_name || u.username || 'U').slice(0, 2).toUpperCase()}
                           </div>
-                          <span className="font-medium text-gray-800 dark:text-slate-200 max-w-[120px] truncate">
+                          <span className="font-medium text-gray-800 dark:text-slate-200 min-w-0 truncate">
                             {u.full_name || u.username}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs max-w-[160px] truncate">
+                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs truncate">
                         {u.email}
                       </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{u.sector}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-slate-300 truncate">
+                        {u.sector}
+                      </td>
                       <td className="px-4 py-3 font-semibold text-amber-600 dark:text-amber-400">
                         {u.points.toLocaleString()}
                       </td>

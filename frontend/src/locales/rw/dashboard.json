@@ -14,5 +14,21 @@
   "active_citizens": "Abaturage bakora",
   "plastic_logged": "Plastike yanditswe",
   "neighbours_reported": "{{count}} abaturage baturanyi batanze raporo icyumweru gishize",
-  "be_nth": "Ube uwa {{n}} — umuryango ukeneye!"
+  "be_nth": "Ube uwa {{n}} — umuryango ukeneye!",
+  "sector_picker_title": "Hitamo umurenge wawe",
+  "sector_picker_body": "Dukeneye umurenge wawe wa Kigali kugira ngo raporo zawe n'ibikorwa bya recyclage bibarizwe ahantu hakwiye.",
+  "sector_save_error": "Ntibyakunze kubika — ongera ugerageze.",
+  "sector_saving": "Bika…",
+  "sector_save": "Bika umurenge",
+  "view_more": "Reba byinshi",
+  "view_less": "Ngendera",
+  "see_all": "Reba byose",
+  "goal_complete": "Intego yarangiye! Akazi keza iri cyumweru.",
+  "goal_remaining": "Raporo {{count}} zisigaye kugira ngo ugere ku ntego y'icyumweru",
+  "reward_report": "Raporo y'Imyanda",
+  "reward_recycling": "Igikorwa cya Recyclage",
+  "reward_bonus": "Inyongera yo Kwemeza",
+  "education_link": "Amakuru y'inyigisho za recyclage",
+  "explore": "Shakisha",
+  "_locale": "rw"
 }

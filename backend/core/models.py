@@ -49,6 +49,8 @@ class Notification(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     title = models.CharField(max_length=200)
     body = models.TextField()
+    title_rw = models.CharField(max_length=200, blank=True, default="")
+    body_rw = models.TextField(blank=True, default="")
     action_url = models.CharField(max_length=500, blank=True)
     is_read = models.BooleanField(default=False)
     read_at = models.DateTimeField(null=True, blank=True)

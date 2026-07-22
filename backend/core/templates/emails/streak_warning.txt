@@ -1,4 +1,15 @@
-Hi {{ user.full_name|default:user.username }},
+{# pTrack bilingual email template (EN/RW) #}
+{% if user.preferred_language == 'rw' %}Muraho {{ user.full_name|default:user.username }},
+
+Iminsi ikurikiranyaho ya pTrack iri mu kaga!
+
+Ufite iminsi {{ streak }} ikurikiranyaho ariko nta bikorwa wanditse uyu munsi.
+Tanga raporo cyangwa igikorwa cy'ugusubiza mbere ya saa sita z'ijoro kugira ngo ukomeze.
+
+Fungura pTrack: https://ptrack-platform.vercel.app/dashboard
+
+— Itsinda rya pTrack
+{% else %}Hi {{ user.full_name|default:user.username }},
 
 Your pTrack streak is at risk!
 
@@ -8,3 +19,5 @@ Log a report or recycling activity before midnight to keep it going.
 Open pTrack now: https://ptrack-platform.vercel.app/dashboard
 
 — The pTrack Team
+{% endif %}
+{# pTrack v2 #}

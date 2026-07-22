@@ -1,21 +1,16 @@
+// i18n-ready: see src/locales/{en,rw}/
+// Translations: en & rw namespaces.
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, ArrowLeft, Newspaper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { educationApi } from '../api/endpoints/education';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { Article } from '../api/types';
 
-const CATEGORIES: { value: string; label: string }[] = [
-  { value: 'All', label: 'All' },
-  { value: 'recycling', label: 'Recycling' },
-  { value: 'waste_reduction', label: 'Waste Reduction' },
-  { value: 'climate', label: 'Climate' },
-  { value: 'policy', label: 'Policy' },
-  { value: 'community', label: 'Community' },
-];
-
 function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' }) {
+  const { t } = useTranslation('education');
   const title = lang === 'rw' && article.title_rw ? article.title_rw : article.title_en;
 
   return (
@@ -36,16 +31,13 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
       )}
       <div className="flex-1 p-3 min-w-0">
         <span className="text-[10px] font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
-          {article.category
-            .split('_')
-            .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(' ')}
+          {t(`cat_${article.category}`)}
         </span>
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mt-0.5 line-clamp-2">
           {title}
         </h3>
         <p className="text-xs text-gray-400 dark:text-slate-500 mt-1 flex items-center gap-1">
-          <Clock size={10} /> {article.reading_time_minutes} min read
+          <Clock size={10} /> {t('min_read', { count: article.reading_time_minutes })}
         </p>
       </div>
     </Link>
@@ -54,9 +46,18 @@ function ArticleCard({ article, lang }: { article: Article; lang: 'en' | 'rw' })
 
 export default function Education() {
   const navigate = useNavigate();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation('education');
   const lang = (i18n.language?.startsWith('rw') ? 'rw' : 'en') as 'en' | 'rw';
   const [category, setCategory] = useState('All');
+
+  const CATEGORIES: { value: string; label: string }[] = [
+    { value: 'All', label: t('cat_all') },
+    { value: 'recycling', label: t('cat_recycling') },
+    { value: 'waste_reduction', label: t('cat_waste_reduction') },
+    { value: 'climate', label: t('cat_climate') },
+    { value: 'policy', label: t('cat_policy') },
+    { value: 'community', label: t('cat_community') },
+  ];
 
   const { data, isLoading } = useQuery({
     queryKey: ['education', category],
@@ -72,10 +73,9 @@ export default function Education() {
         <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Learn</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
       </div>
 
-      {/* Category filter chips */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {CATEGORIES.map((c) => (
           <button
@@ -93,14 +93,27 @@ export default function Education() {
       </div>
 
       {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-gray-100 dark:border-slate-700 overflow-hidden"
+            >
+              <Skeleton className="h-36 w-full rounded-none" />
+              <div className="p-4 space-y-2">
+                <Skeleton className="h-4 w-1/4" />
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-5/6" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {!isLoading && articles.length === 0 && (
         <div className="text-center py-12 text-gray-500 dark:text-slate-400 text-sm">
-          No articles yet. Check back soon!
+          {t('no_articles')}
         </div>
       )}
 

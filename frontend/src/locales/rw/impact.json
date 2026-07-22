@@ -1,0 +1,15 @@
+{
+  "title": "Ingaruka ku Muryango",
+  "all_time": "Iminsi yose",
+  "kpi_reports": "Raporo Zose",
+  "kpi_citizens": "Abaturage Bakora",
+  "kpi_recycling": "Ibikorwa by'Ugusubiza",
+  "kpi_plastic": "Plastike Itwawe",
+  "chart_title": "Raporo n'Ugusubiza — Amavumba 12 Ashize",
+  "chart_reports": "Raporo",
+  "chart_recycling": "Ugusubiza",
+  "your_contribution": "Uruhare rwawe",
+  "contribution_body": "Ufite amanota {{points}} kandi uri mu ba mbere b'abaturage ba {{sector}}.",
+  "streak_label": "Iminsi ikurikiranyaho: {{days}} iminsi",
+  "_locale": "rw"
+}

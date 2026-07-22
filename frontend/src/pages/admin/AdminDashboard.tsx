@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileText, Users, Clock, Star, CheckCircle, XCircle } from 'lucide-react';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { toast } from 'sonner';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { KigaliHeatmap } from '../../components/admin/KigaliHeatmap';
@@ -209,16 +210,16 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                  {reportsLoading && (
-                    <tr>
-                      <td
-                        colSpan={7}
-                        className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                      >
-                        Loading…
-                      </td>
-                    </tr>
-                  )}
+                  {reportsLoading &&
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <tr key={i}>
+                        {Array.from({ length: 7 }).map((__, j) => (
+                          <td key={j} className="px-4 py-3">
+                            <Skeleton className="h-4 w-full" />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
                   {!reportsLoading &&
                     reports.slice(0, 20).map((r) => {
                       const nameParts = (r.user_detail?.full_name ?? '').split(' ');

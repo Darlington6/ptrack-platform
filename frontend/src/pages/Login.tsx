@@ -1,3 +1,4 @@
+// i18n-ready: see src/locales/{en,rw}/
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -10,8 +11,8 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
 const schema = z.object({
-  identifier: z.string().min(1, 'Email or phone is required'),
-  password: z.string().min(1, 'Password is required'),
+  identifier: z.string().min(1),
+  password: z.string().min(1),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -47,15 +48,13 @@ export default function Login() {
       } catch (err: unknown) {
         const s = (err as { response?: { status?: number } })?.response?.status;
         if (s === 409) {
-          toast.error(
-            'This email is linked to a different Google account. Please log in with your original method.'
-          );
+          toast.error(t('google_login_conflict'));
         } else {
-          toast.error('Google sign-in failed. Please try again.');
+          toast.error(t('google_signin_failed'));
         }
       }
     },
-    onError: () => toast.error('Google sign-in failed. Please try again.'),
+    onError: () => toast.error(t('google_signin_failed')),
   });
 
   async function onSubmit(data: FormData) {
@@ -76,11 +75,11 @@ export default function Login() {
       const axiosErr = err as { response?: { status?: number } };
       const status = axiosErr.response?.status;
       if (status === 401) {
-        toast.error('Incorrect email/phone or password.');
+        toast.error(t('login_failed_creds'));
       } else if (status === 429) {
-        toast.error('Too many attempts. Please wait a moment.');
+        toast.error(t('login_failed_rate_limit'));
       } else {
-        toast.error('Login failed. Please try again.');
+        toast.error(t('login_failed'));
       }
     }
   }
@@ -119,7 +118,6 @@ export default function Login() {
           {t('continue_with_google')}
         </button>
 
-        {/* OR divider */}
         <div className="flex items-center gap-3 my-4">
           <hr className="flex-1 border-gray-200 dark:border-slate-700" />
           <span className="text-xs text-gray-400">{t('or')}</span>
@@ -127,22 +125,20 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-          {/* Email / Phone */}
           <div>
             <label className={LABEL_CLS}>{t('email_or_phone')}</label>
             <input
               type="text"
               autoComplete="username"
-              placeholder="youremail@example.com or +250 7XX XXX XXX"
+              placeholder={t('identifier_placeholder')}
               {...register('identifier')}
               className={INPUT_CLS}
             />
             {errors.identifier && (
-              <p className="text-xs text-red-500 mt-1">{errors.identifier.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('identifier_required')}</p>
             )}
           </div>
 
-          {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className={LABEL_CLS}>{t('password')}</label>
@@ -170,7 +166,7 @@ export default function Login() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+              <p className="text-xs text-red-500 mt-1">{t('password_required')}</p>
             )}
           </div>
 
