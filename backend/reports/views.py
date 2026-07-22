@@ -79,6 +79,8 @@ def _award_badges(user, old_points: int, new_points: int) -> None:
             f"{badge.name} badge earned! {badge.icon or ''}".strip(),
             badge.description or f"You've earned the {badge.name} badge.",
             "/rewards",
+            title_rw=f"Ibimenyetso bya {badge.name} byatsinzwe! {badge.icon or ''}".strip(),
+            body_rw=f"Wahawe ibimenyetso bya {badge.name}.",
         )
 
 
@@ -205,6 +207,8 @@ def reports_list_create(request):
             f"Report received! {_ICON_REPORT}",
             f"Your waste report is under review. +{pts} pts added.",
             f"/reports/{report.pk}",
+            title_rw=f"Raporo yakirijwe! {_ICON_REPORT}",
+            body_rw=f"Raporo yawe y'imyanda iriho gusuzumwa. Amanota +{pts} ongeweho.",
         )
         if _prefs.get("push_enabled", False):
             send_push(
@@ -262,6 +266,13 @@ def report_detail(request, pk):
         cache.delete(f"user:profile:{request.user.pk}")
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    is_owner = report.user_id == request.user.id
+    is_admin = getattr(request.user, "role", "") == "admin"
+    if not (is_owner or is_admin):
+        return Response(
+            {"detail": "You can only view your own reports."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
     return Response(WasteReportSerializer(report).data)
 
 
@@ -299,12 +310,15 @@ def report_verify(request, pk):
     if _vprefs.get("verification_notifications", True):
         note = request.data.get("note", "")
         detail = f" Note: {note}" if note else ""
+        detail_rw = f" Icyitonderwa: {note}" if note else ""
         notify(
             report.user,
             "verification",
             f"Report verified! {_ICON_VERIFIED}",
             f"An admin verified your waste report. +{bonus_pts} bonus pts added.{detail}",
             f"/reports/{report.pk}",
+            title_rw=f"Raporo yemejwe! {_ICON_VERIFIED}",
+            body_rw=f"Umuyobozi yemeje raporo yawe y'imyanda. Amanota ya nyongera +{bonus_pts} ongeweho.{detail_rw}",
         )
         if _vprefs.get("push_enabled", False):
             send_push(
@@ -342,12 +356,15 @@ def report_reject(request, pk):
     _rprefs = getattr(report.user, "notification_preferences", {}) or {}
     if _rprefs.get("verification_notifications", True):
         detail = f" Reason: {reason}" if reason else ""
+        detail_rw = f" Impamvu: {reason}" if reason else ""
         notify(
             report.user,
             "rejection",
             "Report rejected",
             f"An admin reviewed and rejected your waste report.{detail}",
             f"/reports/{report.pk}",
+            title_rw="Raporo yahakanwe",
+            body_rw=f"Umuyobozi yasuzuye kandi yananiye raporo yawe y'imyanda.{detail_rw}",
         )
 
     return Response(WasteReportSerializer(report).data)
@@ -379,6 +396,8 @@ def report_resolve(request, pk):
             "Report resolved!",
             "Great news! The waste you reported has been collected and resolved.",
             f"/reports/{report.pk}",
+            title_rw="Raporo yakemuwe!",
+            body_rw="Amakuru meza! Imyanda warangiye gutanga yacuwe.",
         )
 
     return Response(WasteReportSerializer(report).data)
@@ -454,6 +473,8 @@ def recycling_list_create(request):
             f"Recycling logged! {_ICON_RECYCLE}",
             f"Your recycling activity was recorded. +{pts} pts added.",
             "/rewards",
+            title_rw=f"Ugusubiza kwanditswe! {_ICON_RECYCLE}",
+            body_rw=f"Igikorwa cyawe cy'ugusubiza cyanditswe. Amanota +{pts} ongeweho.",
         )
         if _rprefs.get("push_enabled", False):
             send_push(

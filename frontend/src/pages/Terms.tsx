@@ -51,8 +51,8 @@ export default function Terms() {
       <Section title={t('s4_title')}>
         <p>
           {t('s4_body_pre')}{' '}
-          <a href="mailto:support@ptrack.rw" className="text-green-600 dark:text-green-400">
-            support@ptrack.rw
+          <a href="mailto:d.tunyinko@alustudent.com" className="text-green-600 dark:text-green-400">
+            d.tunyinko@alustudent.com
           </a>{' '}
           {t('s4_body_post')}
         </p>
@@ -83,8 +83,8 @@ export default function Terms() {
       <Section title={t('s10_title')}>
         <p>
           {t('s10_body')}{' '}
-          <a href="mailto:support@ptrack.rw" className="text-green-600 dark:text-green-400">
-            support@ptrack.rw
+          <a href="mailto:d.tunyinko@alustudent.com" className="text-green-600 dark:text-green-400">
+            d.tunyinko@alustudent.com
           </a>
           .
         </p>

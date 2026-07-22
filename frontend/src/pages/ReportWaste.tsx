@@ -257,13 +257,16 @@ export default function ReportWaste() {
         </div>
 
         {/* Image */}
-        <ImageUpload
-          value={image}
-          onChange={setImage}
-          maxSizeMB={0.5}
-          maxWidthOrHeight={1920}
-          label={t('photo')}
-        />
+        <div className="flex flex-col gap-1">
+          <ImageUpload
+            value={image}
+            onChange={setImage}
+            maxSizeMB={0.5}
+            maxWidthOrHeight={1920}
+            label={t('photo')}
+          />
+          <p className="text-xs text-gray-400 dark:text-slate-500">{t('camera_note')}</p>
+        </div>
 
         {/* Description */}
         <div className="flex flex-col gap-1">

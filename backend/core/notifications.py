@@ -1,4 +1,12 @@
-def notify(user, category: str, title: str, body: str, action_url: str = "") -> None:
+def notify(
+    user,
+    category: str,
+    title: str,
+    body: str,
+    action_url: str = "",
+    title_rw: str = "",
+    body_rw: str = "",
+) -> None:
     """Create an in-app Notification for *user*. Fire-and-forget — never raises."""
     try:
         from .models import Notification
@@ -8,6 +16,8 @@ def notify(user, category: str, title: str, body: str, action_url: str = "") -> 
             category=category,
             title=title,
             body=body,
+            title_rw=title_rw,
+            body_rw=body_rw,
             action_url=action_url,
         )
     except Exception:

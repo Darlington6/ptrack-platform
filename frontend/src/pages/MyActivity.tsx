@@ -15,8 +15,9 @@ interface ActivityItem {
   id: string;
   type: 'report' | 'recycling' | 'reward';
   icon: ReactNode;
-  label: string;
-  sublabel: string;
+  labelKey: string;
+  sublabelKey?: string;
+  rawSublabel?: string;
   points?: number;
   date: string;
   linkTo?: string;
@@ -47,12 +48,6 @@ export default function MyActivity() {
     { key: 'points', label: t('filter_points') },
   ];
 
-  const rewardLabels: Record<string, string> = {
-    report_submitted: t('label_report_submitted'),
-    recycling_logged: t('label_recycling_logged'),
-    verification_bonus: t('label_verification_bonus'),
-  };
-
   const fetchMore = useCallback(async () => {
     if (!rewardsCursor || !hasMore) return;
     setLoading(true);
@@ -73,8 +68,8 @@ export default function MyActivity() {
           ) : (
             <CheckCircle size={16} className="text-green-600" />
           ),
-        label: rewardLabels[r.reward_type] ?? r.reward_type,
-        sublabel: `+${r.points_earned} pts`,
+        labelKey: 'activity:label_' + r.reward_type,
+        rawSublabel: `+${r.points_earned} pts`,
         points: r.points_earned,
         date: r.date_earned,
       }));
@@ -108,8 +103,8 @@ export default function MyActivity() {
               id: `report-${r.id}`,
               type: 'report' as const,
               icon: <MapPin size={16} className="text-green-600" />,
-              label: t('report:' + r.waste_type),
-              sublabel: t('report:' + r.status),
+              labelKey: 'report:' + r.waste_type,
+              sublabelKey: 'report:' + r.status,
               date: r.created_at,
               linkTo: `/reports/${r.id}`,
             }))
@@ -121,8 +116,8 @@ export default function MyActivity() {
               id: `recycling-${a.id}`,
               type: 'recycling' as const,
               icon: <Recycle size={16} className="text-green-600" />,
-              label: t('recycling:' + a.activity_type),
-              sublabel: `+${a.points_awarded} pts`,
+              labelKey: 'recycling:' + a.activity_type,
+              rawSublabel: `+${a.points_awarded} pts`,
               points: a.points_awarded,
               date: a.date,
             }))
@@ -215,11 +210,15 @@ export default function MyActivity() {
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 dark:text-slate-100 truncate">
-                    {item.label}
+                    {t(item.labelKey)}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-slate-500">
                     {timeAgo(item.date, t)}
-                    {item.sublabel ? ` · ${item.sublabel}` : ''}
+                    {item.sublabelKey
+                      ? ` · ${t(item.sublabelKey)}`
+                      : item.rawSublabel
+                        ? ` · ${item.rawSublabel}`
+                        : ''}
                   </p>
                 </div>
                 {item.points !== undefined && (

@@ -59,7 +59,7 @@ export default function ReportDetail() {
     },
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['report', id],
     queryFn: () => client.get<WasteReport>(`/reports/${id}/`),
     enabled: !!id,
@@ -138,6 +138,19 @@ export default function ReportDetail() {
   }
 
   if (isError || !report) {
+    const is403 = (error as { response?: { status?: number } } | null)?.response?.status === 403;
+    if (is403) {
+      return (
+        <div className="px-4 py-16 text-center">
+          <ShieldCheck size={40} className="mx-auto mb-3 text-gray-300 dark:text-slate-600" />
+          <p className="font-medium text-gray-900 dark:text-slate-100 mb-1">{t('access_denied')}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{t('access_denied_detail')}</p>
+          <button onClick={() => navigate(-1)} className="mt-4 text-green-600 font-medium text-sm">
+            {t('go_back')}
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="px-4 py-16 text-center">
         <p className="text-gray-500 dark:text-slate-400">{t('not_found')}</p>
@@ -219,6 +232,17 @@ export default function ReportDetail() {
             <span className="text-sm text-gray-500 dark:text-slate-400">{t('date')}</span>
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               {new Date(report.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <div className="flex justify-between px-4 py-3">
+            <span className="text-sm text-gray-500 dark:text-slate-400">{t('time')}</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              {new Date(report.created_at).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short',
+              })}
             </span>
           </div>
           <div className="flex justify-between px-4 py-3">

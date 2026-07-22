@@ -74,8 +74,8 @@ export default function PrivacyPolicy() {
         </ul>
         <p>
           {t('s5_footer_pre')}{' '}
-          <a href="mailto:support@ptrack.rw" className="text-green-600 dark:text-green-400">
-            support@ptrack.rw
+          <a href="mailto:d.tunyinko@alustudent.com" className="text-green-600 dark:text-green-400">
+            d.tunyinko@alustudent.com
           </a>
           {t('s5_footer_post')}
         </p>
@@ -87,6 +87,18 @@ export default function PrivacyPolicy() {
         </p>
         <p>
           <strong>{t('render_label')}</strong> {t('s6_render')}
+        </p>
+        <p>
+          <strong>DigitalOcean</strong> hosts our managed PostgreSQL database. See{' '}
+          <a
+            href="https://www.digitalocean.com/legal/data-processing-agreement"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-green-600 dark:text-green-400 underline"
+          >
+            DigitalOcean's DPA
+          </a>{' '}
+          for their data-handling obligations.
         </p>
         <p>
           <strong>{t('maps_label')}</strong> {t('s6_maps')}
@@ -101,10 +113,24 @@ export default function PrivacyPolicy() {
         <p>{t('s8_body')}</p>
       </Section>
 
+      <Section title={t('s9_title')}>
+        <p>{t('s9_body1')}</p>
+        <p>{t('s9_body2')}</p>
+      </Section>
+
+      <Section title={t('s10_title')}>
+        <p>{t('s10_body1')}</p>
+        <p>{t('s10_body2')}</p>
+      </Section>
+
+      <Section title={t('s11_title')}>
+        <p>{t('s11_body')}</p>
+      </Section>
+
       <p className="text-xs text-gray-400 dark:text-slate-400 text-center pt-2">
         {t('contact_pre')}{' '}
-        <a href="mailto:support@ptrack.rw" className="underline">
-          support@ptrack.rw
+        <a href="mailto:d.tunyinko@alustudent.com" className="underline">
+          d.tunyinko@alustudent.com
         </a>
       </p>
     </div>

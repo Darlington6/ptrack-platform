@@ -14,6 +14,8 @@ import {
   Flame,
   PartyPopper,
   Target,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { authApi } from '../api/endpoints/auth';
 import { KIGALI_SECTORS } from '../lib/sectors';
@@ -104,6 +106,7 @@ export default function Dashboard() {
   const [showRecycling, setShowRecycling] = useState(false);
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const [sectorSaved, setSectorSaved] = useState(false);
+  const [pointsHidden, setPointsHidden] = useState(false);
   const confettiFired = useRef(false);
 
   const needsSector = !sectorSaved && user !== null && !user.sector;
@@ -182,10 +185,21 @@ export default function Dashboard() {
         <Skeleton className="h-32 rounded-2xl" />
       ) : (
         <div className="bg-gradient-to-br from-green-600 to-green-800 dark:from-green-700 dark:to-green-900 rounded-2xl p-6 text-white relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10" />
-          <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5" />
-          <p className="text-sm font-medium text-green-100 mb-1">{t('dashboard:your_points')}</p>
-          <p className="text-5xl font-extrabold tabular-nums mb-3">{user?.points ?? 0}</p>
+          <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
+          <div className="absolute -right-2 bottom-0 w-16 h-16 rounded-full bg-white/5 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between mb-1">
+            <p className="text-sm font-medium text-green-100">{t('dashboard:your_points')}</p>
+            <button
+              onClick={() => setPointsHidden((v) => !v)}
+              className="text-green-200 hover:text-white transition-colors"
+              aria-label={pointsHidden ? 'Show points' : 'Hide points'}
+            >
+              {pointsHidden ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <p className="text-5xl font-extrabold tabular-nums mb-3">
+            {pointsHidden ? '••••' : (user?.points ?? 0)}
+          </p>
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-1">
               <Flame size={14} className="text-orange-400" />{' '}

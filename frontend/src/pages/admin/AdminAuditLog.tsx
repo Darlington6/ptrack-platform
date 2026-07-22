@@ -6,6 +6,7 @@ import { AdminPageShell } from '../../components/admin/AdminPageShell';
 import { adminApi } from '../../api/endpoints/admin';
 import client from '../../api/client';
 import type { AuditLog } from '../../api/types';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 async function downloadCsv(url: string, filename: string) {
   try {
@@ -213,16 +214,16 @@ export default function AdminAuditLog() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                {isLoading && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                    >
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {isLoading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      {Array.from({ length: 7 }).map((__, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 {!isLoading &&
                   logs.map((log) => (
                     <tr

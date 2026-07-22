@@ -54,21 +54,29 @@ class Command(BaseCommand):
                 or 0
             )
 
-            lang = getattr(user, "preferred_language", "en") or "en"
-            if lang == "rw":
-                title = "Incamake ya buri cyumweru ya pTrack"
-                body = (
-                    f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
-                    f"amanota {points_earned}."
-                )
-            else:
-                title = "Your weekly pTrack summary"
-                body = (
-                    f"This week: {reports} reports, {recycling} recycling activities, "
-                    f"{points_earned} pts."
-                )
+            title_en = "Your weekly pTrack summary"
+            body_en = (
+                f"This week: {reports} reports, {recycling} recycling activities, "
+                f"{points_earned} pts."
+            )
+            title_rw = "Incamake ya buri cyumweru ya pTrack"
+            body_rw = (
+                f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
+                f"amanota {points_earned}."
+            )
+            notify(
+                user,
+                "weekly_digest",
+                title_en,
+                body_en,
+                action_url="/rewards",
+                title_rw=title_rw,
+                body_rw=body_rw,
+            )
 
-            notify(user, "weekly_digest", title, body, action_url="/rewards")
+            lang = getattr(user, "preferred_language", "en") or "en"
+            title = title_rw if lang == "rw" else title_en
+            body = body_rw if lang == "rw" else body_en
 
             if not user.email.startswith("phone_"):
                 delivered = send_email(

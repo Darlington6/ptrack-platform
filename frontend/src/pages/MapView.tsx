@@ -5,7 +5,9 @@ import { Map, InfoWindow, useMap, useMapsLibrary } from '@vis.gl/react-google-ma
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { Locate, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import { reportsApi } from '../api/endpoints/reports';
+import { Skeleton } from '../components/ui/Skeleton';
 import type { WasteReport, ReportStatus } from '../api/types';
 
 const KIGALI_CENTER = { lat: -1.9441, lng: 30.0619 };
@@ -34,6 +36,7 @@ interface MapContentProps {
 function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
   const map = useMap();
   const { t } = useTranslation(['map', 'report']);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (map && targetPos) map.panTo(targetPos);
@@ -117,12 +120,16 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
               {new Date(selected.created_at).toLocaleDateString()} —{' '}
               {selected.user_detail?.full_name ?? t('map:citizen')}
             </p>
-            <Link
-              to={`/reports/${selected.id}`}
-              className="block text-center text-xs font-semibold text-green-700 hover:underline"
-            >
-              {t('map:view_detail')}
-            </Link>
+            {(user?.role === 'admin' ||
+              selected.user_detail?.id === user?.id ||
+              (typeof selected.user === 'number' && selected.user === user?.id)) && (
+              <Link
+                to={`/reports/${selected.id}`}
+                className="block text-center text-xs font-semibold text-green-700 hover:underline"
+              >
+                {t('map:view_detail')}
+              </Link>
+            )}
           </div>
         </InfoWindow>
       )}
@@ -132,6 +139,7 @@ function MapContent({ reports, onBboxChange, targetPos }: MapContentProps) {
 
 export default function MapView() {
   const { t } = useTranslation(['map', 'report']);
+  const { user } = useAuth();
   const [filter, setFilter] = useState<ReportStatus | 'all'>('all');
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [loading, setLoading] = useState(false);
@@ -256,41 +264,63 @@ export default function MapView() {
           </div>
         )}
         <div className="space-y-2 px-3 pt-3">
-          {reports.map((r) => (
-            <Link
-              key={r.id}
-              to={`/reports/${r.id}`}
-              className="flex items-start gap-3 px-4 py-3.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              <span
-                className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ background: STATUS_COLOR[r.status] ?? '#94a3b8' }}
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 dark:text-slate-100 capitalize">
-                  {t('report:' + r.waste_type)}
-                </p>
-                {r.description && (
-                  <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
-                    {r.description}
-                  </p>
-                )}
-                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-                  {new Date(r.created_at).toLocaleDateString('en-GB')} —{' '}
-                  {r.user_detail?.full_name ?? t('map:citizen')}
-                </p>
-              </div>
-              <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize flex-shrink-0"
-                style={{
-                  background: `${STATUS_COLOR[r.status]}22`,
-                  color: STATUS_COLOR[r.status],
-                }}
-              >
-                {t('report:' + r.status)}
-              </span>
-            </Link>
-          ))}
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 px-4 py-3.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800"
+                >
+                  <Skeleton className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <Skeleton className="h-4 w-2/5" />
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/3" />
+                  </div>
+                  <Skeleton className="h-5 w-16 rounded-full flex-shrink-0" />
+                </div>
+              ))
+            : reports.map((r) => {
+                const canView =
+                  user?.role === 'admin' ||
+                  r.user_detail?.id === user?.id ||
+                  (typeof r.user === 'number' && r.user === user?.id);
+                return (
+                  <Link
+                    key={r.id}
+                    to={canView ? `/reports/${r.id}` : '#'}
+                    onClick={canView ? undefined : (e) => e.preventDefault()}
+                    className={`flex items-start gap-3 px-4 py-3.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 ${canView ? 'hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors' : 'cursor-default'}`}
+                  >
+                    <span
+                      className="mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ background: STATUS_COLOR[r.status] ?? '#94a3b8' }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-slate-100 capitalize">
+                        {t('report:' + r.waste_type)}
+                      </p>
+                      {r.description && (
+                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate">
+                          {r.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
+                        {new Date(r.created_at).toLocaleDateString('en-GB')} —{' '}
+                        {r.user_detail?.full_name ?? t('map:citizen')}
+                      </p>
+                    </div>
+                    <span
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize flex-shrink-0"
+                      style={{
+                        background: `${STATUS_COLOR[r.status]}22`,
+                        color: STATUS_COLOR[r.status],
+                      }}
+                    >
+                      {t('report:' + r.status)}
+                    </span>
+                  </Link>
+                );
+              })}
         </div>
       </div>
     </div>

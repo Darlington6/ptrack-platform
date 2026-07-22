@@ -61,8 +61,18 @@ class Command(BaseCommand):
                     f"{sector_reports} waste reports were submitted in {sector} this week. "
                     "Keep up the great work!"
                 )
-
-                notify(user, "community", title, body, action_url="/community")
+                notify(
+                    user,
+                    "community",
+                    title,
+                    body,
+                    action_url="/community",
+                    title_rw="Umuryango wawe urakora!",
+                    body_rw=(
+                        f"Raporo {sector_reports} z'imyanda zatanzwe muri {sector} iki cyumweru. "
+                        "Komeza akazi keza!"
+                    ),
+                )
 
                 if prefs.get("push_enabled", False):
                     send_push(user, title, body, url="/community")
