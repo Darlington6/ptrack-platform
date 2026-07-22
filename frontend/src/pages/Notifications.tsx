@@ -70,7 +70,8 @@ function timeAgo(iso: string, t: TFunction): string {
 export default function Notifications() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { t } = useTranslation(['notifications', 'common']);
+  const { t, i18n } = useTranslation(['notifications', 'common']);
+  const isRw = i18n.language?.startsWith('rw');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(true);
@@ -260,10 +261,10 @@ export default function Notifications() {
                                 : 'text-gray-900 dark:text-slate-100'
                             }`}
                           >
-                            {n.title}
+                            {isRw && n.title_rw ? n.title_rw : n.title}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-                            {n.body}
+                            {isRw && n.body_rw ? n.body_rw : n.body}
                           </p>
                           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                             {timeAgo(n.created_at, t)}

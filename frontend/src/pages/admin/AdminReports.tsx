@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Skeleton } from '../../components/ui/Skeleton';
 import { CheckCircle, XCircle, Download, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -273,16 +274,16 @@ export default function AdminReports() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                {isLoading && (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                    >
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {isLoading &&
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i}>
+                      {Array.from({ length: 8 }).map((__, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 {!isLoading &&
                   reports.map((r) => (
                     <tr

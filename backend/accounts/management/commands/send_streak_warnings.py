@@ -43,23 +43,34 @@ class Command(BaseCommand):
             ).exists():
                 continue
 
-            lang = getattr(user, "preferred_language", "en") or "en"
-            if lang == "rw":
-                title = "Iminsi ikurikiranyaho iri mu kaga!"
-                body = (
-                    f"Ufite iminsi {user.current_streak} ikurikiranyaho. "
-                    "Tanga raporo uyu munsi kugira ngo ukomeze."
-                )
-                email_subject = "Iminsi ikurikiranyaho ya pTrack iri mu kaga!"
-            else:
-                title = "Your streak is at risk!"
-                body = (
-                    f"You have a {user.current_streak}-day streak. "
-                    "Log activity today to keep it going."
-                )
-                email_subject = "Your pTrack streak is at risk!"
+            title_en = "Your streak is at risk!"
+            body_en = (
+                f"You have a {user.current_streak}-day streak. "
+                "Log activity today to keep it going."
+            )
+            title_rw = "Iminsi ikurikiranyaho iri mu kaga!"
+            body_rw = (
+                f"Ufite iminsi {user.current_streak} ikurikiranyaho. "
+                "Tanga raporo uyu munsi kugira ngo ukomeze."
+            )
+            notify(
+                user,
+                "streak_warning",
+                title_en,
+                body_en,
+                action_url="/dashboard",
+                title_rw=title_rw,
+                body_rw=body_rw,
+            )
 
-            notify(user, "streak_warning", title, body, action_url="/dashboard")
+            lang = getattr(user, "preferred_language", "en") or "en"
+            title = title_rw if lang == "rw" else title_en
+            body = body_rw if lang == "rw" else body_en
+            email_subject = (
+                "Iminsi ikurikiranyaho ya pTrack iri mu kaga!"
+                if lang == "rw"
+                else "Your pTrack streak is at risk!"
+            )
 
             prefs = user.notification_preferences or {}
             if prefs.get("streak_reminders", True) and not user.email.startswith("phone_"):

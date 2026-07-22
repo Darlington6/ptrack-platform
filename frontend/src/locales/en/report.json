@@ -32,5 +32,6 @@
   "pts_label": "+{{pts}} points",
   "glass": "Glass",
   "metal": "Metal",
+  "camera_note": "Your photo helps verify the report. Camera access is only used when you take a photo — we never access it in the background.",
   "_locale": "en"
 }

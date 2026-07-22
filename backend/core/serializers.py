@@ -11,6 +11,8 @@ class NotificationSerializer(serializers.ModelSerializer):
             "category",
             "title",
             "body",
+            "title_rw",
+            "body_rw",
             "action_url",
             "is_read",
             "read_at",

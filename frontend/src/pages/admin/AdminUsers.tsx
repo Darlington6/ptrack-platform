@@ -10,6 +10,7 @@ import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import client from '../../api/client';
 import type { AdminUser } from '../../api/endpoints/admin';
 import { KIGALI_SECTORS } from '../../lib/sectors';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 async function downloadCsv(url: string, filename: string) {
   try {
@@ -318,16 +319,16 @@ export default function AdminUsers() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                {isLoading && (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
-                    >
-                      Loading…
-                    </td>
-                  </tr>
-                )}
+                {isLoading &&
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i}>
+                      {Array.from({ length: 9 }).map((__, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
                 {!isLoading &&
                   users.map((u) => (
                     <tr

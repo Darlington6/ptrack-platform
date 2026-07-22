@@ -1,8 +1,10 @@
 name: Deploy
 
 "on":
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches: [main]
+    types: [completed]
 
 permissions:
   contents: read
@@ -11,6 +13,7 @@ jobs:
   deploy-backend:
     name: Deploy Backend (Render)
     runs-on: ubuntu-24.04
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     timeout-minutes: 15
     env:
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
@@ -32,12 +35,12 @@ jobs:
     timeout-minutes: 5
     needs: [deploy-backend]
     if: always()
-    env:
-      NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
+    # env:
+    #   NOTIFY_WEBHOOK_URL: ${{ secrets.NOTIFY_WEBHOOK_URL }}
 
     steps:
       - name: Send deploy notification
-        if: env.NOTIFY_WEBHOOK_URL != ''
+        if: false  # set NOTIFY_WEBHOOK_URL secret and restore env block above to enable
         run: |
           STATUS="success"
           if [[ "${{ needs.deploy-backend.result }}" == "failure" ]]; then
