@@ -200,6 +200,8 @@ def me(request):
             setattr(request.user, field, value)
         request.user.save(update_fields=list(data.keys()))
         cache.delete(f"user:profile:{request.user.pk}")
+        if "show_on_leaderboard" in data:
+            cache.delete("leaderboard:top20")
         return Response(UserSerializer(request.user).data)
 
     # GET — cache for 60 s

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import client from '../../api/client';
 import type { User } from '../../types';
@@ -11,6 +12,7 @@ export default function PrivacySettings() {
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { user, setUser } = useAuth();
+  const qc = useQueryClient();
 
   const TOGGLES = [
     {
@@ -31,6 +33,12 @@ export default function PrivacySettings() {
     try {
       const res = await client.patch<User>('/auth/me/', { [field]: val });
       setUser(res.data);
+      if (field === 'show_on_leaderboard') {
+        void qc.invalidateQueries({ queryKey: ['leaderboard'] });
+      }
+      if (field === 'allow_public_reports') {
+        void qc.invalidateQueries({ queryKey: ['reports'] });
+      }
       toast.success(t('privacy_saved'));
     } catch {
       toast.error(t('privacy_save_failed'));

@@ -36,7 +36,7 @@ def run_cron(request, command: str):
     if not configured or secret != configured:
         return HttpResponse("Forbidden", status=403)
     if command not in _ALLOWED_COMMANDS:
-        return HttpResponse(f"Unknown command: {command}", status=400)
+        return HttpResponse("Unknown command", status=400)
     call_command(command)
     return HttpResponse("ok")
 
