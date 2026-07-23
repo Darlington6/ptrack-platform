@@ -1,6 +1,6 @@
 {
   "your_points": "Amanota yawe",
-  "rank_in": "Umwanya #{{rank}} muri {{sector}}",
+  "rank_in": "Umwanya #{{rank}} mu {{total}} muri {{sector}}",
   "quick_actions": "Ibikorwa byihuse",
   "report_waste": "Tanga Raporo",
   "log_recycling": "Andika Ugusubiza",

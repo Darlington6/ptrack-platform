@@ -11,6 +11,7 @@ urlpatterns = [
     path("me/password/", views.password_change, name="auth-password-change"),
     path("me/avatar/", views.avatar, name="auth-avatar"),
     path("me/impact/", views.impact, name="auth-impact"),
+    path("me/rank/", views.sector_rank, name="auth-sector-rank"),
     path("me/export/", views.export_data, name="auth-export"),
     path("me/delete/", views.delete_account, name="auth-delete"),
     path("verify/send/", views.verify_send, name="auth-verify-send"),

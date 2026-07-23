@@ -1,6 +1,6 @@
 {
   "your_points": "Your Points",
-  "rank_in": "Rank #{{rank}} in {{sector}}",
+  "rank_in": "Rank #{{rank}} of {{total}} in {{sector}}",
   "quick_actions": "Quick Actions",
   "report_waste": "Report Waste",
   "log_recycling": "Log Recycling",

@@ -10,6 +10,7 @@ Endpoints:
   POST  /api/v1/auth/me/avatar/              — upload profile picture
   DELETE /api/v1/auth/me/avatar/             — remove profile picture
   GET  /api/v1/auth/me/impact/               — environmental impact summary
+  GET  /api/v1/auth/me/rank/                 — sector rank and total for the current user
   GET  /api/v1/auth/me/export/               — GDPR data export
   POST /api/v1/auth/me/delete/               — soft-delete account (GDPR)
   POST /api/v1/auth/verify/send/             — send OTP via email or phone
@@ -748,3 +749,28 @@ def password_reset_confirm(request):
     user.set_password(new_password)
     user.save(update_fields=["password"])
     return Response({"detail": "Password reset successfully."})
+
+
+# ── Sector rank ────────────────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["auth"],
+    responses={200: OpenApiResponse(description="Sector rank and total for the current user")},
+    summary="Return the authenticated user's rank within their sector",
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def sector_rank(request):
+    """
+    Returns the user's rank and the total number of leaderboard-visible users
+    in their sector, computed from live point totals (no cache).
+    """
+    sector = request.user.sector
+    if not sector:
+        return Response({"sector_rank": None, "sector_total": None, "sector": None})
+
+    qs = User.objects.filter(sector=sector, show_on_leaderboard=True, is_deleted=False)
+    total = qs.count()
+    rank = qs.filter(points__gt=request.user.points).count() + 1
+    return Response({"sector_rank": rank, "sector_total": total, "sector": sector})

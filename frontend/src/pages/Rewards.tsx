@@ -1,12 +1,23 @@
 // i18n-ready: see src/locales/{en,rw}/
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MapPin, Recycle, CheckCircle, Flame, Lock, Star, Lightbulb } from 'lucide-react';
+import {
+  MapPin,
+  Recycle,
+  CheckCircle,
+  Flame,
+  Lock,
+  Star,
+  Lightbulb,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { badgesApi } from '../api/endpoints/badges';
 import client from '../api/client';
+import { useUiStore } from '../stores/uiStore';
 import type { BadgeDefinition, Reward } from '../api/types';
 
 interface RewardsResponse {
@@ -98,9 +109,14 @@ export default function Rewards() {
     staleTime: 10 * 60_000,
   });
 
-  const { data: leaderboardData } = useQuery({
-    queryKey: ['leaderboard', 'rewards'],
-    queryFn: () => client.get<Array<{ id: number; rank: number }>>('/leaderboard/?period=all'),
+  const { data: sectorRankData } = useQuery({
+    queryKey: ['sector-rank'],
+    queryFn: () =>
+      client.get<{
+        sector_rank: number | null;
+        sector_total: number | null;
+        sector: string | null;
+      }>('/auth/me/rank/'),
     staleTime: 5 * 60_000,
   });
 
@@ -119,10 +135,12 @@ export default function Rewards() {
     staleTime: 60_000,
   });
 
+  const { pointsHidden, setPointsHidden } = useUiStore();
+
   const badges: BadgeDefinition[] = badgesData?.data ?? [];
   const points = user?.points ?? 0;
   const streak = user?.current_streak ?? 0;
-  const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;
+  const sectorRank = sectorRankData?.data ?? null;
 
   const earnedCount = badges.filter((b) => points >= b.required_points).length;
   const nextBadge = badges.find((b) => b.required_points > points);
@@ -144,10 +162,21 @@ export default function Rewards() {
     <div className="px-4 pt-4 pb-24 space-y-5 max-w-2xl mx-auto">
       {/* Points card */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 p-5 shadow-sm">
-        <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">
-          {t('total_points')}
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wide">
+            {t('total_points')}
+          </p>
+          <button
+            onClick={() => setPointsHidden(!pointsHidden)}
+            className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
+            aria-label={pointsHidden ? 'Show points' : 'Hide points'}
+          >
+            {pointsHidden ? <EyeOff size={15} /> : <Eye size={15} />}
+          </button>
+        </div>
+        <p className="text-4xl font-extrabold text-green-600 tabular-nums">
+          {pointsHidden ? '••••' : points}
         </p>
-        <p className="text-4xl font-extrabold text-green-600 tabular-nums">{points}</p>
         <div className="mt-3">
           <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mb-1">
             <span>{t('progress_label')}</span>
@@ -167,7 +196,13 @@ export default function Rewards() {
         {[
           { label: t('badges_earned_stat'), value: String(earnedCount) },
           { label: t('day_streak'), value: String(streak) },
-          { label: t('sector_rank'), value: rank ? `#${rank}` : '—' },
+          {
+            label: t('sector_rank'),
+            value:
+              sectorRank?.sector_rank != null && sectorRank?.sector_total != null
+                ? `#${sectorRank.sector_rank} / ${sectorRank.sector_total}`
+                : '—',
+          },
         ].map(({ label, value }) => (
           <div
             key={label}

@@ -27,6 +27,7 @@ import { InstallBanner } from '../components/InstallBanner';
 import RecyclingModal from './RecyclingModal';
 import { Skeleton } from '../components/ui/Skeleton';
 import client from '../api/client';
+import { useUiStore } from '../stores/uiStore';
 import type { CursorPaginatedResponse, Reward, CommunityStats } from '../types';
 
 type TSimple = (key: string, opts?: { count: number }) => string;
@@ -106,7 +107,7 @@ export default function Dashboard() {
   const [showRecycling, setShowRecycling] = useState(false);
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const [sectorSaved, setSectorSaved] = useState(false);
-  const [pointsHidden, setPointsHidden] = useState(false);
+  const { pointsHidden, setPointsHidden } = useUiStore();
   const confettiFired = useRef(false);
 
   const needsSector = !sectorSaved && user !== null && !user.sector;
@@ -117,9 +118,14 @@ export default function Dashboard() {
     staleTime: 60_000,
   });
 
-  const { data: leaderboardData } = useQuery({
-    queryKey: ['leaderboard', 'dashboard'],
-    queryFn: () => client.get<Array<{ id: number; rank: number }>>('/leaderboard/?period=all'),
+  const { data: sectorRankData } = useQuery({
+    queryKey: ['sector-rank'],
+    queryFn: () =>
+      client.get<{
+        sector_rank: number | null;
+        sector_total: number | null;
+        sector: string | null;
+      }>('/auth/me/rank/'),
     staleTime: 5 * 60_000,
   });
 
@@ -134,7 +140,7 @@ export default function Dashboard() {
   const allRewards: Reward[] = rewardsPayload?.rewards ?? [];
   const rewards: Reward[] = allRewards.slice(0, 5);
 
-  const rank = leaderboardData?.data?.find((u) => u.id === user?.id)?.rank ?? null;
+  const sectorRank = sectorRankData?.data ?? null;
   const communityStats = statsData?.data ?? null;
   const plasticKg = communityStats?.estimated_plastic_kg ?? 0;
   const plasticDisplay =
@@ -199,7 +205,7 @@ export default function Dashboard() {
           <div className="relative z-10 flex items-center justify-between mb-1">
             <p className="text-sm font-medium text-green-100">{t('dashboard:your_points')}</p>
             <button
-              onClick={() => setPointsHidden((v) => !v)}
+              onClick={() => setPointsHidden(!pointsHidden)}
               className="text-green-200 hover:text-white transition-colors"
               aria-label={pointsHidden ? 'Show points' : 'Hide points'}
             >
@@ -214,9 +220,14 @@ export default function Dashboard() {
               <Flame size={14} className="text-orange-400" />{' '}
               {t('dashboard:streak', { count: user?.current_streak ?? 0 })}
             </span>
-            {rank !== null && (
+            {sectorRank?.sector_rank !== null && sectorRank !== null && (
               <span className="font-semibold">
-                ↗ {t('dashboard:rank_in', { rank, sector: user?.sector ?? 'your area' })}
+                ↗{' '}
+                {t('dashboard:rank_in', {
+                  rank: sectorRank.sector_rank,
+                  total: sectorRank.sector_total,
+                  sector: sectorRank.sector ?? user?.sector ?? 'your area',
+                })}
               </span>
             )}
           </div>
