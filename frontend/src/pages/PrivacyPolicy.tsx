@@ -1,7 +1,7 @@
 // i18n-ready: see src/locales/{en,rw}/
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -86,19 +86,42 @@ export default function PrivacyPolicy() {
           <strong>{t('cloudinary_label')}</strong> {t('s6_cloudinary')}
         </p>
         <p>
-          <strong>{t('render_label')}</strong> {t('s6_render')}
+          <strong>{t('render_label')}</strong>{' '}
+          <Trans
+            t={t}
+            i18nKey="s6_render"
+            components={{
+              renderDpa: (
+                <a
+                  href="https://render.com/dpa"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 dark:text-green-400 underline"
+                >
+                  Render&apos;s Data Processing Agreement
+                </a>
+              ),
+            }}
+          />
         </p>
         <p>
-          <strong>DigitalOcean</strong> hosts our managed PostgreSQL database. See{' '}
-          <a
-            href="https://www.digitalocean.com/legal/data-processing-agreement"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-green-600 dark:text-green-400 underline"
-          >
-            DigitalOcean's DPA
-          </a>{' '}
-          for their data-handling obligations.
+          <strong>{t('digitalocean_label')}</strong>{' '}
+          <Trans
+            t={t}
+            i18nKey="s6_digitalocean"
+            components={{
+              doDpa: (
+                <a
+                  href="https://www.digitalocean.com/legal/data-processing-agreement"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 dark:text-green-400 underline"
+                >
+                  DigitalOcean&apos;s DPA
+                </a>
+              ),
+            }}
+          />
         </p>
         <p>
           <strong>{t('maps_label')}</strong> {t('s6_maps')}

@@ -66,10 +66,11 @@ client.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post<{ access: string }>(`${baseURL}/auth/refresh/`, {
-          refresh: refreshToken,
-        });
-        useAuthStore.getState().setTokens(data.access, refreshToken);
+        const { data } = await axios.post<{ access: string; refresh?: string }>(
+          `${baseURL}/auth/refresh/`,
+          { refresh: refreshToken }
+        );
+        useAuthStore.getState().setTokens(data.access, data.refresh ?? refreshToken);
         processQueue(null, data.access);
         originalRequest.headers.Authorization = `Bearer ${data.access}`;
         return client(originalRequest);

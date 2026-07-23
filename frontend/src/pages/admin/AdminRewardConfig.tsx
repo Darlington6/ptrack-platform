@@ -278,9 +278,14 @@ function PointsTab() {
 
   if (isLoading)
     return (
-      <div className="space-y-3">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden divide-y divide-gray-100 dark:divide-slate-700">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-12 rounded-xl" />
+          <div key={i} className="flex items-center gap-4 px-4 py-3.5">
+            <Skeleton className="h-4 w-28 rounded" />
+            <Skeleton className="h-4 w-44 rounded flex-1" />
+            <Skeleton className="h-8 w-16 rounded-lg" />
+            <Skeleton className="h-8 w-14 rounded-lg" />
+          </div>
         ))}
       </div>
     );

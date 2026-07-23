@@ -182,7 +182,16 @@ export default function Dashboard() {
       <NudgeBanner />
 
       {rewardsLoading ? (
-        <Skeleton className="h-32 rounded-2xl" />
+        <div className="h-32 rounded-2xl bg-gradient-to-br from-green-600/20 to-green-800/20 dark:from-green-700/30 dark:to-green-900/30 p-6 flex flex-col justify-between overflow-hidden">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-3.5 w-20 rounded" />
+            <Skeleton className="h-4 w-4 rounded" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-24 rounded" />
+            <Skeleton className="h-3 w-36 rounded" />
+          </div>
+        </div>
       ) : (
         <div className="bg-gradient-to-br from-green-600 to-green-800 dark:from-green-700 dark:to-green-900 rounded-2xl p-6 text-white relative overflow-hidden">
           <div className="absolute -right-4 -top-4 w-28 h-28 rounded-full bg-white/10 pointer-events-none" />
@@ -341,7 +350,17 @@ export default function Dashboard() {
         {rewardsLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-16 rounded-xl" />
+              <div
+                key={i}
+                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 flex items-center gap-3"
+              >
+                <Skeleton className="w-9 h-9 rounded-full flex-shrink-0" />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <Skeleton className="h-3.5 w-3/4 rounded" />
+                  <Skeleton className="h-3 w-1/2 rounded" />
+                </div>
+                <Skeleton className="h-4 w-14 rounded flex-shrink-0" />
+              </div>
             ))}
           </div>
         ) : rewards.length === 0 ? (
@@ -351,9 +370,10 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-2">
             {rewards.map((r) => (
-              <div
+              <Link
                 key={r.id}
-                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 flex items-center gap-3"
+                to="/activity"
+                className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 p-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
               >
                 <div className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-base flex-shrink-0">
                   {REWARD_ICONS[r.reward_type] ?? <Star size={14} className="text-green-600" />}
@@ -369,7 +389,7 @@ export default function Dashboard() {
                 <span className="text-sm font-semibold text-green-600 flex-shrink-0">
                   +{r.points_earned} pts
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         )}

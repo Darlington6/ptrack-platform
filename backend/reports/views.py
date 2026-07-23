@@ -118,6 +118,10 @@ def reports_list_create(request):
     """
     if request.method == "GET":
         qs = WasteReport.objects.select_related("user").all()
+        # Non-admins only see reports from users who allow public visibility,
+        # plus their own reports regardless of that setting.
+        if getattr(request.user, "role", "") != "admin":
+            qs = qs.filter(Q(user__allow_public_reports=True) | Q(user=request.user))
         q = request.query_params
         if status_filter := q.get("status"):
             qs = qs.filter(status=status_filter)
