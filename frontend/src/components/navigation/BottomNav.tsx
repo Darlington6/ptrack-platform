@@ -2,7 +2,7 @@
 // Translations: en & rw namespaces.
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Map, Camera, Gift, User } from 'lucide-react';
+import { Home, Map, Camera, Gift, Trophy } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +18,7 @@ export function BottomNav() {
     { to: '/map', icon: Map, label: t('map') },
     { to: '/report', icon: Camera, label: t('report'), isReport: true },
     { to: '/rewards', icon: Gift, label: t('rewards') },
-    { to: '/profile', icon: User, label: t('profile') },
+    { to: '/leaderboard', icon: Trophy, label: t('leaderboard') },
   ] as const;
 
   useEffect(() => {
@@ -115,8 +115,9 @@ export function BottomNav() {
             <NavLink
               key={to}
               to={to}
+              aria-label={label}
               className={({ isActive }) =>
-                `flex-1 min-w-0 flex flex-col items-center justify-center pb-1 gap-0.5 transition-colors relative ${
+                `flex-1 min-w-0 flex items-center justify-center transition-colors relative ${
                   isActive
                     ? 'text-green-600 dark:text-green-400'
                     : 'text-gray-500 dark:text-slate-400 hover:text-gray-700'
@@ -131,9 +132,6 @@ export function BottomNav() {
                   </span>
                 )}
               </div>
-              <span className="block w-full text-center leading-tight text-[clamp(9px,2.5vw,11px)] overflow-hidden">
-                {label}
-              </span>
             </NavLink>
           );
         })}
