@@ -150,6 +150,8 @@ export default function ReportWaste() {
           timeout: 15000,
         });
         await refreshUser();
+        void qc.invalidateQueries({ queryKey: ['leaderboard'] });
+        void qc.invalidateQueries({ queryKey: ['sector-rank'] });
         void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
         const pts = (res.data as { points_earned?: number }).points_earned ?? 10;
         const bal = (res.data as { new_points_balance?: number }).new_points_balance;
