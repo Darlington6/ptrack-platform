@@ -22,6 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from accounts.models import User
+        from core.email import send_email
         from core.models import Notification
         from core.notifications import notify
         from push.helpers import send_push
@@ -73,6 +74,19 @@ class Command(BaseCommand):
                         "Komeza akazi keza!"
                     ),
                 )
+
+                lang = getattr(user, "preferred_language", "en") or "en"
+                email_subject = (
+                    "Umuryango wawe urakora!" if lang == "rw" else "Your community is active!"
+                )
+
+                if not user.email.startswith("phone_"):
+                    send_email(
+                        user.email,
+                        email_subject,
+                        "community_update",
+                        {"user": user, "sector": sector, "sector_reports": sector_reports},
+                    )
 
                 if prefs.get("push_enabled", False):
                     send_push(user, title, body, url="/community")
