@@ -64,6 +64,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem('refresh_token', refresh);
     useAuthStore.getState().setTokens(access, refresh);
     setUser(userData);
+    sessionStorage.setItem('ptrack_just_logged_in', '1');
     Sentry.setUser(null);
     Sentry.setUser({
       id: userData.id.toString(),
@@ -88,6 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem('refresh_token', refresh);
     useAuthStore.getState().setTokens(access, refresh);
     setUser(userData);
+    sessionStorage.setItem('ptrack_just_logged_in', '1');
     Sentry.setUser({
       id: userData.id.toString(),
       username: userData.username,
@@ -111,6 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.setItem('refresh_token', refresh);
     useAuthStore.getState().setTokens(access, refresh);
     setUser(userData);
+    sessionStorage.setItem('ptrack_just_logged_in', '1');
     Sentry.setUser({
       id: userData.id.toString(),
       username: userData.username,

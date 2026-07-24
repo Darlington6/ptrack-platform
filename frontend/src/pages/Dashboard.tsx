@@ -22,8 +22,6 @@ import { KIGALI_SECTORS } from '../lib/sectors';
 import { useTranslation } from 'react-i18next';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
-import { NudgeBanner } from '../components/feedback/NudgeBanner';
-import { InstallBanner } from '../components/InstallBanner';
 import RecyclingModal from './RecyclingModal';
 import { Skeleton } from '../components/ui/Skeleton';
 import client from '../api/client';
@@ -184,9 +182,6 @@ export default function Dashboard() {
         />
       )}
 
-      <InstallBanner />
-      <NudgeBanner />
-
       {rewardsLoading ? (
         <div className="h-32 rounded-2xl bg-gradient-to-br from-green-600/20 to-green-800/20 dark:from-green-700/30 dark:to-green-900/30 p-6 flex flex-col justify-between overflow-hidden">
           <div className="flex items-center justify-between">
@@ -209,7 +204,7 @@ export default function Dashboard() {
               className="text-green-200 hover:text-white transition-colors"
               aria-label={pointsHidden ? 'Show points' : 'Hide points'}
             >
-              {pointsHidden ? <EyeOff size={16} /> : <Eye size={16} />}
+              {pointsHidden ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
           <p className="text-5xl font-extrabold tabular-nums mb-3">
