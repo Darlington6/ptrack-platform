@@ -46,7 +46,8 @@ export default function Leaderboard() {
   const { data, isLoading } = useQuery({
     queryKey: ['leaderboard', period],
     queryFn: () => leaderboardApi.top(period),
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
   });
 
   const all: LeaderboardEntry[] = data?.data ?? [];

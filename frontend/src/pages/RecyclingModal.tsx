@@ -66,6 +66,8 @@ export default function RecyclingModal({ onClose }: Props) {
       toast.success(t('success', { points: earned }));
       void qc.invalidateQueries({ queryKey: ['rewards'] });
       void qc.invalidateQueries({ queryKey: ['dashboard'] });
+      void qc.invalidateQueries({ queryKey: ['leaderboard'] });
+      void qc.invalidateQueries({ queryKey: ['sector-rank'] });
       void qc.invalidateQueries({ queryKey: ['notifications', 'unread'] });
       onClose();
     } catch (err) {

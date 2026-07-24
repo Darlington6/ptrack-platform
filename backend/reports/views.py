@@ -52,6 +52,7 @@ class RecyclingPagination(FeedCursorPagination):
 
 _LEADERBOARD_CACHE_KEY = "leaderboard:top20"
 _LEADERBOARD_CACHE_TTL = 300  # 5 minutes
+_LEADERBOARD_PERIOD_CACHE_TTL = 60  # 1 minute for week/month
 _COMMUNITY_STATS_CACHE_KEY = "community:stats"
 _COMMUNITY_STATS_CACHE_TTL = 600  # 10 minutes
 _COMMUNITY_TRENDS_CACHE_KEY = "community:trends"
@@ -59,9 +60,9 @@ _COMMUNITY_TRENDS_CACHE_TTL = 3600  # 1 hour
 
 # Notification title suffixes — defined as constants so emoji characters
 # are never scattered through logic code and are trivial to update in one place.
-_ICON_REPORT = "\U0001f4cd"  # 📍
-_ICON_RECYCLE = "\u267b\ufe0f"  # ♻️
-_ICON_VERIFIED = "\u2705"  # ✅
+_ICON_REPORT = "\U0001f4cd"  # Location pin
+_ICON_RECYCLE = "\u267b\ufe0f"  # Recycling symbol
+_ICON_VERIFIED = "\u2705"  # Check mark
 
 
 def _award_badges(user, old_points: int, new_points: int) -> None:
@@ -521,32 +522,37 @@ def recycling_list_create(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
-    """Return the top 20 users by points for the requested period. Cached 5 min."""
+    """Return the top 20 users by points for the requested period.
+    All-time: cached 5 min. Week/month: cached 1 min."""
     period = request.query_params.get("period", "all")
 
     if period in ("week", "month"):
-        cutoff = timezone.now() - timedelta(days=7 if period == "week" else 30)
-        rows = (
-            Reward.objects.filter(
-                date_earned__gte=cutoff,
-                user__show_on_leaderboard=True,
-                user__is_deleted=False,
+        cache_key = f"leaderboard:{period}"
+        data = cache.get(cache_key)
+        if data is None:
+            cutoff = timezone.now() - timedelta(days=7 if period == "week" else 30)
+            rows = (
+                Reward.objects.filter(
+                    date_earned__gte=cutoff,
+                    user__show_on_leaderboard=True,
+                    user__is_deleted=False,
+                )
+                .values("user__id", "user__username", "user__full_name", "user__sector")
+                .annotate(points=Sum("points_earned"))
+                .order_by("-points")[:20]
             )
-            .values("user__id", "user__username", "user__full_name", "user__sector")
-            .annotate(points=Sum("points_earned"))
-            .order_by("-points")[:20]
-        )
-        data = [
-            {
-                "rank": idx + 1,
-                "id": row["user__id"],
-                "username": row["user__username"],
-                "full_name": row["user__full_name"] or row["user__username"],
-                "points": row["points"],
-                "sector": row["user__sector"],
-            }
-            for idx, row in enumerate(rows)
-        ]
+            data = [
+                {
+                    "rank": idx + 1,
+                    "id": row["user__id"],
+                    "username": row["user__username"],
+                    "full_name": row["user__full_name"] or row["user__username"],
+                    "points": row["points"],
+                    "sector": row["user__sector"],
+                }
+                for idx, row in enumerate(rows)
+            ]
+            cache.set(cache_key, data, timeout=_LEADERBOARD_PERIOD_CACHE_TTL)
     else:
         data = cache.get(_LEADERBOARD_CACHE_KEY)
         if data is None:
