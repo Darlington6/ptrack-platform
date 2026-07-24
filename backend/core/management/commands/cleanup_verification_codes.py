@@ -28,3 +28,6 @@ class Command(BaseCommand):
                 f"Deleted {expired_count} expired and {used_count} used verification codes."
             )
         )
+
+
+# ---

@@ -67,13 +67,13 @@ export function ImageUpload({
       {label && (
         <p className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">{label}</p>
       )}
-      <label className="relative flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors overflow-hidden">
+      <label className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl cursor-pointer bg-gray-50 dark:bg-slate-800/50 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors overflow-hidden">
         {preview ? (
           <>
             <img
               src={preview}
               alt="preview"
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-contain"
             />
             <button
               type="button"

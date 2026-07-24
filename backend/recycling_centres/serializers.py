@@ -24,3 +24,6 @@ class RecyclingCentreSerializer(serializers.ModelSerializer):
             "is_active",
         ]
         read_only_fields = ["id"]
+
+
+# ---

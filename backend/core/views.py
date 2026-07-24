@@ -23,7 +23,7 @@ _START_TIME = time.time()
 
 # ── Internal cron trigger ──────────────────────────────────────────────────────
 
-_ALLOWED_COMMANDS = {"send_streak_warnings", "send_weekly_digest"}
+_ALLOWED_COMMANDS = {"send_streak_warnings", "send_weekly_digest", "send_community_updates"}
 
 
 @csrf_exempt

@@ -42,3 +42,6 @@ def on_recycling_activity_saved(sender, instance, created, **kwargs):
         from accounts.services import update_streak
 
         update_streak(instance.user)
+
+
+# ---

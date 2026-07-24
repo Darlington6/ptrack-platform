@@ -30,6 +30,14 @@ List the specific requirements this feature must meet to be considered complete:
 - [ ] Criterion 2
 - [ ] Criterion 3
 
+## Priority
+
+How urgent is this feature to you?
+
+- [ ] Nice to have
+- [ ] Important
+- [ ] Blocking
+
 ## Additional Context
 
 Add any mockups, wireframes, references, or other context here.

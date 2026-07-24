@@ -47,3 +47,4 @@ test('login with valid credentials redirects to dashboard', async ({ page }) => 
 
   await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
 });
+// ---

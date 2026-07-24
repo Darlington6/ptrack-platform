@@ -57,3 +57,4 @@ export function OtpInput({ value, onChange, length = 6 }: Props) {
     </div>
   );
 }
+// ---

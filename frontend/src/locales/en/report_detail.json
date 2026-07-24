@@ -18,7 +18,7 @@
   "reject_report": "Reject Report",
   "mark_resolved": "Mark as Resolved",
   "delete_report": "Delete Report",
-  "verified_toast": "Report verified — citizen awarded +10 pts",
+  "verified_toast": "Report verified — points awarded to citizen",
   "rejected_toast": "Report rejected",
   "resolved_toast": "Report marked as resolved",
   "deleted_toast": "Report deleted",

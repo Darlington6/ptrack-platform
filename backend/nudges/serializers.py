@@ -41,3 +41,6 @@ class LocalisedNudgeSerializer(serializers.ModelSerializer):
 
     def get_log_id(self, obj):
         return getattr(obj, "_log_id", None)
+
+
+# ---

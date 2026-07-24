@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "django-insecure-dev-key-change-me"
     DEBUG: bool = True
     ALLOWED_HOSTS: str = "localhost,127.0.0.1"
-    APP_VERSION: str = "0.1.0"
+    APP_VERSION: str = "1.0.0"
 
     # Database
     DATABASE_URL: str = "sqlite:///db.sqlite3"

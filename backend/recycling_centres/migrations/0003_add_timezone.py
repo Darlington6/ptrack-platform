@@ -16,3 +16,6 @@ class Migration(migrations.Migration):
             field=models.CharField(default="Africa/Kigali", max_length=60),
         ),
     ]
+
+
+# ---

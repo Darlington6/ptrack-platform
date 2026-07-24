@@ -12,3 +12,4 @@ export function Card({ children, className = '', ...props }: Props) {
     </div>
   );
 }
+// ---

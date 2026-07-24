@@ -54,3 +54,6 @@ def test_soft_delete_does_not_remove_from_db():
 def test_sector_defaults_to_empty_string():
     user = UserFactory()
     assert user.sector == ""
+
+
+# ---

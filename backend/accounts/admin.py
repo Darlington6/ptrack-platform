@@ -13,3 +13,6 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = BaseUserAdmin.fieldsets + (  # type: ignore[operator]
         ("pTrack Fields", {"fields": ("full_name", "phone_number", "sector", "points", "role")}),
     )
+
+
+# ---

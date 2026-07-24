@@ -29,3 +29,6 @@ class MapBboxThrottle(UserRateThrottle):
     """60 bbox map fetches per hour per authenticated user."""
 
     scope = "map_bbox"
+
+
+# ---

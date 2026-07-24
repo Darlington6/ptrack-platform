@@ -33,3 +33,6 @@ class AllObjectsManager(models.Manager):
 
     def get_queryset(self):
         return SoftDeleteQuerySet(self.model, using=self._db)
+
+
+# ---

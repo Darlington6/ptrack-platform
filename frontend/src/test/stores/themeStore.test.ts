@@ -38,3 +38,4 @@ describe('themeStore', () => {
     expect(preference).toBe('system');
   });
 });
+// ---

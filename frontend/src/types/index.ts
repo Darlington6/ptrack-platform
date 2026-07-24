@@ -170,3 +170,4 @@ export interface AuthContextType {
   refreshUser: () => Promise<User>;
   setUser: (user: User | null) => void;
 }
+// ---

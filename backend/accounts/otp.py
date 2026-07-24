@@ -70,3 +70,6 @@ def verify_code(user, channel: str, purpose: str, code: str) -> bool:
     vc.is_used = True
     vc.save(update_fields=["is_used"])
     return True
+
+
+# ---

@@ -11,3 +11,4 @@ EXPOSE 5173
 # docker-entrypoint.dev.sh re-runs npm ci only when package-lock.json changed,
 # so `docker compose restart frontend` is enough after adding/removing packages.
 CMD ["sh", "docker-entrypoint.dev.sh"]
+# ---

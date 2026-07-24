@@ -108,3 +108,6 @@ def test_mark_notification_read_other_user_returns_404(authed_client):
     n = Notification.objects.get(recipient=other_user)
     response = client.post(f"/api/v1/notifications/{n.pk}/read/")
     assert response.status_code == 404
+
+
+# ---

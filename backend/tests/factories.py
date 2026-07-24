@@ -76,3 +76,6 @@ class BadgeDefinitionFactory(DjangoModelFactory):
     required_points = factory.Sequence(lambda n: (n + 1) * 50)
     badge_type = "points"
     is_active = True
+
+
+# ---

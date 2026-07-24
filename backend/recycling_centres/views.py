@@ -181,3 +181,6 @@ def admin_centre_delete(request, pk):
     centre.delete()
     cache.delete(_CENTRES_CACHE_KEY)
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ---

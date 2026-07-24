@@ -87,3 +87,6 @@ class Command(BaseCommand):
             count += 1
 
         self.stdout.write(self.style.SUCCESS(f"Sent streak warnings to {count} user(s)."))
+
+
+# ---

@@ -95,3 +95,6 @@ class VerificationCode(models.Model):
 
     def __str__(self):
         return f"{self.purpose} via {self.channel} for user {self.user_id}"
+
+
+# ---

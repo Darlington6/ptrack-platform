@@ -48,6 +48,7 @@ Lock the server key to your Render instance IP. Alternatively use a service acco
 VITE_GOOGLE_MAPS_API_KEY=AIza...
 VITE_GOOGLE_MAPS_MAP_ID=<your-map-id>
 VITE_API_BASE_URL=https://ptrack-api.onrender.com
+VITE_VAPID_PUBLIC_KEY=<your-vapid-public-key>
 ```
 
 ### Backend (Render environment)

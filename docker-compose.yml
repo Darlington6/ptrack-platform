@@ -65,3 +65,4 @@ volumes:
   postgres_data:
   media_files:
   frontend_node_modules:
+# ---

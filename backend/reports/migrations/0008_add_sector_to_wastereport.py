@@ -16,3 +16,6 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default="", max_length=100),
         ),
     ]
+
+
+# ---

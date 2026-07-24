@@ -118,3 +118,6 @@ def test_compute_impact_returns_expected_keys():
         "co2_saved_kg",
     }
     assert set(result.keys()) == expected_keys
+
+
+# ---

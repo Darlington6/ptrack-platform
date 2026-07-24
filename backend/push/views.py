@@ -90,3 +90,6 @@ def vapid_public_key(request):
 
     key = getattr(settings, "VAPID_PUBLIC_KEY", "")
     return Response({"vapid_public_key": key})
+
+
+# ---

@@ -45,3 +45,6 @@ class UserNudgeLog(models.Model):
 
     def __str__(self):
         return f"{self.user_id} saw {self.rule.code} at {self.shown_at}"
+
+
+# ---

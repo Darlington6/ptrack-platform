@@ -49,3 +49,4 @@ test('language settings page is reachable when authenticated', async ({ page }) 
   // The page should render something (heading or language options)
   await expect(page.locator('body')).toBeVisible();
 });
+// ---
