@@ -53,7 +53,9 @@ The following are **out of scope** (but still appreciated):
 
 ## Security Practices
 
-- JWT tokens use short-lived access tokens (8 h) and rotating refresh tokens (7 d).
-- Passwords are hashed by Django's default PBKDF2 hasher.
+- JWT tokens use short-lived access tokens (1 hour) and rotating refresh tokens (7 d).
+- Passwords are hashed with Argon2 (configured via `django[argon2]`).
 - CORS is restricted to `CORS_ALLOWED_ORIGINS` in settings.
 - Sensitive configuration is never committed — see `.env.example`.
+
+<!-- updated -->

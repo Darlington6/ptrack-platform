@@ -22,9 +22,10 @@
   "label_verification": "Admin verification bonus",
   "label_streak": "Streak bonus",
   "load_more": "Load more",
-  "coming_soon": "Redeem points for airtime, local business vouchers, and eco-products.",
+  "coming_soon": "Redeem points for airtime top-ups, local business vouchers, and eco-friendly products.",
   "coming_soon_label": "Coming soon:",
   "see_all": "See all",
   "label_bonus": "Bonus points",
+  "_v": "1.0.0",
   "_locale": "en"
 }

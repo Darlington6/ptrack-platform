@@ -11,6 +11,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
+    "useUnknownInCatchVariables": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
@@ -20,7 +21,8 @@
     "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "noImplicitOverride": false
   },
   "include": ["src"],
   "exclude": ["src/sw.ts"],

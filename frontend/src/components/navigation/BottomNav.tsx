@@ -125,7 +125,7 @@ export function BottomNav() {
               }
             >
               <div className="relative">
-                <Icon size={isReport ? 24 : 22} />
+                <Icon size={isReport ? 26 : 25} />
                 {isReport && pendingCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold leading-none px-0.5">
                     {pendingCount > 9 ? '9+' : String(pendingCount)}
@@ -139,3 +139,4 @@ export function BottomNav() {
     </nav>
   );
 }
+// ----

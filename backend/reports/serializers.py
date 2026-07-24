@@ -63,3 +63,6 @@ class BadgeDefinitionSerializer(serializers.ModelSerializer):
             "badge_type",
             "is_active",
         ]
+
+
+# ----

@@ -1,6 +1,6 @@
 # Cron Jobs — pTrack Scheduled Tasks
 
-All scheduled tasks are Django management commands run via **Render Cron Jobs** (Dashboard → your service → Cron Jobs).
+All scheduled tasks are Django management commands triggered via **GitHub Actions** (`.github/workflows/cron.yml`) and can optionally also be configured on Render (Dashboard → your service → Cron Jobs).
 
 Timezone: **CAT (Central Africa Time, UTC+2)**. Render cron expressions run in UTC, so subtract 2 hours from CAT times.
 
@@ -85,3 +85,5 @@ from accounts.models import User
 user = User.objects.get(email='your@email.com')
 send_push(user, 'Test', 'Hello from pTrack!', url='/dashboard')
 ```
+
+<!-- updated -->

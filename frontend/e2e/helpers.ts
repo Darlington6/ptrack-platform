@@ -71,3 +71,4 @@ export async function loginAs(page: Page, user: typeof MOCK_CITIZEN) {
   // format would cause NudgeBanner to crash (can't call .slice on an object).
   await page.route('**/api/v1/nudges/**', (route) => route.fulfill({ json: [] }));
 }
+// ----

@@ -84,7 +84,7 @@ export function CitizenSidebar() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
                   isActive
                     ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                     : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800'
@@ -92,7 +92,7 @@ export function CitizenSidebar() {
               }
             >
               <div className="relative">
-                <Icon size={18} />
+                <Icon size={20} />
                 {isReport && pendingCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[9px] font-bold leading-none px-0.5">
                     {pendingCount > 9 ? '9+' : String(pendingCount)}
@@ -113,14 +113,14 @@ export function CitizenSidebar() {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
                   isActive
                     ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                     : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800'
                 }`
               }
             >
-              <Icon size={18} />
+              <Icon size={20} />
               {label}
             </NavLink>
           ))}
@@ -132,7 +132,7 @@ export function CitizenSidebar() {
           onClick={() => setConfirmLogout(true)}
           className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           {t('logout')}
         </button>
       </div>
@@ -148,3 +148,4 @@ export function CitizenSidebar() {
     </aside>
   );
 }
+// ----

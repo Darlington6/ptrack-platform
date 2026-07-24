@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import client from '../api/client';
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
+// Build-time hint — used only to determine if push is configured at all.
+// The live key is always fetched from the backend at subscribe time so that
+// key rotation works without a frontend redeploy.
+const VAPID_KEY_HINT = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined;
 
 function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
@@ -30,6 +33,17 @@ async function getSwReg(timeoutMs = 5000): Promise<ServiceWorkerRegistration | n
   }
 }
 
+// Fetch the live VAPID public key from the backend, falling back to the env
+// hint if the request fails (e.g. offline or server error).
+async function fetchVapidKey(): Promise<string | null> {
+  try {
+    const res = await client.get<{ vapid_public_key: string }>('/push/vapid-key/');
+    return res.data.vapid_public_key || null;
+  } catch {
+    return VAPID_KEY_HINT ?? null;
+  }
+}
+
 export type PushPermission = NotificationPermission | 'unsupported';
 
 export function useWebPush() {
@@ -37,7 +51,7 @@ export function useWebPush() {
     typeof Notification !== 'undefined' &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
-    !!VAPID_PUBLIC_KEY;
+    !!VAPID_KEY_HINT;
 
   const [permission, setPermission] = useState<PushPermission>(
     supported ? Notification.permission : 'unsupported'
@@ -57,23 +71,29 @@ export function useWebPush() {
   }, [supported]);
 
   const subscribe = useCallback(async () => {
-    if (!supported || !VAPID_PUBLIC_KEY) return;
+    if (!supported) return;
     setIsLoading(true);
     try {
       const perm = await Notification.requestPermission();
       setPermission(perm);
       if (perm !== 'granted') return;
 
+      // Always fetch the live key so key rotation is seamless
+      const vapidKey = await fetchVapidKey();
+      if (!vapidKey) {
+        console.warn('VAPID public key unavailable — push subscription skipped');
+        return;
+      }
+
       const reg = await getSwReg(5000);
       if (!reg) {
-        // SW not available — this can happen in dev without a built SW
         console.warn('Service worker not ready — push subscription skipped');
         return;
       }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
 
       await client.post('/push/subscribe/', {
@@ -114,3 +134,4 @@ export function useWebPush() {
 
   return { supported, permission, isSubscribed, isLoading, subscribe, unsubscribe };
 }
+// ----

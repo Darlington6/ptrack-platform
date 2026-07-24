@@ -8,3 +8,4 @@ urlpatterns = [
     path("nudges/<int:pk>/dismiss/", views.nudge_dismiss, name="nudge-dismiss"),
     path("nudges/<int:pk>/acted/", views.nudge_acted, name="nudge-acted"),
 ]
+# ----

@@ -7,6 +7,8 @@ on:
     - cron: '0 17 * * *'
     # Weekly digest — every Sunday at 18:00 CAT (UTC+2 = 16:00 UTC)
     - cron: '0 16 * * 0'
+    # Community updates — every Tuesday and Friday at 17:00 CAT (UTC+2 = 15:00 UTC)
+    - cron: '0 15 * * 2,5'
   workflow_dispatch:
     inputs:
       command:
@@ -16,6 +18,7 @@ on:
         options:
           - send_streak_warnings
           - send_weekly_digest
+          - send_community_updates
 
 jobs:
   run-cron:
@@ -30,6 +33,8 @@ jobs:
             echo "command=${{ github.event.inputs.command }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.event.schedule }}" = "0 17 * * *" ]; then
             echo "command=send_streak_warnings" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.schedule }}" = "0 15 * * 2,5" ]; then
+            echo "command=send_community_updates" >> $GITHUB_OUTPUT
           else
             echo "command=send_weekly_digest" >> $GITHUB_OUTPUT
           fi
@@ -50,4 +55,4 @@ jobs:
             echo "Command failed with HTTP $HTTP_STATUS"
             exit 1
           fi
-# ---
+# ----

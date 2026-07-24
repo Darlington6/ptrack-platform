@@ -28,7 +28,8 @@ Closes # <!-- issue number -->
 - [ ] `black --check .` passes (backend)
 
 ### Tests
-- [ ] Existing tests still pass
+- [ ] `npm test` passes (frontend unit tests)
+- [ ] `pytest` passes (backend)
 - [ ] New tests added for new functionality (or N/A — explain why)
 
 ### Documentation
@@ -53,3 +54,5 @@ Closes # <!-- issue number -->
 ## Notes for Reviewer
 
 <!-- Anything the reviewer should pay special attention to, or context that's not obvious from the diff. -->
+
+<!-- updated -->

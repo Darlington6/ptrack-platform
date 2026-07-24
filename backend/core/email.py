@@ -16,3 +16,6 @@ def send_email(to: str, subject: str, template: str, context: dict) -> bool:
     except Exception:
         logger.exception("Email delivery failed to %s (template=%s)", to, template)
         return False
+
+
+# ----

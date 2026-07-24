@@ -29,3 +29,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(seed_point_configs, reverse_code=unseed_point_configs),
     ]
+
+
+# ----

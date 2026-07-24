@@ -241,3 +241,4 @@ export interface AdminAnalyticsKpis {
   active_citizens_30d: number;
   total_points_awarded: number;
 }
+// ----

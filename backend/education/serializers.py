@@ -40,3 +40,6 @@ class ArticleDetailSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "slug", "published_at", "created_at", "updated_at"]
+
+
+# ----

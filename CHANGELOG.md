@@ -27,11 +27,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CONTRIBUTING.md` — branch naming, commit convention, PR process
 - `SECURITY.md` — responsible disclosure policy
 - `CHANGELOG.md` — this file
+- Full bilingual support (English / Kinyarwanda) across all pages and backend emails
+- `send_community_updates` cron job wired into GitHub Actions (Tuesday and Friday, 15:00 UTC)
+- PWA install prompt on all citizen pages; resets after login/register; 7-day snooze persists across page refreshes
+- NudgeBanner on all citizen pages (suppressed when install prompt is active)
+- Offline queue for waste reports and recycling activities — syncs automatically when back online
+- Web push notification support (VAPID) for streaks, weekly digest, and community updates
 
 ### Changed
 - TypeScript source files updated with explicit type annotations for strict mode compatibility
 - `tsconfig.json` updated to strict mode
 - `.gitignore` expanded with tooling cache directories
+- Bottom navigation shows icons only (no text labels) — fixes Kinyarwanda label overflow on narrow screens
+- Leaderboard: 60-second background polling + cache invalidation on report/recycling submission; 1-minute server-side cache for week/month periods
+- Image upload preview shows full image (no cropping) — increased container height for better visibility
+- Dashboard and Rewards pages: eye toggle icon enlarged to 20 px for easier tapping
+- App version bumped to 1.0.0
+- JWT access token lifetime: 1 hour (previously documented as 8 h)
+- Password hashing: Argon2 (previously documented as PBKDF2)
 
 ---
 
@@ -54,3 +67,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/Darlington6/ptrack-platform/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/Darlington6/ptrack-platform/releases/tag/v1.0.0
+
+<!-- updated -->

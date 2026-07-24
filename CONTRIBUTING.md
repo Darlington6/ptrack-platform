@@ -80,6 +80,7 @@ docs(readme): add PostgreSQL switching instructions
    npm run typecheck
    npm run lint
    npm run format:check
+   npm test
    npm run build
 
    # Backend
@@ -88,6 +89,7 @@ docs(readme): add PostgreSQL switching instructions
    ruff check .
    black --check .
    mypy . --exclude venv
+   pytest
    ```
 
 4. **Push and open a PR** targeting `main`.
@@ -120,3 +122,5 @@ Open a [Bug Report issue](.github/ISSUE_TEMPLATE/bug_report.md) or email d.tunyi
 ## Security Vulnerabilities
 
 See [SECURITY.md](SECURITY.md) for responsible disclosure instructions.
+
+<!-- updated -->

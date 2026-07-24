@@ -790,3 +790,6 @@ def admin_user_detail(request, pk):
 
     serializer = AdminUserSerializer(user)
     return Response(serializer.data)
+
+
+# ----

@@ -9,3 +9,6 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     raw_id_fields = ("user",)
     readonly_fields = ("created_at", "last_used_at")
+
+
+# ----

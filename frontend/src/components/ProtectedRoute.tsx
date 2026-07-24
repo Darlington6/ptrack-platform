@@ -23,3 +23,4 @@ export function ProtectedRoute({ children, requireAdmin = false }: Props) {
 
   return children;
 }
+// ----

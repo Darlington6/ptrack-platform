@@ -48,6 +48,7 @@ Lock the server key to your Render instance IP. Alternatively use a service acco
 VITE_GOOGLE_MAPS_API_KEY=AIza...
 VITE_GOOGLE_MAPS_MAP_ID=<your-map-id>
 VITE_API_BASE_URL=https://ptrack-api.onrender.com
+VITE_VAPID_PUBLIC_KEY=<your-vapid-public-key>
 ```
 
 ### Backend (Render environment)
@@ -73,3 +74,5 @@ Set a daily quota limit of **$50** in the API quota dashboard to prevent runaway
 1. APIs & Services → Maps JavaScript API → Quotas.
 2. Set **Requests per day** to `50000` (maps/loads).
 3. Repeat for Geocoding API → `2000 requests/day`.
+
+<!-- updated -->

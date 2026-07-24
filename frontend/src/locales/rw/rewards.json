@@ -10,7 +10,7 @@
   "badges": "Ibimenyetso",
   "badge_locked": "Gufungwa — tunga amanota {{points}} kugira ngo ufungure",
   "badge_earned": "Byatsinzwe",
-  "progress_label": "Inzira ijya ku kimenyetso gikurkira",
+  "progress_label": "Inzira ijya ku kimenyetso gikurikira",
   "pts_needed": "{{pts}} amn. asabwa",
   "badges_earned_stat": "Ibimenyetso Byatsinzwe",
   "day_streak": "Iminsi Ikurikiranyaho",
@@ -26,5 +26,6 @@
   "coming_soon_label": "Bizaza vuba:",
   "see_all": "Reba byose",
   "label_bonus": "Amanota y'inyongera",
+  "_v": "1.0.0",
   "_locale": "rw"
 }

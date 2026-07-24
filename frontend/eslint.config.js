@@ -8,7 +8,16 @@ import importPlugin from 'eslint-plugin-import';
 import prettierConfig from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      'playwright.config.js',
+      'playwright.config.d.ts',
+      'e2e/**/*.js',
+      'e2e/**/*.d.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -43,3 +52,4 @@ export default tseslint.config(
   },
   prettierConfig
 );
+// ----

@@ -7,3 +7,6 @@ class ReportsConfig(AppConfig):
 
     def ready(self):
         import reports.signals  # noqa: F401
+
+
+# ----

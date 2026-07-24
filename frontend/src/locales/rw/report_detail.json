@@ -18,7 +18,7 @@
   "reject_report": "Ngarura Raporo",
   "mark_resolved": "Shyira nk'Iyakemuwe",
   "delete_report": "Siba Raporo",
-  "verified_toast": "Raporo yemejwe — umuturage yahawe amanota +10",
+  "verified_toast": "Raporo yemejwe — umuturage yahawe amanota",
   "rejected_toast": "Raporo yangaruwe",
   "resolved_toast": "Raporo yashyizwe nk'iyakemuwe",
   "deleted_toast": "Raporo yasibwe",
@@ -32,5 +32,6 @@
   "delete_title": "Siba raporo iyi?",
   "delete_message": "Ibi bizasiba raporo yawe burundu. Ntibivuka.",
   "delete_confirm": "Siba",
+  "_v": "1.0.0",
   "_locale": "rw"
 }

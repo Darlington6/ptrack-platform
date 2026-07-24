@@ -43,3 +43,6 @@ def admin_client(api_client, admin_user):
     token = RefreshToken.for_user(admin_user)
     api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
     return api_client, admin_user
+
+
+# ----

@@ -38,8 +38,10 @@ export function NudgeBanner() {
   const { data } = useQuery({
     queryKey: ['nudges', 'active'],
     queryFn: () => nudgesApi.active(),
-    staleTime: 5 * 60_000,
-    refetchInterval: 5 * 60_000,
+    // Fetch once per session; cooldown logs are created on fetch, so excessive
+    // polling inflates the UserNudgeLog table. Dismiss/acted invalidate to refresh.
+    staleTime: 60 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const dismiss = useMutation({
@@ -144,3 +146,4 @@ export function NudgeBanner() {
     </div>
   );
 }
+// ----

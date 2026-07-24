@@ -22,3 +22,6 @@ class NotificationAdmin(admin.ModelAdmin):
 class VerificationCodeAdmin(admin.ModelAdmin):
     list_display = ["user", "channel", "purpose", "is_used", "expires_at", "created_at"]
     list_filter = ["channel", "purpose", "is_used"]
+
+
+# ----

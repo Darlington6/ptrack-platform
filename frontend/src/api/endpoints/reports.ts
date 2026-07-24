@@ -26,3 +26,4 @@ export const reportsApi = {
   bulkReject: (ids: number[], reason?: string) =>
     client.post<{ rejected: number }>('/admin/reports/bulk-reject/', { ids, reason }),
 };
+// ----

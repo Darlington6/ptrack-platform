@@ -30,3 +30,6 @@ class RecyclingActivityAdmin(admin.ModelAdmin):
     list_filter = ["activity_type"]
     search_fields = ["user__email"]
     ordering = ["-date"]
+
+
+# ----

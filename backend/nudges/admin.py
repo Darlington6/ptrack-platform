@@ -15,3 +15,6 @@ class UserNudgeLogAdmin(admin.ModelAdmin):
     list_display = ["user", "rule", "shown_at", "acted_on", "dismissed_at"]
     list_filter = ["acted_on", "rule"]
     search_fields = ["user__email", "rule__code"]
+
+
+# ----

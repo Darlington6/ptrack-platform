@@ -51,14 +51,14 @@ export function Sidebar() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium transition-colors ${
                 isActive
                   ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
                   : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800'
               }`
             }
           >
-            <Icon size={18} />
+            <Icon size={20} />
             {label}
           </NavLink>
         ))}
@@ -66,16 +66,16 @@ export function Sidebar() {
       <div className="px-3 pb-6 space-y-1">
         <NavLink
           to="/dashboard"
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors"
         >
-          <ExternalLink size={18} />
+          <ExternalLink size={20} />
           View App
         </NavLink>
         <button
           onClick={() => setConfirmLogout(true)}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           Logout
         </button>
       </div>
@@ -91,3 +91,4 @@ export function Sidebar() {
     </aside>
   );
 }
+// ----
