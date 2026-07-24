@@ -97,3 +97,6 @@ class Command(BaseCommand):
                 send_push(user, title, body, url="/rewards")
 
         self.stdout.write(self.style.SUCCESS(f"Sent {sent} weekly digest email(s)."))
+
+
+# ----

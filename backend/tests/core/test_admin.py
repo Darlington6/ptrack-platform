@@ -158,3 +158,6 @@ def test_bulk_reject_reports_returns_200(admin_client, citizen_user):
     )
     assert response.status_code == 200
     assert response.data["rejected"] == 1
+
+
+# ----
