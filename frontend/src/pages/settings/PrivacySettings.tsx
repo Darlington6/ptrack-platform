@@ -30,6 +30,9 @@ export default function PrivacySettings() {
   ];
 
   async function handleToggle(field: 'show_on_leaderboard' | 'allow_public_reports', val: boolean) {
+    if (!user) return;
+    // Optimistic update for instant UI response
+    setUser({ ...user, [field]: val });
     try {
       const res = await client.patch<User>('/auth/me/', { [field]: val });
       setUser(res.data);
@@ -41,6 +44,7 @@ export default function PrivacySettings() {
       }
       toast.success(t('privacy_saved'));
     } catch {
+      setUser(user); // revert on failure
       toast.error(t('privacy_save_failed'));
     }
   }
@@ -70,7 +74,7 @@ export default function PrivacySettings() {
               type="checkbox"
               aria-label={tog.label}
               checked={tog.value}
-              onChange={(e) => handleToggle(tog.field, e.target.checked)}
+              onChange={(e) => void handleToggle(tog.field, e.target.checked)}
               className="w-5 h-5 accent-green-600 rounded"
             />
           </label>
@@ -79,3 +83,4 @@ export default function PrivacySettings() {
     </div>
   );
 }
+// ----

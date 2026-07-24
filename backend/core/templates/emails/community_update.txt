@@ -1,0 +1,23 @@
+{# pTrack bilingual email template (EN/RW) #}
+{% if user.preferred_language == 'rw' %}Muraho {{ user.full_name|default:user.username }},
+
+Umuryango wawe urakora!
+
+Mu cyumweru gishize, raporo {{ sector_reports }} z'imyanda zatanzwe muri {{ sector }}.
+Tanga na wewe raporo y'imyanda kugira ngo ukomeze impinduka.
+
+Tanga raporo: https://ptrack-platform.vercel.app/report
+
+— Itsinda rya pTrack
+{% else %}Hi {{ user.full_name|default:user.username }},
+
+Your community is active!
+
+{{ sector_reports }} waste reports were submitted in {{ sector }} this past week.
+Add your own report to keep the momentum going.
+
+Submit a report: https://ptrack-platform.vercel.app/report
+
+— The pTrack Team
+{% endif %}
+{# pTrack v2 #}

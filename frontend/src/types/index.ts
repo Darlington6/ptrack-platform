@@ -52,6 +52,10 @@ export interface User {
     weekly_digest: boolean;
     community_updates: boolean;
     badge_earned: boolean;
+    push_enabled?: boolean;
+    report_notifications?: boolean;
+    recycling_notifications?: boolean;
+    verification_notifications?: boolean;
   };
   // Account status
   is_active: boolean;
