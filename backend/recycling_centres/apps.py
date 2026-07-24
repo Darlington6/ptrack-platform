@@ -6,4 +6,4 @@ class RecyclingCentresConfig(AppConfig):
     name = "recycling_centres"
 
 
-# ---
+# ----

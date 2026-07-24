@@ -65,4 +65,4 @@ class BadgeDefinitionSerializer(serializers.ModelSerializer):
         ]
 
 
-# ---
+# ----

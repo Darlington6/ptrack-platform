@@ -32,4 +32,4 @@ class RecyclingActivityAdmin(admin.ModelAdmin):
     ordering = ["-date"]
 
 
-# ---
+# ----

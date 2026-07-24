@@ -71,4 +71,4 @@ describe('UpdateBanner', () => {
     expect(mockUpdateServiceWorker).toHaveBeenCalledWith(true);
   });
 });
-// ---
+// ----

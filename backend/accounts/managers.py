@@ -35,4 +35,4 @@ class AllObjectsManager(models.Manager):
         return SoftDeleteQuerySet(self.model, using=self._db)
 
 
-# ---
+# ----

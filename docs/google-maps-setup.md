@@ -74,3 +74,5 @@ Set a daily quota limit of **$50** in the API quota dashboard to prevent runaway
 1. APIs & Services → Maps JavaScript API → Quotas.
 2. Set **Requests per day** to `50000` (maps/loads).
 3. Repeat for Geocoding API → `2000 requests/day`.
+
+<!-- updated -->

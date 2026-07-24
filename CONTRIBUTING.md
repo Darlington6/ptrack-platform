@@ -122,3 +122,5 @@ Open a [Bug Report issue](.github/ISSUE_TEMPLATE/bug_report.md) or email d.tunyi
 ## Security Vulnerabilities
 
 See [SECURITY.md](SECURITY.md) for responsible disclosure instructions.
+
+<!-- updated -->

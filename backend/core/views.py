@@ -163,4 +163,4 @@ def notification_delete(request, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ---
+# ----

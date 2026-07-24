@@ -85,3 +85,5 @@ from accounts.models import User
 user = User.objects.get(email='your@email.com')
 send_push(user, 'Test', 'Hello from pTrack!', url='/dashboard')
 ```
+
+<!-- updated -->

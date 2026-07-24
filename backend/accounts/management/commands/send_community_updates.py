@@ -82,4 +82,4 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Sent community updates to {sent} user(s)."))
 
 
-# ---
+# ----

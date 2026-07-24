@@ -14,4 +14,4 @@ if [ "$LOCK_HASH" != "$INSTALLED_HASH" ]; then
 fi
 
 exec npm run dev -- --host 0.0.0.0
-# ---
+# ----

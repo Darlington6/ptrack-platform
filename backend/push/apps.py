@@ -6,4 +6,4 @@ class PushConfig(AppConfig):
     name = "push"
 
 
-# ---
+# ----

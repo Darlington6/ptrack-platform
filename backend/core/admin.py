@@ -24,4 +24,4 @@ class VerificationCodeAdmin(admin.ModelAdmin):
     list_filter = ["channel", "purpose", "is_used"]
 
 
-# ---
+# ----

@@ -44,4 +44,4 @@ def on_recycling_activity_saved(sender, instance, created, **kwargs):
         update_streak(instance.user)
 
 
-# ---
+# ----

@@ -9,4 +9,4 @@ class ReportsConfig(AppConfig):
         import reports.signals  # noqa: F401
 
 
-# ---
+# ----

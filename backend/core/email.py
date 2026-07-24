@@ -18,4 +18,4 @@ def send_email(to: str, subject: str, template: str, context: dict) -> bool:
         return False
 
 
-# ---
+# ----

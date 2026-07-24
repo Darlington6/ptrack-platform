@@ -12,4 +12,4 @@ export const notificationsApi = {
   markAllRead: () => client.post('/notifications/read-all/'),
   delete: (id: number) => client.delete(`/notifications/${id}/`),
 };
-// ---
+// ----

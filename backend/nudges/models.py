@@ -47,4 +47,4 @@ class UserNudgeLog(models.Model):
         return f"{self.user_id} saw {self.rule.code} at {self.shown_at}"
 
 
-# ---
+# ----

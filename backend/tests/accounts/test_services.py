@@ -120,4 +120,4 @@ def test_compute_impact_returns_expected_keys():
     assert set(result.keys()) == expected_keys
 
 
-# ---
+# ----

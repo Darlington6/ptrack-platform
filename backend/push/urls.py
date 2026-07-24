@@ -7,4 +7,4 @@ urlpatterns = [
     path("push/unsubscribe/", views.unsubscribe, name="push-unsubscribe"),
     path("push/vapid-key/", views.vapid_public_key, name="push-vapid-key"),
 ]
-# ---
+# ----

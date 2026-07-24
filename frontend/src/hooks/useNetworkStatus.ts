@@ -38,4 +38,4 @@ export function useNetworkStatus() {
 
   return status;
 }
-// ---
+// ----

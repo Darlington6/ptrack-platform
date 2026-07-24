@@ -30,4 +30,4 @@ describe('KIGALI_SECTORS', () => {
     });
   });
 });
-// ---
+// ----

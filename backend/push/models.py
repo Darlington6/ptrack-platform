@@ -23,4 +23,4 @@ class PushSubscription(models.Model):
         return f"{self.user_id} → {self.endpoint[:60]}…"
 
 
-# ---
+# ----

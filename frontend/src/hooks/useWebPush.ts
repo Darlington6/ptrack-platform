@@ -134,3 +134,4 @@ export function useWebPush() {
 
   return { supported, permission, isSubscribed, isLoading, subscribe, unsubscribe };
 }
+// ----

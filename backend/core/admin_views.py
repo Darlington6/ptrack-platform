@@ -792,4 +792,4 @@ def admin_user_detail(request, pk):
     return Response(serializer.data)
 
 
-# ---
+# ----

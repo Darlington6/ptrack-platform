@@ -11,4 +11,4 @@ class PushSubscriptionAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "last_used_at")
 
 
-# ---
+# ----

@@ -57,3 +57,5 @@ The following are **out of scope** (but still appreciated):
 - Passwords are hashed with Argon2 (configured via `django[argon2]`).
 - CORS is restricted to `CORS_ALLOWED_ORIGINS` in settings.
 - Sensitive configuration is never committed — see `.env.example`.
+
+<!-- updated -->

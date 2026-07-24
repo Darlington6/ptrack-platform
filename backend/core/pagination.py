@@ -15,4 +15,4 @@ class FeedCursorPagination(CursorPagination):
     cursor_query_param = "cursor"
 
 
-# ---
+# ----

@@ -6,4 +6,4 @@ class NudgesConfig(AppConfig):
     name = "nudges"
 
 
-# ---
+# ----

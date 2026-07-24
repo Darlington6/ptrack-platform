@@ -56,4 +56,4 @@ def test_sector_defaults_to_empty_string():
     assert user.sector == ""
 
 
-# ---
+# ----

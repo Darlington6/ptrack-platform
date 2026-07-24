@@ -30,4 +30,4 @@ class RecyclingCentre(models.Model):
         return f"{self.name} ({self.sector})"
 
 
-# ---
+# ----

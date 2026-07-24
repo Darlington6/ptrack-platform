@@ -92,4 +92,4 @@ def vapid_public_key(request):
     return Response({"vapid_public_key": key})
 
 
-# ---
+# ----

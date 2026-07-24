@@ -48,4 +48,4 @@ describe('ScrollToTop', () => {
     expect(scrollTo).toHaveBeenCalledTimes(2);
   });
 });
-// ---
+// ----

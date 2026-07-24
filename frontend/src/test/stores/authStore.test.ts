@@ -54,4 +54,4 @@ describe('authStore', () => {
     expect(useAuthStore.getState().isLoading).toBe(false);
   });
 });
-// ---
+// ----

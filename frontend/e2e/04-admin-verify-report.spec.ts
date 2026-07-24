@@ -48,4 +48,4 @@ test('admin verifies a pending report through the detail page', async ({ page })
   // Success toast — use "citizen awarded" to avoid matching the "Verified" status badge
   await expect(page.getByText(/citizen awarded/i)).toBeVisible({ timeout: 5000 });
 });
-// ---
+// ----

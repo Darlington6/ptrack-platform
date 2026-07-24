@@ -10,4 +10,4 @@ class RecyclingCentreAdmin(admin.ModelAdmin):
     search_fields = ["name", "address", "sector"]
 
 
-# ---
+# ----

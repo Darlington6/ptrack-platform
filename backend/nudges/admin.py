@@ -17,4 +17,4 @@ class UserNudgeLogAdmin(admin.ModelAdmin):
     search_fields = ["user__email", "rule__code"]
 
 
-# ---
+# ----

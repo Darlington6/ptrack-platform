@@ -116,4 +116,4 @@ export default function AdminSettings() {
     </AdminPageShell>
   );
 }
-// ---
+// ----

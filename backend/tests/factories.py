@@ -78,4 +78,4 @@ class BadgeDefinitionFactory(DjangoModelFactory):
     is_active = True
 
 
-# ---
+# ----

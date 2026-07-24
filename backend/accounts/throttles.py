@@ -31,4 +31,4 @@ class MapBboxThrottle(UserRateThrottle):
     scope = "map_bbox"
 
 
-# ---
+# ----

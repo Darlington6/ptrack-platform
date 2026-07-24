@@ -21,7 +21,8 @@
     "allowJs": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "noImplicitOverride": false
   },
   "include": ["src"],
   "exclude": ["src/sw.ts"],

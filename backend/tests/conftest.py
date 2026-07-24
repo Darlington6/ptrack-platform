@@ -45,4 +45,4 @@ def admin_client(api_client, admin_user):
     return api_client, admin_user
 
 
-# ---
+# ----
