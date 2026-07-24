@@ -7,56 +7,71 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISSED_KEY = 'ptrack_install_dismissed_at';
-const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
+const DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+export const JUST_LOGGED_IN_KEY = 'ptrack_just_logged_in';
+
+// Capture beforeinstallprompt at module load time so it's never missed regardless
+// of which component mounts first or how late CitizenLayout renders.
+let _prompt: BeforeInstallPromptEvent | null = null;
+const _subs = new Set<() => void>();
+
+function notify() {
+  _subs.forEach((fn) => fn());
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    _prompt = e as BeforeInstallPromptEvent;
+    notify();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    _prompt = null;
+    notify();
+  });
+}
 
 export function useInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [, rerender] = useState(0);
+  const [isInstalled, setIsInstalled] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(display-mode: standalone)').matches
+  );
 
   useEffect(() => {
-    // Already running standalone — already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-      return;
-    }
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      // Browser is re-offering the install prompt — clear any previous dismissal
-      // so the 14-day snooze doesn't silently block what the browser itself wants to show.
-      localStorage.removeItem(DISMISSED_KEY);
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    window.addEventListener('appinstalled', () => {
-      setIsInstalled(true);
-      setDeferredPrompt(null);
-    });
-
+    const cb = () => rerender((n) => n + 1);
+    _subs.add(cb);
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
+      _subs.delete(cb);
     };
   }, []);
 
+  // On fresh login/register, clear the 7-day snooze so the banner shows immediately.
+  const justLoggedIn = sessionStorage.getItem(JUST_LOGGED_IN_KEY) === '1';
+  if (justLoggedIn) {
+    localStorage.removeItem(DISMISSED_KEY);
+    sessionStorage.removeItem(JUST_LOGGED_IN_KEY);
+  }
+
   const promptInstall = useCallback(async () => {
-    if (!deferredPrompt) return;
-    await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    if (!_prompt) return;
+    await _prompt.prompt();
+    const { outcome } = await _prompt.userChoice;
     if (outcome === 'accepted') setIsInstalled(true);
-    setDeferredPrompt(null);
-  }, [deferredPrompt]);
+    _prompt = null;
+    notify();
+  }, []);
 
   const dismissInstall = useCallback(() => {
     localStorage.setItem(DISMISSED_KEY, String(Date.now()));
-    setDeferredPrompt(null);
+    _prompt = null;
+    notify();
   }, []);
 
-  // Respect 14-day snooze
   const dismissedAt = localStorage.getItem(DISMISSED_KEY);
   const snoozed = dismissedAt !== null && Date.now() - Number(dismissedAt) < DISMISS_COOLDOWN_MS;
 
-  const isInstallable = deferredPrompt !== null && !isInstalled && !snoozed;
+  const isInstallable = _prompt !== null && !isInstalled && !snoozed;
 
   return { isInstallable, isInstalled, promptInstall, dismissInstall };
 }

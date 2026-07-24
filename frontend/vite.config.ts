@@ -25,6 +25,7 @@ export default defineConfig({
         description: 'Track, report, and reduce plastic waste in Kigali',
         theme_color: '#16A34A',
         background_color: '#FFFFFF',
+        id: '/dashboard',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/dashboard',

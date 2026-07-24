@@ -171,7 +171,7 @@ export default function Rewards() {
             className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
             aria-label={pointsHidden ? 'Show points' : 'Hide points'}
           >
-            {pointsHidden ? <EyeOff size={15} /> : <Eye size={15} />}
+            {pointsHidden ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
         <p className="text-4xl font-extrabold text-green-600 tabular-nums">
