@@ -11,11 +11,14 @@ Usage:
     python manage.py send_weekly_digest
 """
 
+import logging
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.db.models import Sum
 from django.utils import timezone
+
+_log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -33,70 +36,85 @@ class Command(BaseCommand):
         users = User.objects.filter(is_deleted=False)
 
         sent = 0
+        skipped = 0
+        errors = 0
         for user in users:
-            prefs = user.notification_preferences or {}
-            if not prefs.get("weekly_digest", True):
-                continue
+            try:
+                prefs = user.notification_preferences or {}
+                if not prefs.get("weekly_digest", True):
+                    skipped += 1
+                    continue
 
-            if Notification.objects.filter(
-                recipient=user, category="weekly_digest", created_at__date__gte=week_start
-            ).exists():
-                continue
+                if Notification.objects.filter(
+                    recipient=user, category="weekly_digest", created_at__date__gte=week_start
+                ).exists():
+                    skipped += 1
+                    continue
 
-            reports = WasteReport.objects.filter(
-                user=user, created_at__date__gte=week_start
-            ).count()
-            recycling = RecyclingActivity.objects.filter(user=user, date__gte=week_start).count()
-            points_earned = (
-                Reward.objects.filter(user=user, date_earned__date__gte=week_start).aggregate(
-                    t=Sum("points_earned")
-                )["t"]
-                or 0
-            )
-
-            title_en = "Your weekly pTrack summary"
-            body_en = (
-                f"This week: {reports} reports, {recycling} recycling activities, "
-                f"{points_earned} pts."
-            )
-            title_rw = "Incamake ya buri cyumweru ya pTrack"
-            body_rw = (
-                f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
-                f"amanota {points_earned}."
-            )
-            notify(
-                user,
-                "weekly_digest",
-                title_en,
-                body_en,
-                action_url="/rewards",
-                title_rw=title_rw,
-                body_rw=body_rw,
-            )
-
-            lang = getattr(user, "preferred_language", "en") or "en"
-            title = title_rw if lang == "rw" else title_en
-            body = body_rw if lang == "rw" else body_en
-
-            if not user.email.startswith("phone_"):
-                delivered = send_email(
-                    user.email,
-                    title,
-                    "weekly_digest",
-                    {
-                        "user": user,
-                        "reports": reports,
-                        "recycling": recycling,
-                        "points_earned": points_earned,
-                    },
+                reports = WasteReport.objects.filter(
+                    user=user, created_at__date__gte=week_start
+                ).count()
+                recycling = RecyclingActivity.objects.filter(
+                    user=user, date__date__gte=week_start
+                ).count()
+                points_earned = (
+                    Reward.objects.filter(user=user, date_earned__date__gte=week_start).aggregate(
+                        t=Sum("points_earned")
+                    )["t"]
+                    or 0
                 )
-                if delivered:
-                    sent += 1
 
-            if prefs.get("push_enabled", False):
-                send_push(user, title, body, url="/rewards")
+                title_en = "Your weekly pTrack summary"
+                body_en = (
+                    f"This week: {reports} reports, {recycling} recycling activities, "
+                    f"{points_earned} pts."
+                )
+                title_rw = "Incamake ya buri cyumweru ya pTrack"
+                body_rw = (
+                    f"Iki cyumweru: raporo {reports}, ibikorwa {recycling} by'ugusubiza, "
+                    f"amanota {points_earned}."
+                )
+                notify(
+                    user,
+                    "weekly_digest",
+                    title_en,
+                    body_en,
+                    action_url="/rewards",
+                    title_rw=title_rw,
+                    body_rw=body_rw,
+                )
 
-        self.stdout.write(self.style.SUCCESS(f"Sent {sent} weekly digest email(s)."))
+                lang = getattr(user, "preferred_language", "en") or "en"
+                title = title_rw if lang == "rw" else title_en
+                body = body_rw if lang == "rw" else body_en
+
+                if user.email and not user.email.startswith("phone_"):
+                    delivered = send_email(
+                        user.email,
+                        title,
+                        "weekly_digest",
+                        {
+                            "user": user,
+                            "reports": reports,
+                            "recycling": recycling,
+                            "points_earned": points_earned,
+                        },
+                    )
+                    if delivered:
+                        sent += 1
+
+                if prefs.get("push_enabled", False):
+                    send_push(user, title, body, url="/rewards")
+
+            except Exception:
+                errors += 1
+                _log.exception("send_weekly_digest: failed for user pk=%s", user.pk)
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Weekly digest complete — sent={sent} skipped={skipped} errors={errors}"
+            )
+        )
 
 
 # ----

@@ -350,8 +350,7 @@ export default function Register() {
               {t('agree_to')}{' '}
               <Link
                 to="/terms"
-                target="_blank"
-                rel="noopener noreferrer"
+                state={{ from: 'register' }}
                 onClick={(e) => e.stopPropagation()}
                 className="text-green-600 dark:text-green-400 font-medium hover:underline"
               >
@@ -360,8 +359,7 @@ export default function Register() {
               {t('and')}{' '}
               <Link
                 to="/privacy"
-                target="_blank"
-                rel="noopener noreferrer"
+                state={{ from: 'register' }}
                 onClick={(e) => e.stopPropagation()}
                 className="text-green-600 dark:text-green-400 font-medium hover:underline"
               >
