@@ -1,5 +1,5 @@
 // i18n-ready: see src/locales/{en,rw}/
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -16,20 +16,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 export default function Terms() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation('terms');
 
-  return (
-    <div className="px-4 pt-4 pb-24 max-w-lg mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="text-gray-500 dark:text-slate-400">
-          <ArrowLeft size={18} />
-        </button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
-          <p className="text-xs text-gray-400 dark:text-slate-500">{t('effective_date')}</p>
-        </div>
-      </div>
+  const fromRegister = (location.state as { from?: string } | null)?.from === 'register';
 
+  function goBack() {
+    if (fromRegister) navigate('/register');
+    else navigate(-1);
+  }
+
+  const sections = (
+    <>
       <Section title={t('s1_title')}>
         <p>{t('s1_body')}</p>
       </Section>
@@ -93,6 +91,58 @@ export default function Terms() {
       <p className="text-xs text-gray-400 dark:text-slate-400 text-center pt-2">
         {t('copyright', { year: new Date().getFullYear() })}
       </p>
+    </>
+  );
+
+  if (fromRegister) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900">
+        {/* Sticky header */}
+        <div className="shrink-0 flex items-center gap-3 px-4 py-4 border-b border-gray-100 dark:border-slate-700">
+          <button
+            onClick={goBack}
+            aria-label="Go back"
+            className="text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{t('effective_date')}</p>
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 max-w-lg w-full mx-auto">
+          {sections}
+        </div>
+
+        {/* Sticky footer */}
+        <div className="shrink-0 border-t border-gray-100 dark:border-slate-700 px-4 py-3 flex justify-end bg-white dark:bg-slate-900">
+          <button
+            onClick={goBack}
+            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+          >
+            {t('i_understand')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 pt-4 pb-24 max-w-lg mx-auto space-y-6">
+      <div className="flex items-center gap-3">
+        <button onClick={goBack} className="text-gray-500 dark:text-slate-400">
+          <ArrowLeft size={18} />
+        </button>
+        <div>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('title')}</h1>
+          <p className="text-xs text-gray-400 dark:text-slate-500">{t('effective_date')}</p>
+        </div>
+      </div>
+
+      {sections}
     </div>
   );
 }

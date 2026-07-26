@@ -11,10 +11,13 @@ Usage:
     python manage.py send_community_updates
 """
 
+import logging
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
+_log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -30,6 +33,7 @@ class Command(BaseCommand):
 
         since = timezone.now() - timedelta(days=7)
         sent = 0
+        errors = 0
 
         # Get all active sectors that have had meaningful activity
         active_sectors = (
@@ -48,52 +52,59 @@ class Command(BaseCommand):
 
             users = User.objects.filter(sector=sector, is_deleted=False)
             for user in users:
-                prefs = user.notification_preferences or {}
-                if not prefs.get("community_updates", True):
-                    continue
+                try:
+                    prefs = user.notification_preferences or {}
+                    if not prefs.get("community_updates", True):
+                        continue
 
-                if Notification.objects.filter(
-                    recipient=user, category="community", created_at__gte=since
-                ).exists():
-                    continue
+                    if Notification.objects.filter(
+                        recipient=user, category="community", created_at__gte=since
+                    ).exists():
+                        continue
 
-                title = "Your community is active!"
-                body = (
-                    f"{sector_reports} waste reports were submitted in {sector} this week. "
-                    "Keep up the great work!"
-                )
-                notify(
-                    user,
-                    "community",
-                    title,
-                    body,
-                    action_url="/community",
-                    title_rw="Umuryango wawe urakora!",
-                    body_rw=(
-                        f"Raporo {sector_reports} z'imyanda zatanzwe muri {sector} iki cyumweru. "
-                        "Komeza akazi keza!"
-                    ),
-                )
-
-                lang = getattr(user, "preferred_language", "en") or "en"
-                email_subject = (
-                    "Umuryango wawe urakora!" if lang == "rw" else "Your community is active!"
-                )
-
-                if not user.email.startswith("phone_"):
-                    send_email(
-                        user.email,
-                        email_subject,
-                        "community_update",
-                        {"user": user, "sector": sector, "sector_reports": sector_reports},
+                    title = "Your community is active!"
+                    body = (
+                        f"{sector_reports} waste reports were submitted in {sector} this week. "
+                        "Keep up the great work!"
+                    )
+                    notify(
+                        user,
+                        "community",
+                        title,
+                        body,
+                        action_url="/community",
+                        title_rw="Umuryango wawe urakora!",
+                        body_rw=(
+                            f"Raporo {sector_reports} z'imyanda zatanzwe muri {sector} iki cyumweru. "
+                            "Komeza akazi keza!"
+                        ),
                     )
 
-                if prefs.get("push_enabled", False):
-                    send_push(user, title, body, url="/community")
+                    lang = getattr(user, "preferred_language", "en") or "en"
+                    email_subject = (
+                        "Umuryango wawe urakora!" if lang == "rw" else "Your community is active!"
+                    )
 
-                sent += 1
+                    if user.email and not user.email.startswith("phone_"):
+                        send_email(
+                            user.email,
+                            email_subject,
+                            "community_update",
+                            {"user": user, "sector": sector, "sector_reports": sector_reports},
+                        )
 
-        self.stdout.write(self.style.SUCCESS(f"Sent community updates to {sent} user(s)."))
+                    if prefs.get("push_enabled", False):
+                        send_push(user, title, body, url="/community")
+
+                    sent += 1
+
+                except Exception:
+                    errors += 1
+                    _log.exception("send_community_updates: failed for user pk=%s", user.pk)
+
+        self.stdout.write(
+            self.style.SUCCESS(f"Community updates complete — sent={sent} errors={errors}")
+        )
 
 
 # ----

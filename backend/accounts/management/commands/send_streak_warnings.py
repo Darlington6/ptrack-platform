@@ -12,10 +12,13 @@ Usage:
     python manage.py send_streak_warnings
 """
 
+import logging
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+
+_log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -37,56 +40,68 @@ class Command(BaseCommand):
         )
 
         count = 0
+        errors = 0
         for user in at_risk:
-            if Notification.objects.filter(
-                recipient=user, category="streak_warning", created_at__date=today
-            ).exists():
-                continue
+            try:
+                if Notification.objects.filter(
+                    recipient=user, category="streak_warning", created_at__date=today
+                ).exists():
+                    continue
 
-            title_en = "Your streak is at risk!"
-            body_en = (
-                f"You have a {user.current_streak}-day streak. "
-                "Log activity today to keep it going."
-            )
-            title_rw = "Iminsi ikurikiranyaho iri mu kaga!"
-            body_rw = (
-                f"Ufite iminsi {user.current_streak} ikurikiranyaho. "
-                "Tanga raporo uyu munsi kugira ngo ukomeze."
-            )
-            notify(
-                user,
-                "streak_warning",
-                title_en,
-                body_en,
-                action_url="/dashboard",
-                title_rw=title_rw,
-                body_rw=body_rw,
-            )
-
-            lang = getattr(user, "preferred_language", "en") or "en"
-            title = title_rw if lang == "rw" else title_en
-            body = body_rw if lang == "rw" else body_en
-            email_subject = (
-                "Iminsi ikurikiranyaho ya pTrack iri mu kaga!"
-                if lang == "rw"
-                else "Your pTrack streak is at risk!"
-            )
-
-            prefs = user.notification_preferences or {}
-            if prefs.get("streak_reminders", True) and not user.email.startswith("phone_"):
-                send_email(
-                    user.email,
-                    email_subject,
+                title_en = "Your streak is at risk!"
+                body_en = (
+                    f"You have a {user.current_streak}-day streak. "
+                    "Log activity today to keep it going."
+                )
+                title_rw = "Iminsi ikurikiranyaho iri mu kaga!"
+                body_rw = (
+                    f"Ufite iminsi {user.current_streak} ikurikiranyaho. "
+                    "Tanga raporo uyu munsi kugira ngo ukomeze."
+                )
+                notify(
+                    user,
                     "streak_warning",
-                    {"user": user, "streak": user.current_streak},
+                    title_en,
+                    body_en,
+                    action_url="/dashboard",
+                    title_rw=title_rw,
+                    body_rw=body_rw,
                 )
 
-            if prefs.get("push_enabled", False):
-                send_push(user, title, body, url="/dashboard")
+                lang = getattr(user, "preferred_language", "en") or "en"
+                title = title_rw if lang == "rw" else title_en
+                body = body_rw if lang == "rw" else body_en
+                email_subject = (
+                    "Iminsi ikurikiranyaho ya pTrack iri mu kaga!"
+                    if lang == "rw"
+                    else "Your pTrack streak is at risk!"
+                )
 
-            count += 1
+                prefs = user.notification_preferences or {}
+                if (
+                    prefs.get("streak_reminders", True)
+                    and user.email
+                    and not user.email.startswith("phone_")
+                ):
+                    send_email(
+                        user.email,
+                        email_subject,
+                        "streak_warning",
+                        {"user": user, "streak": user.current_streak},
+                    )
 
-        self.stdout.write(self.style.SUCCESS(f"Sent streak warnings to {count} user(s)."))
+                if prefs.get("push_enabled", False):
+                    send_push(user, title, body, url="/dashboard")
+
+                count += 1
+
+            except Exception:
+                errors += 1
+                _log.exception("send_streak_warnings: failed for user pk=%s", user.pk)
+
+        self.stdout.write(
+            self.style.SUCCESS(f"Streak warnings complete — sent={count} errors={errors}")
+        )
 
 
 # ----

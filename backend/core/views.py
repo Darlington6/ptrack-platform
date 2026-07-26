@@ -1,3 +1,4 @@
+import logging
 import time
 
 from django.conf import settings
@@ -18,6 +19,7 @@ from .models import Notification
 from .pagination import FeedCursorPagination
 from .serializers import NotificationSerializer
 
+logger = logging.getLogger(__name__)
 _START_TIME = time.time()
 
 
@@ -37,7 +39,17 @@ def run_cron(request, command: str):
         return HttpResponse("Forbidden", status=403)
     if command not in _ALLOWED_COMMANDS:
         return HttpResponse("Unknown command", status=400)
-    call_command(command)
+    try:
+        call_command(command)
+    except SystemExit as exc:
+        # Django's BaseCommand.execute() converts CommandError → sys.exit(1).
+        # Catch it here so it doesn't propagate as an unhandled exception through
+        # middleware and get reported to Sentry as a request-level crash.
+        logger.error("Cron command '%s' raised SystemExit(%s)", command, exc)
+        return HttpResponse("Command failed", status=500)
+    except Exception:
+        logger.exception("Cron command '%s' raised an unexpected error", command)
+        return HttpResponse("Command error", status=500)
     return HttpResponse("ok")
 
 
