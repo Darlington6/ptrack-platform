@@ -46,7 +46,7 @@ def run_cron(request, command: str):
         # Catch it here so it doesn't propagate as an unhandled exception through
         # middleware and get reported to Sentry as a request-level crash.
         logger.error("Cron command '%s' raised SystemExit(%s)", command, exc)
-        return HttpResponse(f"Command exited with code {exc}", status=500)
+        return HttpResponse("Command failed", status=500)
     except Exception:
         logger.exception("Cron command '%s' raised an unexpected error", command)
         return HttpResponse("Command error", status=500)
