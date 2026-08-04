@@ -1,4 +1,4 @@
-// Admin shell: sticky header, scrollable content area.
+// Admin shell: sticky header, scrollable content area, portal-safe for modals.
 import { AdminAvatar } from '../AdminAvatar';
 import { OfflineBanner } from '../status/OfflineBanner';
 
@@ -19,7 +19,7 @@ export function AdminPageShell({ title, actions, children }: Props) {
           <AdminAvatar />
         </div>
       </header>
-      <div className="flex-1 min-w-0 p-6 overflow-auto">{children}</div>
+      <div className="flex-1 min-w-0 p-6 overflow-y-auto">{children}</div>
     </div>
   );
 }
