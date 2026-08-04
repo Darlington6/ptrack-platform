@@ -876,3 +876,4 @@ MIT © 2026 Desmond Tunyinko
 - **African Leadership University (ALU)** — institutional support and capstone framework
 - **Supervisor: Mr. Neza David Tuyishimire** — guidance and feedback throughout the capstone
 - React, Django, TailwindCSS, Vite, and the broader open-source ecosystem
+- Google Gemini API — AI-powered waste image analysis

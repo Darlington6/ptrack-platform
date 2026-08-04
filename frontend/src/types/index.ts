@@ -1,3 +1,4 @@
+// Re-exported from src/api/types.ts for backwards compatibility.
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
 export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';

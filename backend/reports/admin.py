@@ -15,15 +15,27 @@ _PRIORITY_COLOURS = {
 @admin.register(WasteReport)
 class WasteReportAdmin(admin.ModelAdmin):
     list_display = [
-        "id", "user", "waste_type", "ai_type_display", "priority_badge",
-        "status", "flagged_display", "created_at",
+        "id",
+        "user",
+        "waste_type",
+        "ai_type_display",
+        "priority_badge",
+        "status",
+        "flagged_display",
+        "created_at",
     ]
     list_filter = ["status", "waste_type", "is_flagged", "ai_priority"]
     search_fields = ["user__email", "description", "sector"]
     ordering = ["ai_priority", "-created_at"]
     readonly_fields = [
-        "ai_waste_type", "ai_confidence", "ai_priority", "ai_priority_reason",
-        "ai_is_valid", "image_hash", "is_flagged", "flag_reasons",
+        "ai_waste_type",
+        "ai_confidence",
+        "ai_priority",
+        "ai_priority_reason",
+        "ai_is_valid",
+        "image_hash",
+        "is_flagged",
+        "flag_reasons",
     ]
     actions = ["mark_verified"]
 

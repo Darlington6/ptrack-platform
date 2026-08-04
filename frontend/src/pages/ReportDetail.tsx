@@ -1,5 +1,4 @@
-// i18n-ready: see src/locales/{en,rw}/
-// Translations: en & rw namespaces.
+// i18n-ready: see src/locales/{en,rw}/ — includes AI analysis card and fraud flag display.
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

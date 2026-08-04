@@ -46,6 +46,7 @@ def _cache_set(image_hash: str, result: dict) -> None:
     if len(_CACHE) > _CACHE_MAX:
         _CACHE.popitem(last=False)
 
+
 _PROMPT = """You are a waste management AI assistant for pTrack, a citizen plastic-waste reporting system in Rwanda.
 Analyse the submitted image and respond ONLY with valid JSON — no prose, no markdown fences.
 
@@ -85,9 +86,9 @@ Field rules:
 # count_tokens has separate quota from generate_content, so we only treat a
 # model as "working" after a real generate_content call succeeds.
 _MODEL_CANDIDATES = [
-    "gemini-1.5-flash",          # 1 500 RPD on free tier with a fresh project
-    "gemini-1.5-flash-latest",   # alias for the same model
-    "gemini-flash-latest",       # 20 RPD (gemini-3.6-flash) — last resort
+    "gemini-1.5-flash",  # 1 500 RPD on free tier with a fresh project
+    "gemini-1.5-flash-latest",  # alias for the same model
+    "gemini-flash-latest",  # 20 RPD (gemini-3.6-flash) — last resort
 ]
 _WORKING_MODEL: str | None = None  # set on first successful generate_content call
 
@@ -189,6 +190,7 @@ def analyse_bytes(image_bytes: bytes, description: str, sector: str) -> dict | N
         return cached
     try:
         import PIL.Image
+
         pil_image = PIL.Image.open(io.BytesIO(image_bytes))
         result = _run(pil_image, description, sector)
         if result is not None:

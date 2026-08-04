@@ -200,8 +200,12 @@ def reports_list_create(request):
             )
         ordering = q.get("ordering", "-created_at")
         allowed_orderings = {
-            "created_at", "-created_at", "status", "-status",
-            "ai_priority", "-ai_priority",
+            "created_at",
+            "-created_at",
+            "status",
+            "-status",
+            "ai_priority",
+            "-ai_priority",
         }
         qs = qs.order_by(ordering if ordering in allowed_orderings else "-created_at")
 
@@ -254,7 +258,6 @@ def reports_list_create(request):
 
     from .ai_service import analyse_bytes
     from .fraud_detector import check as fraud_check
-    from .fraud_detector import compute_image_hash
     from .utils import coords_to_sector
 
     # ── AI pre-save validation ─────────────────────────────────────────────────
@@ -276,7 +279,10 @@ def reports_list_create(request):
         ai_result = analyse_bytes(image_bytes, description_hint, sector_hint)
 
         if ai_result is not None and not ai_result["is_valid"]:
-            reason = ai_result.get("invalid_reason") or "The image does not appear to show plastic waste."
+            reason = (
+                ai_result.get("invalid_reason")
+                or "The image does not appear to show plastic waste."
+            )
             return Response(
                 {
                     "detail": reason,
@@ -305,6 +311,7 @@ def reports_list_create(request):
 
     if image_bytes:
         import hashlib
+
         img_hash = hashlib.md5(image_bytes).hexdigest()
         report.image_hash = img_hash
 

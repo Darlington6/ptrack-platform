@@ -1,3 +1,4 @@
+// Shared API response and domain types.
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
 export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';

@@ -1,4 +1,4 @@
-// i18n-ready: see src/locales/{en,rw}/
+// i18n-ready: see src/locales/{en,rw}/ — AI validation and fraud warning banners included.
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Locate, Loader2, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';

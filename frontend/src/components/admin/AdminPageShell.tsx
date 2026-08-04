@@ -1,4 +1,4 @@
-// Admin shell: sticky header, scrollable content area.
+// Admin shell: sticky header, scrollable content area, portal-safe for modals.
 import { AdminAvatar } from '../AdminAvatar';
 import { OfflineBanner } from '../status/OfflineBanner';
 

@@ -57,4 +57,5 @@ pywebpush==2.3.0
 google-auth==2.55.1
 
 # ── AI / Gemini ───────────────────────────────────────────────────────────────
+# Used for waste image analysis and priority scoring via google-generativeai SDK.
 google-generativeai==0.8.3

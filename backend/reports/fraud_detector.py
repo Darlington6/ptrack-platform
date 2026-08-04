@@ -28,6 +28,7 @@ _VELOCITY_WINDOW_H = 1
 
 def _haversine_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Return the distance in metres between two lat/lon points."""
+    lat1, lon1, lat2, lon2 = float(lat1), float(lon1), float(lat2), float(lon2)
     R = 6_371_000
     phi1, phi2 = radians(lat1), radians(lat2)
     dphi = radians(lat2 - lat1)
@@ -63,10 +64,9 @@ def pre_check(user, image_hash: str, lat: float, lng: float) -> list[str]:
     # 1. Duplicate location (only if real coordinates provided)
     if lat and lng:
         cutoff_24h = now - timedelta(hours=_DUPLICATE_WINDOW_H)
-        recent_coords = (
-            WasteReport.objects.filter(user=user, created_at__gte=cutoff_24h)
-            .values_list("latitude", "longitude")
-        )
+        recent_coords = WasteReport.objects.filter(
+            user=user, created_at__gte=cutoff_24h
+        ).values_list("latitude", "longitude")
         for r_lat, r_lon in recent_coords:
             if _haversine_m(lat, lng, r_lat, r_lon) < _DUPLICATE_RADIUS_M:
                 flags.append("duplicate_location")
@@ -110,18 +110,14 @@ def check(report) -> list[str]:
 
     # 2. High velocity
     cutoff_1h = now - timedelta(hours=_VELOCITY_WINDOW_H)
-    recent_count = WasteReport.objects.filter(
-        user=report.user, created_at__gte=cutoff_1h
-    ).count()
+    recent_count = WasteReport.objects.filter(user=report.user, created_at__gte=cutoff_1h).count()
     if recent_count > _VELOCITY_LIMIT:
         flags.append("high_velocity")
 
     # 3. Duplicate image
     if report.image_hash:
         duplicate_exists = (
-            WasteReport.objects.filter(image_hash=report.image_hash)
-            .exclude(pk=report.pk)
-            .exists()
+            WasteReport.objects.filter(image_hash=report.image_hash).exclude(pk=report.pk).exists()
         )
         if duplicate_exists:
             flags.append("duplicate_image")

@@ -34,9 +34,19 @@ class WasteReportSerializer(serializers.ModelSerializer):
             "flag_reasons",
         ]
         read_only_fields = [
-            "id", "user", "sector", "status", "thumbnail", "created_at",
-            "ai_waste_type", "ai_confidence", "ai_priority", "ai_priority_reason",
-            "ai_is_valid", "is_flagged", "flag_reasons",
+            "id",
+            "user",
+            "sector",
+            "status",
+            "thumbnail",
+            "created_at",
+            "ai_waste_type",
+            "ai_confidence",
+            "ai_priority",
+            "ai_priority_reason",
+            "ai_is_valid",
+            "is_flagged",
+            "flag_reasons",
         ]
 
 

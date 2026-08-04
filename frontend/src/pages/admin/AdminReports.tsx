@@ -1,3 +1,4 @@
+// Admin report management: priority badges, AI analysis, fraud flag tooltips.
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';

@@ -42,6 +42,6 @@
   "fraud_duplicate_image": "This image has already been used in a previous report. Please verify you are not re-reporting the same waste pile.",
   "fraud_duplicate_location": "You have already reported waste very close to this location in the last 24 hours. Please confirm this is a different pile.",
   "fraud_high_velocity": "You have submitted several reports in a short time. Please make sure each report is for a different, new waste pile.",
-  "_v": "1.0.0",
+  "_v": "1.1.0",
   "_locale": "en"
 }
