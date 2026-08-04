@@ -93,7 +93,22 @@ _MODEL_CANDIDATES = [
 _WORKING_MODEL: str | None = None  # set on first successful generate_content call
 
 
-def _run(pil_image, description: str, sector: str) -> dict | None:
+def _pil_to_jpeg_bytes(pil_image, max_side: int = 1024, quality: int = 85) -> bytes:
+    """Downscale and JPEG-encode to avoid lossless-WebP OOM in the Gemini SDK."""
+    import PIL.Image
+
+    if pil_image.mode not in ("RGB", "L"):
+        pil_image = pil_image.convert("RGB")
+    w, h = pil_image.size
+    if max(w, h) > max_side:
+        scale = max_side / max(w, h)
+        pil_image = pil_image.resize((int(w * scale), int(h * scale)), PIL.Image.LANCZOS)
+    buf = io.BytesIO()
+    pil_image.save(buf, format="JPEG", quality=quality)
+    return buf.getvalue()
+
+
+def _run(jpeg_bytes: bytes, description: str, sector: str) -> dict | None:
     """Core inference: try each model candidate until one succeeds."""
     global _WORKING_MODEL
 
@@ -121,10 +136,12 @@ def _run(pil_image, description: str, sector: str) -> dict | None:
         else _MODEL_CANDIDATES
     )
 
+    img_blob = {"mime_type": "image/jpeg", "data": jpeg_bytes}
+
     for model_name in candidates:
         try:
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content([prompt, pil_image])
+            response = model.generate_content([prompt, img_blob])
 
             # Succeeded — cache this model name for future calls.
             if _WORKING_MODEL != model_name:
@@ -192,7 +209,8 @@ def analyse_bytes(image_bytes: bytes, description: str, sector: str) -> dict | N
         import PIL.Image
 
         pil_image = PIL.Image.open(io.BytesIO(image_bytes))
-        result = _run(pil_image, description, sector)
+        jpeg_bytes = _pil_to_jpeg_bytes(pil_image)
+        result = _run(jpeg_bytes, description, sector)
         if result is not None:
             _cache_set(image_hash, result)
         return result
