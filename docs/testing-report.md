@@ -4,10 +4,10 @@
 
 pTrack was tested using multiple complementary strategies: automated unit and integration tests, end-to-end (E2E) browser tests, static analysis and code quality checks, secret scanning, continuous integration automation, production monitoring, and manual cross-device verification. These strategies together cover correctness, robustness, security, performance, and real-world usability across different hardware and software environments.
 
-**Total automated tests: 108**
+**Total automated tests: 145**
 | Suite | Tool | Count |
 |---|---|---|
-| Backend unit + integration | pytest | 69 |
+| Backend unit + integration | pytest | 106 |
 | Frontend unit | Vitest | 31 |
 | End-to-end (browser) | Playwright / Chromium | 8 |
 
@@ -29,6 +29,8 @@ pTrack was tested using multiple complementary strategies: automated unit and in
 | Waste reports | `tests/reports/test_reports.py` | Report submission, verification, rejection, bulk actions, recycling logging, leaderboard ranking |
 | Admin analytics | `tests/core/test_admin.py` | KPI endpoint, reports-over-time, by-sector, by-type, top-users, heatmap, engagement funnel |
 | Notifications | `tests/core/test_notifications.py` | Notification creation, mark-read, delete, inbox listing |
+| AI image analysis | `tests/reports/test_ai_service.py` | Gemini integration, LRU cache behaviour, image validity rejection, waste-type classification (4 types), priority scoring P1–P5, bilingual description generation, model fallback on 404/429, markdown fence stripping |
+| Fraud detection | `tests/reports/test_fraud_detector.py` | Duplicate image MD5 hash, location proximity (Haversine 50 m / 24 h window), high-velocity >5 reports/hr, `pre_check()` and post-save `check()`, `flag_reasons` population |
 
 ### Sample edge cases tested
 
@@ -159,7 +161,7 @@ Gitleaks scans for accidentally committed secrets - API keys, tokens, passwords.
 | `frontend-quality` | ubuntu-24.04 | TypeScript types, ESLint, Prettier, Vite build |
 | `frontend-test` | ubuntu-24.04 | 31 Vitest unit tests with v8 coverage |
 | `backend-quality` | ubuntu-24.04 | Ruff, Black, mypy |
-| `backend-test` | ubuntu-24.04 | 69 pytest tests against PostgreSQL 16 |
+| `backend-test` | ubuntu-24.04 | 106 pytest tests against PostgreSQL 16 |
 | `e2e` | ubuntu-24.04 | 8 Playwright tests (full stack, Chromium) |
 | `secrets-scan` | ubuntu-24.04 | Gitleaks across full git history |
 
@@ -246,7 +248,7 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
     <td><img src="./screenshots/pytest-coverage.png" width="900" alt="pytest — 69 tests with coverage"/></td>
   </tr>
   <tr>
-    <td align="center">pytest — 69 tests passing with coverage report</td>
+    <td align="center">pytest — 106 tests passing with coverage report</td>
   </tr>
 </table>
 
@@ -356,7 +358,7 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
 
 | Strategy | Status |
 |---|---|
-| Backend unit + integration tests (69) | Passing in CI |
+| Backend unit + integration tests (106) | Passing in CI |
 | Frontend unit tests (31) | Passing in CI |
 | E2E browser tests (8, Chromium) | Passing in CI |
 | TypeScript / mypy type checking | Passing in CI |

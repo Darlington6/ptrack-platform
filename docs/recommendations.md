@@ -44,20 +44,27 @@ A React Native or Capacitor-based Android application would resolve the PWA limi
 
 An Android APK distributed via Google Play (or as a direct download linked from the platform) would also eliminate the cold-start latency issue for users who access the platform primarily via the app rather than the browser.
 
-### 2.4 Integrate AI-Driven Submission Validation and Priority Scoring
+### 2.4 AI-Driven Submission Validation and Priority Scoring
 
-At scale, a single administrator cannot realistically review hundreds of reports manually. Two AI-driven enhancements would address this:
+This feature has been fully implemented, tested, and deployed as part of the current platform in response to panel feedback.
 
-**Submission-time validation:** Before a report is accepted, a multimodal language model (e.g., Google Gemini Flash, which has a generous free tier) can analyse the uploaded image and description together. If the image does not appear to contain plastic waste, the submission is flagged or blocked with an explanation. A prompt-and-fallback strategy — where one model answers and an open-source alternative (e.g., LLaVA) takes over if the primary is unavailable — balances cost against reliability.
+**What was built:** Google Gemini (`gemini-1.5-flash` with automatic fallback to `gemini-1.5-flash-latest` and `gemini-flash-latest`) is called at the moment a citizen selects a photo — before the rest of the submission form is available. The analysis runs via `POST /api/v1/reports/analyse-image/` and returns:
 
-**Priority scoring:** Each accepted report receives an AI-generated severity score (1–5) based on factors such as waste density, proximity to water, and report frequency in the same location. Admins see the score in the report table and can sort by it, allowing them to dispatch collectors to the highest-priority locations first without reviewing every submission.
+- **Image validity gate:** Images that do not clearly show plastic waste (selfies, scenery, food, blank frames) are rejected with an explanation before the citizen can proceed.
+- **Waste-type classification:** Bottles, bags, mixed plastic, or other — returned with a confidence score (0–100 %).
+- **Environmental priority scoring:** P1 (highest urgency: large volume near a waterway) to P5 (minimal concern), with a one-sentence priority reason stored on the report and visible in the admin dashboard.
+- **Bilingual AI-generated description:** A 1–2 sentence description of the visible waste in both English and Kinyarwanda, which pre-fills the description field on the submission form.
 
-This was specifically recommended during supervisor consultation (July 3, 2026) as a necessary feature before scaling beyond a single-admin workflow. Implementation requires:
-1. A call to the Gemini API (or open-source equivalent) in the report submission endpoint, after image upload to Cloudinary
-2. A `priority_score` integer field on the `WasteReport` model
-3. A UI column in the admin report table for the score, with sort/filter support
+An LRU in-process cache (keyed by MD5 image hash, maximum 100 entries) prevents repeated API calls for the same image within a single server process.
 
-**Demo caveat:** During a live demo without a trained or connected model, the feature should be demonstrated in a caveated mode (mock scores shown) with a clear statement that the production model will be swapped in before full deployment.
+**Algorithmic fraud detection** was also implemented as part of this feature set. Three rule-based checks run on every submission (`backend/reports/fraud_detector.py`):
+- Duplicate image: same MD5 hash as a prior report
+- Duplicate location: another report from the same user within 50 m in the last 24 hours (Haversine distance)
+- High velocity: more than 5 reports submitted by the same user in the last hour
+
+If any rule triggers before submission, an amber warning banner is shown in both English and Kinyarwanda (non-blocking). After save, the same checks mark the report `is_flagged = True` with `flag_reasons` stored for admin review.
+
+Key implementation files: `backend/reports/ai_service.py`, `backend/reports/fraud_detector.py`, `frontend/src/pages/ReportWaste.tsx`. See also `docs/panel-feedback-response.md` for the full panel feedback narrative.
 
 ### 2.5 Add Offline Map Support (Manual Location Fallback)
 
