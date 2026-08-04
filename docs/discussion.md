@@ -48,6 +48,8 @@ The CI/CD pipeline was built before the tests were written, which enforced a dis
 
 The switch from SendGrid to Brevo during this milestone was a disruption, but the design choice of using `django-anymail` as an abstraction layer meant the code change was confined to three lines in settings - only the backend identifier and API key changed; the rest of the email infrastructure was unaffected.
 
+Following the panel defence, two further features were implemented and deployed in direct response to panel feedback: AI-powered image analysis via Google Gemini (`backend/reports/ai_service.py`), which classifies waste type, assigns an environmental priority score (P1–P5), rejects invalid images before form submission, and generates bilingual descriptions in English and Kinyarwanda; and algorithmic fraud detection (`backend/reports/fraud_detector.py`), which checks for duplicate image hash, location proximity (Haversine 50 m within a 24-hour window), and high-velocity submission patterns (>5 reports/hr). Both run as part of the `POST /api/v1/reports/analyse-image/` pre-submission endpoint, and all three fraud checks also run post-save to set `is_flagged` and `flag_reasons` on the stored report. Dedicated test files (`test_ai_service.py`, 22 tests; `test_fraud_detector.py`, 19 tests) were added, bringing the total pytest suite to 106 tests.
+
 ---
 
 ## 3. Impact of the Results
@@ -89,6 +91,9 @@ Building pTrack as a solo capstone project across the full stack - backend, fron
 | PWA not showing app icon (browser preferring SVG over PNG) | Removed SVG favicon link; left only PNG in `index.html` |
 | Playwright HTML report not generated locally | Changed local reporter from `'list'` to `[['list'], ['html', { open: 'never' }]]` |
 | Soft-delete blocking re-registration with same email | Self-service "Delete Account" changed to hard delete; email freed immediately |
+| Gemini API quota consumption during testing and development | LRU in-process cache (max 100 entries, keyed by MD5 image hash) prevents repeated API calls for the same image within a single server process; model fallback list tries `gemini-1.5-flash` → `gemini-1.5-flash-latest` → `gemini-flash-latest` on quota exhaustion |
+| Fraud pre-check needs GPS coordinates before the report is saved | `pre_check()` accepts `lat`/`lng` as arguments; the frontend passes the device's Geolocation API coordinates alongside the image hash at the time of photo selection, before the form is available |
+| Gemini SDK converting PIL images to lossless WebP (OOM on Render free tier) | Images are downscaled to 1024 px and JPEG-encoded locally before being passed as a typed blob `{mime_type, data}` to the API, bypassing the SDK's internal lossless conversion |
 
 ---
 
@@ -105,3 +110,5 @@ Building pTrack as a solo capstone project across the full stack - backend, fron
 5. **Scale not yet tested.** The platform has been tested with seed data and a small number of real users. Load testing under high concurrency (many simultaneous report submissions) has not been performed.
 
 6. **Google Maps tiles fail in offline mode.** When the device is offline the Google Maps CDN is unavailable, so the map preview cannot render during an offline report submission. The GPS coordinates are still captured from the device's Geolocation API, so the report is queued and submitted correctly on reconnect - but the citizen sees a blank map during the offline session. A manual location fallback (text input for a landmark or street address) is the recommended near-term fix; see [recommendations.md](recommendations.md) section 2.5.
+
+7. **Gemini API quota dependency.** The AI image analysis feature depends on Google Gemini API availability and the free-tier quota. If the quota is exhausted or the API is unavailable across all three model candidates, the `analyse-image/` endpoint returns gracefully and the citizen can still submit the report without pre-filled AI data — but the image validity gate and priority scoring are bypassed. The LRU in-process cache (100-entry maximum) mitigates repeated identical-image calls but does not persist across server restarts.

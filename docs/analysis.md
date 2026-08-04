@@ -161,6 +161,7 @@ The following were not specified in the original proposal but were implemented a
 | Personal data export (CSV, GDPR-compliant) | Transparency and user rights |
 | Web Push (VAPID) notifications | Real-time push without an email; supported on Android and desktop |
 | Cloudinary media storage | Scalable, CDN-backed image storage rather than disk storage on the server |
+| AI-powered waste image analysis and fraud detection (Google Gemini) | Originally scoped as future work; implemented in response to panel feedback before final submission. Provides real-time waste classification, priority scoring P1–P5, image validity gating, bilingual AI-generated descriptions, and three-rule fraud detection (duplicate image hash, location proximity within 50 m / 24 h, high velocity >5 reports/hr). |
 
 ---
 
@@ -198,4 +199,4 @@ The platform is designed so that administrators can adjust point values and badg
 
 The implementation successfully delivered all core objectives from the approved proposal. One feature (Kinyarwanda translation) is partially complete and is clearly scoped for a subsequent iteration. One feature (SMS notifications) was descoped due to cost implications, which is a reasonable prioritisation decision given the breadth of what was delivered.
 
-The final system exceeded the proposal in architectural quality, observability, and feature richness. The deployment is live, verified, and publicly accessible. The codebase is covered by an automated test suite of 108 tests across three testing layers and enforced by a CI pipeline that runs on every commit.
+The final system exceeded the proposal in architectural quality, observability, and feature richness. The deployment is live, verified, and publicly accessible. The codebase is covered by an automated test suite of 145 tests across three testing layers and enforced by a CI pipeline that runs on every commit.
