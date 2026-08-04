@@ -98,3 +98,6 @@ playwright-report/
 .env.prod
 *.dump
 # ---
+
+# ── Load testing (not for version control) ────────────────────────────────────
+backend/locustfile.py

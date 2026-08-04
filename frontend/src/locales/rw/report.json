@@ -33,6 +33,15 @@
   "glass": "Viringanyi",
   "metal": "Icuma",
   "camera_note": "Ifoto yawe ifasha kwemeza raporo. Utumiwe rw'ifoto rukoreshwa gusa iyo ufotora — ntidusoma kamera mu bihe byo amayira.",
+  "ai_analysing": "Gusuzuma ifoto…",
+  "ai_detected": "AI yasanze: {{type}} (ubuntu {{pct}}%)",
+  "ai_invalid_title": "Ifoto iyi ntiboneka ko igaragaza imyanda ya plastiki.",
+  "ai_invalid_contact": "Niba utekereza ko ari amakosa,",
+  "ai_invalid_contact_link": "wasiliana n'umunyamabanga",
+  "ai_description_hint": "AI yarandike ibi bisobanuro — ushobora guhindura.",
+  "fraud_duplicate_image": "Ifoto iyi yakoreshejwe mu raporo yabanjirije. Nyamuneka wemeze ko utangarura imyanda itandukanye.",
+  "fraud_duplicate_location": "Wabaze raporo y'imyanda hafi y'aho uri mu masaha 24 ashize. Nyamuneka wemeze ko ari ibirundo bitandukanye.",
+  "fraud_high_velocity": "Wohereje raporo nyinshi mu gihe gito. Nyamuneka wemeze ko buri raporo ari iy'ibirundo bitandukanye.",
   "_v": "1.0.0",
   "_locale": "rw"
 }

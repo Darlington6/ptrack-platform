@@ -32,6 +32,10 @@
   "delete_title": "Siba raporo iyi?",
   "delete_message": "Ibi bizasiba raporo yawe burundu. Ntibivuka.",
   "delete_confirm": "Siba",
+  "ai_analysis": "Isuzuma rya AI",
+  "ai_detected_type": "Ubwoko bwasanzwe",
+  "ai_priority": "Uburemere",
+  "ai_invalid_image": "Ifoto yoherejwe ishobora kutaboneka neza. Umunyamabanga azasuzuma.",
   "_v": "1.0.0",
   "_locale": "rw"
 }

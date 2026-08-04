@@ -14,6 +14,8 @@ import {
   Navigation,
   PackageCheck,
   MapPin,
+  Sparkles,
+  AlertTriangle,
 } from 'lucide-react';
 import { Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
@@ -252,6 +254,72 @@ export default function ReportDetail() {
             </span>
           </div>
         </div>
+
+        {/* AI Analysis card — shown when Gemini has processed the report */}
+        {report.ai_waste_type && (
+          <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles size={15} className="text-indigo-500" />
+              <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                {t('ai_analysis')}
+              </span>
+            </div>
+
+            <div className="space-y-2 text-sm">
+              {/* Detected waste type + confidence */}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-500 dark:text-slate-400">{t('ai_detected_type')}</span>
+                <span className="font-medium text-gray-900 dark:text-white capitalize">
+                  {report.ai_waste_type}
+                  {report.ai_confidence != null && (
+                    <span className="ml-1.5 text-xs text-gray-400 dark:text-slate-500">
+                      ({Math.round(report.ai_confidence * 100)}% confidence)
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              {/* Priority */}
+              {report.ai_priority != null && (
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-gray-500 dark:text-slate-400 shrink-0">
+                    {t('ai_priority')}
+                  </span>
+                  <div className="text-right">
+                    <span
+                      className={`inline-block text-xs font-bold px-2 py-0.5 rounded ${
+                        report.ai_priority === 1
+                          ? 'bg-red-600 text-white'
+                          : report.ai_priority === 2
+                            ? 'bg-orange-500 text-white'
+                            : report.ai_priority === 3
+                              ? 'bg-amber-400 text-gray-900'
+                              : report.ai_priority === 4
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-400 text-white'
+                      }`}
+                    >
+                      P{report.ai_priority}
+                    </span>
+                    {report.ai_priority_reason && (
+                      <p className="mt-1 text-xs text-gray-500 dark:text-slate-400 leading-snug">
+                        {report.ai_priority_reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Invalid image warning */}
+              {report.ai_is_valid === false && (
+                <div className="flex items-start gap-2 mt-1 text-amber-600 dark:text-amber-400 text-xs">
+                  <AlertTriangle size={13} className="shrink-0 mt-0.5" />
+                  <span>{t('ai_invalid_image')}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Location map — tap pin to get directions */}
         <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">

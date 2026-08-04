@@ -378,6 +378,7 @@ AXES_CACHE = "default"
 BREVO_API_KEY = cfg.BREVO_API_KEY
 GOOGLE_MAPS_API_KEY = cfg.GOOGLE_MAPS_API_KEY
 GOOGLE_OAUTH_CLIENT_ID = cfg.GOOGLE_OAUTH_CLIENT_ID
+GEMINI_API_KEY = cfg.GEMINI_API_KEY
 USE_CLOUDINARY = cfg.USE_CLOUDINARY
 
 # ── Web Push (VAPID) ──────────────────────────────────────────────────────────

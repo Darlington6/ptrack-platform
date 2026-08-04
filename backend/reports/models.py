@@ -63,6 +63,18 @@ class WasteReport(models.Model):
     rejection_reason = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # ── AI analysis (Gemini) ──────────────────────────────────────────────────
+    ai_waste_type = models.CharField(max_length=20, null=True, blank=True)
+    ai_confidence = models.FloatField(null=True, blank=True)
+    ai_priority = models.IntegerField(null=True, blank=True)  # 1=highest, 5=lowest
+    ai_priority_reason = models.TextField(blank=True, default="")
+    ai_is_valid = models.BooleanField(null=True, blank=True)
+
+    # ── Fraud detection ───────────────────────────────────────────────────────
+    image_hash = models.CharField(max_length=64, blank=True, default="")
+    is_flagged = models.BooleanField(default=False)
+    flag_reasons = models.JSONField(default=list)
+
     # ── Soft delete ───────────────────────────────────────────────────────────
     is_deleted = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(null=True, blank=True)
