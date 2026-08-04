@@ -48,3 +48,4 @@ test('citizen can submit a waste report and see confirmation', async ({ page }) 
   // Success toast message contains the points awarded
   await expect(page.getByText(/submitted|success|\+10/i)).toBeVisible({ timeout: 8000 });
 });
+// ----

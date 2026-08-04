@@ -1,3 +1,4 @@
+// Shared API response and domain types.
 export type UserRole = 'citizen' | 'admin';
 export type WasteType = 'bottles' | 'bags' | 'mixed' | 'other';
 export type ReportStatus = 'pending' | 'verified' | 'resolved' | 'rejected';
@@ -50,12 +51,22 @@ export interface WasteReport {
   user_detail?: Pick<User, 'id' | 'username' | 'email' | 'full_name'>;
   latitude: number;
   longitude: number;
+  sector?: string;
   image?: string | null;
   thumbnail?: string | null;
   description?: string;
   waste_type: WasteType;
   status: ReportStatus;
   created_at: string;
+  // AI analysis
+  ai_waste_type?: WasteType | null;
+  ai_confidence?: number | null;
+  ai_priority?: number | null;
+  ai_priority_reason?: string;
+  ai_is_valid?: boolean | null;
+  // Fraud detection
+  is_flagged?: boolean;
+  flag_reasons?: string[];
 }
 
 export interface Reward {

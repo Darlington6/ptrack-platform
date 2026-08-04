@@ -1,7 +1,7 @@
-// i18n-ready: see src/locales/{en,rw}/
-import { useEffect, useState } from 'react';
+// i18n-ready: see src/locales/{en,rw}/ — AI validation and fraud warning banners included.
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Locate } from 'lucide-react';
+import { ArrowLeft, Locate, Loader2, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 import { Map as GoogleMap, AdvancedMarker } from '@vis.gl/react-google-maps';
 import { toast } from 'sonner';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -44,7 +44,7 @@ export default function ReportWaste() {
   const location = useLocation();
   const { refreshUser } = useAuth();
   const qc = useQueryClient();
-  const { t } = useTranslation('report');
+  const { t, i18n } = useTranslation('report');
 
   const wasteTypeOptions = [
     { value: 'bottles', label: t('bottles') },
@@ -68,6 +68,74 @@ export default function ReportWaste() {
   const [image, setImage] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [showConsent, setShowConsent] = useState(false);
+
+  // AI image validation state
+  type AiState =
+    | { status: 'idle' }
+    | { status: 'analysing' }
+    | { status: 'valid'; waste_type: string; confidence: number }
+    | { status: 'invalid'; reason: string }
+    | { status: 'unavailable' };
+  const [aiState, setAiState] = useState<AiState>({ status: 'idle' });
+  // Fraud warning codes returned by the pre-submission check (non-blocking)
+  const [fraudWarnings, setFraudWarnings] = useState<string[]>([]);
+  // True while the description textarea holds AI-generated text (cleared on user edit)
+  const [isAiDescription, setIsAiDescription] = useState(false);
+  // Keep a ref to the latest image so stale async responses don't clobber newer ones
+  const latestImageRef = useRef<File | null>(null);
+
+  async function validateImage(file: File) {
+    latestImageRef.current = file;
+    setAiState({ status: 'analysing' });
+    setFraudWarnings([]);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('latitude', String(markerPos.lat));
+      formData.append('longitude', String(markerPos.lng));
+      const res = await client.post<{
+        available: boolean;
+        is_valid?: boolean;
+        invalid_reason?: string;
+        waste_type?: string;
+        confidence?: number;
+        description_en?: string;
+        description_rw?: string;
+        fraud_warnings?: string[];
+      }>('/reports/analyse-image/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000,
+      });
+      // Ignore if the user already changed the image again
+      if (latestImageRef.current !== file) return;
+      const data = res.data;
+      if (data.fraud_warnings?.length) setFraudWarnings(data.fraud_warnings);
+      if (!data.available) {
+        setAiState({ status: 'unavailable' });
+        return;
+      }
+      if (!data.is_valid) {
+        setAiState({ status: 'invalid', reason: data.invalid_reason ?? t('ai_invalid_title') });
+        return;
+      }
+      setAiState({
+        status: 'valid',
+        waste_type: data.waste_type ?? 'other',
+        confidence: data.confidence ?? 0,
+      });
+      // Pre-fill waste type from AI suggestion
+      if (data.waste_type) setWasteType(data.waste_type);
+      // Pre-fill description from AI suggestion (prefer Kinyarwanda if that's the active language)
+      const aiDesc = i18n.language === 'rw' ? data.description_rw : data.description_en;
+      if (aiDesc) {
+        setDescription(aiDesc);
+        setIsAiDescription(true);
+      }
+    } catch {
+      if (latestImageRef.current !== file) return;
+      setAiState({ status: 'unavailable' });
+    }
+  }
 
   // Debounced marker position for geocoding
   const debouncedPos = useDebounce(markerPos, 800);
@@ -147,7 +215,8 @@ export default function ReportWaste() {
       try {
         const res = await client.post('/reports/', data, {
           headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 15000,
+          // Extended to 60s — Gemini analysis at submission adds 2-5s
+          timeout: 60000,
         });
         await refreshUser();
         void qc.invalidateQueries({ queryKey: ['leaderboard'] });
@@ -163,12 +232,20 @@ export default function ReportWaste() {
         setTimeout(() => navigate('/dashboard'), 1500);
       } catch (networkErr) {
         if (axios.isAxiosError(networkErr) && networkErr.response) {
-          // API returned an error response — don't queue, show error
+          // API returned an error response — check for AI rejection before generic error
+          const errData = networkErr.response.data as { code?: string; detail?: string };
+          if (errData.code === 'invalid_image') {
+            const reason = errData.detail ?? t('ai_invalid_title');
+            setAiState({ status: 'invalid', reason });
+            toast.error(reason);
+            setLoading(false);
+            return;
+          }
           toast.error(t('submit_failed'));
           setLoading(false);
           return;
         }
-        // True network failure — queue for offline sync
+        // True network failure (no response) — queue for offline sync
         await enqueueReport(payload, image);
         toast.success(t('saved_network'));
         setTimeout(() => navigate('/dashboard'), 2000);
@@ -258,16 +335,77 @@ export default function ReportWaste() {
           </div>
         </div>
 
-        {/* Image */}
+        {/* Image + AI validation */}
         <div className="flex flex-col gap-1">
           <ImageUpload
             value={image}
-            onChange={setImage}
+            onChange={(file) => {
+              setImage(file);
+              if (file) void validateImage(file);
+              else setAiState({ status: 'idle' });
+            }}
             maxSizeMB={0.5}
             maxWidthOrHeight={1920}
             label={t('photo')}
           />
           <p className="text-xs text-gray-400 dark:text-slate-500">{t('camera_note')}</p>
+
+          {/* AI validation banner */}
+          {aiState.status === 'analysing' && (
+            <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 text-sm">
+              <Loader2 size={14} className="animate-spin shrink-0" />
+              {t('ai_analysing')}
+            </div>
+          )}
+
+          {aiState.status === 'valid' && (
+            <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded-lg bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 text-sm">
+              <CheckCircle2 size={14} className="shrink-0" />
+              <span>
+                <Sparkles size={12} className="inline mr-1 opacity-70" />
+                {t('ai_detected', {
+                  type: aiState.waste_type,
+                  pct: Math.round(aiState.confidence * 100),
+                })}
+              </span>
+            </div>
+          )}
+
+          {fraudWarnings.length > 0 && aiState.status !== 'analysing' && (
+            <div className="mt-2 space-y-1">
+              {fraudWarnings.map((code) => (
+                <div
+                  key={code}
+                  className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm"
+                >
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <span>{t(`fraud_${code}`)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {aiState.status === 'invalid' && (
+            <div className="mt-2 px-3 py-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-sm space-y-1">
+              <div className="flex items-start gap-2 text-red-700 dark:text-red-400 font-medium">
+                <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                <span>{t('ai_invalid_title')}</span>
+              </div>
+              {aiState.reason && (
+                <p className="text-red-600 dark:text-red-500 text-xs pl-5">{aiState.reason}</p>
+              )}
+              <p className="text-gray-500 dark:text-slate-400 text-xs pl-5 mt-1">
+                {t('ai_invalid_contact')}{' '}
+                <a
+                  href="mailto:d.tunyinko@alustudent.com"
+                  className="underline text-green-600 dark:text-green-400"
+                >
+                  {t('ai_invalid_contact_link')}
+                </a>
+                .
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Description */}
@@ -281,11 +419,20 @@ export default function ReportWaste() {
           <textarea
             id="report-description"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (!e.target.value) setIsAiDescription(false);
+            }}
             rows={3}
             placeholder={t('description_placeholder')}
             className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-100"
           />
+          {isAiDescription && (
+            <p className="flex items-center gap-1 text-xs text-indigo-500 dark:text-indigo-400">
+              <Sparkles size={11} />
+              {t('ai_description_hint')}
+            </p>
+          )}
         </div>
 
         {/* Waste type */}
@@ -310,8 +457,16 @@ export default function ReportWaste() {
           </select>
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? t('submitting') : t('submit_report')}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading || aiState.status === 'analysing' || aiState.status === 'invalid'}
+        >
+          {loading
+            ? t('submitting')
+            : aiState.status === 'analysing'
+              ? t('ai_analysing')
+              : t('submit_report')}
         </Button>
 
         <p className="text-center text-sm text-gray-500 dark:text-slate-400">

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import client from '../api/client';
 
 // Build-time hint — used only to determine if push is configured at all.
@@ -59,36 +59,41 @@ export function useWebPush() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize from the actual browser subscription on mount
+  // Cached on mount so subscribe/unsubscribe don't need a round-trip each time
+  const vapidKeyRef = useRef<string | null>(null);
+  const swRegRef = useRef<ServiceWorkerRegistration | null>(null);
+
   useEffect(() => {
     if (!supported) return;
     void (async () => {
-      const reg = await getSwReg(3000);
+      const [reg, key] = await Promise.all([getSwReg(3000), fetchVapidKey()]);
+      swRegRef.current = reg;
+      vapidKeyRef.current = key;
       if (!reg) return;
       const existing = await reg.pushManager.getSubscription();
       setIsSubscribed(!!existing);
     })();
   }, [supported]);
 
-  const subscribe = useCallback(async () => {
-    if (!supported) return;
+  const subscribe = useCallback(async (): Promise<boolean> => {
+    if (!supported) return false;
     setIsLoading(true);
     try {
       const perm = await Notification.requestPermission();
       setPermission(perm);
-      if (perm !== 'granted') return;
+      if (perm !== 'granted') return false;
 
-      // Always fetch the live key so key rotation is seamless
-      const vapidKey = await fetchVapidKey();
+      // Use cached key; fall back to a fresh fetch if mount hasn't completed yet
+      const vapidKey = vapidKeyRef.current ?? (await fetchVapidKey());
       if (!vapidKey) {
         console.warn('VAPID public key unavailable — push subscription skipped');
-        return;
+        return false;
       }
 
-      const reg = await getSwReg(5000);
+      const reg = swRegRef.current ?? (await getSwReg(5000));
       if (!reg) {
         console.warn('Service worker not ready — push subscription skipped');
-        return;
+        return false;
       }
 
       const sub = await reg.pushManager.subscribe({
@@ -105,18 +110,19 @@ export function useWebPush() {
       });
 
       setIsSubscribed(true);
+      return true;
     } catch {
-      // silent — permission denied or SW error
+      return false;
     } finally {
       setIsLoading(false);
     }
   }, [supported]);
 
-  const unsubscribe = useCallback(async () => {
-    if (!supported) return;
+  const unsubscribe = useCallback(async (): Promise<boolean> => {
+    if (!supported) return false;
     setIsLoading(true);
     try {
-      const reg = await getSwReg(5000);
+      const reg = swRegRef.current ?? (await getSwReg(5000));
       if (reg) {
         const sub = await reg.pushManager.getSubscription();
         if (sub) {
@@ -125,8 +131,9 @@ export function useWebPush() {
         }
       }
       setIsSubscribed(false);
+      return true;
     } catch {
-      // ignore
+      return false;
     } finally {
       setIsLoading(false);
     }

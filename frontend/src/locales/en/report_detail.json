@@ -32,5 +32,10 @@
   "delete_title": "Delete this report?",
   "delete_message": "This will permanently remove your report. This cannot be undone.",
   "delete_confirm": "Delete",
-  "_locale": "en"
+  "ai_analysis": "AI Analysis",
+  "ai_detected_type": "Detected type",
+  "ai_priority": "Priority",
+  "ai_invalid_image": "The uploaded image may not clearly show waste. An admin will review.",
+  "_locale": "en",
+  "_v": "1.1.0"
 }

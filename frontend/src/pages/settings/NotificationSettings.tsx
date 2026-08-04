@@ -36,35 +36,42 @@ export default function NotificationSettings() {
     { key: 'community_updates', label: t('pref_community'), desc: t('pref_community_desc') },
   ] as const;
 
-  const prefs: Record<string, boolean> = user?.notification_preferences ?? {
+  const prefs = (user?.notification_preferences ?? {
     streak_reminders: true,
     weekly_digest: true,
     community_updates: true,
     badge_earned: true,
     push_enabled: false,
-  };
+  }) as User['notification_preferences'];
 
-  async function handleToggle(key: string, val: boolean) {
-    const updated = { ...prefs, [key]: val };
+  async function handleToggle(key: string, val: boolean, silent = false) {
+    if (!user) return;
+    const updated = { ...prefs, [key]: val } as User['notification_preferences'];
+    // Optimistic update for instant UI response
+    setUser({ ...user, notification_preferences: updated });
     try {
       const res = await client.patch<User>('/auth/me/', { notification_preferences: updated });
       setUser(res.data);
+      if (!silent) toast.success(t('pref_saved'));
     } catch {
+      setUser(user); // revert on failure
       toast.error(t('pref_save_failed'));
     }
   }
 
   async function handlePushToggle() {
     if (isSubscribed) {
-      await unsubscribe();
-      await handleToggle('push_enabled', false);
-      toast.success(t('push_disabled_toast'));
+      const ok = await unsubscribe();
+      if (ok) {
+        await handleToggle('push_enabled', false, true);
+        toast.success(t('push_disabled_toast'));
+      }
     } else {
-      await subscribe();
-      if (permission === 'granted') {
-        await handleToggle('push_enabled', true);
+      const ok = await subscribe();
+      if (ok) {
+        await handleToggle('push_enabled', true, true);
         toast.success(t('push_enabled_toast'));
-      } else if (permission === 'denied') {
+      } else if (Notification.permission === 'denied') {
         toast.error(t('push_denied_toast'));
       }
     }
@@ -135,3 +142,4 @@ export default function NotificationSettings() {
     </div>
   );
 }
+// ----

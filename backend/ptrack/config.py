@@ -45,7 +45,10 @@ class Settings(BaseSettings):
     VAPID_PRIVATE_KEY: str = ""
     VAPID_SUBJECT: str = "mailto:d.tunyinko@alustudent.com"
 
-    # Cron job trigger secret (shared between GitHub Actions and this backend via X-Cron-Secret header)
+    # AI (Google Gemini) — used for waste classification and priority scoring
+    GEMINI_API_KEY: str = ""
+
+    # Cron job trigger secret — shared between GitHub Actions and this backend via X-Cron-Secret header
     CRON_SECRET: str = ""
 
     model_config = SettingsConfigDict(

@@ -1,0 +1,47 @@
+{# pTrack bilingual email template (EN/RW) #}
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1f2937;">
+{% if user.preferred_language == 'rw' %}
+  <h2 style="color:#16a34a;">Umuryango wawe urakora!</h2>
+  <p>Muraho {{ user.full_name|default:user.username }},</p>
+  <p>
+    Mu cyumweru gishize, <strong>raporo {{ sector_reports }} z'imyanda</strong>
+    zatanzwe muri <strong>{{ sector }}</strong>. Umuryango wawe urakomera!
+  </p>
+  <p>Tanga na wewe raporo y'imyanda kugira ngo ukomeze impinduka.</p>
+  <a href="https://ptrack-platform.vercel.app/report"
+     style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;
+            border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">
+    Tanga Raporo
+  </a>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="color:#9ca3af;font-size:0.75rem;">
+    Ubu butumwa bwagushyikirijwe kuko wemeje amakuru y'umuryango.
+    Hindura ibikunda kuri
+    <a href="https://ptrack-platform.vercel.app/settings/notifications">igenamiterere</a>.
+  </p>
+{% else %}
+  <h2 style="color:#16a34a;">Your community is active!</h2>
+  <p>Hi {{ user.full_name|default:user.username }},</p>
+  <p>
+    In the past week, <strong>{{ sector_reports }} waste reports</strong>
+    were submitted in <strong>{{ sector }}</strong>. Your community is making a difference!
+  </p>
+  <p>Add your own report to keep the momentum going.</p>
+  <a href="https://ptrack-platform.vercel.app/report"
+     style="display:inline-block;background:#16a34a;color:#fff;padding:12px 24px;
+            border-radius:8px;text-decoration:none;font-weight:bold;margin-top:8px;">
+    Submit a Report
+  </a>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="color:#9ca3af;font-size:0.75rem;">
+    You're receiving this because you opted into community updates.
+    Update preferences at
+    <a href="https://ptrack-platform.vercel.app/settings/notifications">settings</a>.
+  </p>
+{% endif %}
+  <p style="color:#9ca3af;font-size:0.75rem;">The pTrack Team — Built for Kigali. For Africa.</p>
+</body>
+</html>
+{# pTrack v2 #}

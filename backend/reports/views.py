@@ -85,6 +85,64 @@ def _award_badges(user, old_points: int, new_points: int) -> None:
         )
 
 
+# ── Image pre-validation ──────────────────────────────────────────────────────
+
+
+@extend_schema(
+    tags=["reports"],
+    summary="Validate a waste image with Gemini before submission",
+    responses={200: OpenApiResponse(description="AI analysis result")},
+    methods=["POST"],
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def analyse_image_view(request):
+    """
+    Accept an image file and return Gemini's analysis without saving anything.
+    The frontend calls this as soon as the citizen selects a photo so they get
+    immediate feedback before filling in the rest of the form.
+    """
+    import hashlib
+
+    from .ai_service import analyse_bytes
+    from .fraud_detector import pre_check
+
+    image_file = request.FILES.get("image")
+    if not image_file:
+        return Response({"detail": "No image provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+    image_bytes = image_file.read()
+    description = request.data.get("description", "")
+    sector = request.data.get("sector", "")
+    lat = float(request.data.get("latitude", 0) or 0)
+    lng = float(request.data.get("longitude", 0) or 0)
+
+    # Run all fraud checks before saving so the citizen can be warned immediately
+    image_hash = hashlib.md5(image_bytes).hexdigest()
+    fraud_warnings = pre_check(request.user, image_hash, lat, lng)
+
+    result = analyse_bytes(image_bytes, description, sector)
+
+    if result is None:
+        return Response({"available": False, "fraud_warnings": fraud_warnings})
+
+    return Response(
+        {
+            "available": True,
+            "is_valid": result["is_valid"],
+            "invalid_reason": result["invalid_reason"],
+            "waste_type": result["waste_type"],
+            "confidence": result["confidence"],
+            "priority": result["priority"],
+            "priority_reason": result["priority_reason"],
+            "description_en": result.get("description_en", ""),
+            "description_rw": result.get("description_rw", ""),
+            "fraud_warnings": fraud_warnings,
+        }
+    )
+
+
 # ── Reports ────────────────────────────────────────────────────────────────────
 
 
@@ -141,7 +199,14 @@ def reports_list_create(request):
                 | Q(user__full_name__icontains=search)
             )
         ordering = q.get("ordering", "-created_at")
-        allowed_orderings = {"created_at", "-created_at", "status", "-status"}
+        allowed_orderings = {
+            "created_at",
+            "-created_at",
+            "status",
+            "-status",
+            "ai_priority",
+            "-ai_priority",
+        }
         qs = qs.order_by(ordering if ordering in allowed_orderings else "-created_at")
 
         # Bbox filter — throttled; max area ~100 km²
@@ -191,11 +256,77 @@ def reports_list_create(request):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    from .ai_service import analyse_bytes
+    from .fraud_detector import check as fraud_check
     from .utils import coords_to_sector
+
+    # ── AI pre-save validation ─────────────────────────────────────────────────
+    # Read image bytes now (before save) so we can validate and hash without
+    # first uploading to Cloudinary / local storage.
+    image_file = request.FILES.get("image")
+    image_bytes: bytes | None = None
+    ai_result: dict | None = None
+
+    if image_file:
+        image_bytes = image_file.read()
+        image_file.seek(0)  # reset so serializer.save() can still read the file
+
+        lat = float(request.data.get("latitude", 0))
+        lng = float(request.data.get("longitude", 0))
+        sector_hint = coords_to_sector(lat, lng)
+        description_hint = request.data.get("description", "")
+
+        ai_result = analyse_bytes(image_bytes, description_hint, sector_hint)
+
+        if ai_result is not None and not ai_result["is_valid"]:
+            reason = (
+                ai_result.get("invalid_reason")
+                or "The image does not appear to show plastic waste."
+            )
+            return Response(
+                {
+                    "detail": reason,
+                    "code": "invalid_image",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    # ──────────────────────────────────────────────────────────────────────────
 
     lat = float(request.data.get("latitude", 0))
     lng = float(request.data.get("longitude", 0))
     report = serializer.save(user=request.user, sector=coords_to_sector(lat, lng))
+
+    # ── Store AI results + run fraud detection ─────────────────────────────────
+    ai_fields: dict = {}
+    fraud_fields: dict = {}
+
+    if ai_result:
+        ai_fields = {
+            "ai_waste_type": ai_result["waste_type"],
+            "ai_confidence": ai_result["confidence"],
+            "ai_priority": ai_result["priority"],
+            "ai_priority_reason": ai_result["priority_reason"],
+            "ai_is_valid": ai_result["is_valid"],
+        }
+
+    if image_bytes:
+        import hashlib
+
+        img_hash = hashlib.md5(image_bytes).hexdigest()
+        report.image_hash = img_hash
+
+    flags = fraud_check(report)
+    if flags:
+        fraud_fields = {"is_flagged": True, "flag_reasons": flags}
+
+    update_fields = list(ai_fields.keys()) + list(fraud_fields.keys())
+    if report.image_hash:
+        update_fields.append("image_hash")
+    if update_fields:
+        for k, v in {**ai_fields, **fraud_fields}.items():
+            setattr(report, k, v)
+        report.save(update_fields=update_fields)
+    # ──────────────────────────────────────────────────────────────────────────
 
     pts = get_points("report_submitted", fallback=5)
     Reward.objects.create(user=request.user, points_earned=pts, reward_type="report_submitted")

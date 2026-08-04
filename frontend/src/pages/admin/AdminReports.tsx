@@ -1,7 +1,9 @@
+// Admin report management: priority badges, AI analysis, fraud flag tooltips.
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from '../../components/ui/Skeleton';
-import { CheckCircle, XCircle, Download, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Download, Eye, AlertTriangle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { AdminPageShell } from '../../components/admin/AdminPageShell';
@@ -35,6 +37,31 @@ const STATUS_BADGE: Record<string, string> = {
 const WASTE_TYPES = ['bottles', 'bags', 'mixed', 'other'];
 const STATUSES = ['pending', 'verified', 'resolved', 'rejected'];
 
+const PRIORITY_STYLES: Record<number, { label: string; cls: string }> = {
+  1: { label: 'P1', cls: 'bg-red-600 text-white' },
+  2: { label: 'P2', cls: 'bg-orange-500 text-white' },
+  3: { label: 'P3', cls: 'bg-amber-400 text-gray-900' },
+  4: { label: 'P4', cls: 'bg-green-500 text-white' },
+  5: { label: 'P5', cls: 'bg-gray-400 text-white' },
+};
+
+const FLAG_LABELS: Record<string, string> = {
+  duplicate_location: 'Submitted within 50m of another report in the last 24 hours',
+  high_velocity: 'More than 5 reports submitted within the last hour',
+  duplicate_image: 'Same image used in a previous report',
+};
+
+function PriorityBadge({ priority }: { priority: number | null | undefined }) {
+  if (!priority) return <span className="text-gray-300 dark:text-slate-600">—</span>;
+  const { label, cls } = PRIORITY_STYLES[priority] ?? {
+    label: `P${priority}`,
+    cls: 'bg-gray-400 text-white',
+  };
+  return (
+    <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded ${cls}`}>{label}</span>
+  );
+}
+
 export default function AdminReports() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -46,6 +73,21 @@ export default function AdminReports() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [expandedReasons, setExpandedReasons] = useState<Set<number>>(new Set());
+  const [fraudTooltip, setFraudTooltip] = useState<{
+    text: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  function toggleReason(id: number) {
+    setExpandedReasons((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   // Inline (single-report) action pending confirmation
   const [pendingVerify, setPendingVerify] = useState<WasteReport | null>(null);
   const [pendingReject, setPendingReject] = useState<WasteReport | null>(null);
@@ -249,12 +291,24 @@ export default function AdminReports() {
             />
           </div>
 
-          {/* Table */}
+          {/* Table — table-fixed keeps it within its container (no page-level scroll) */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col className="w-[4%]" />
+                <col className="w-[5%]" />
+                <col className="w-[16%]" />
+                <col className="w-[10%]" />
+                <col className="w-[12%]" />
+                <col className="w-[9%]" />
+                <col className="w-[10%]" />
+                <col className="w-[12%]" />
+                <col className="w-[10%]" />
+                <col className="w-[12%]" />
+              </colgroup>
               <thead className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-4 py-3 w-10">
+                  <th className="px-3 py-3">
                     <input
                       type="checkbox"
                       checked={reports.length > 0 && selected.size === reports.length}
@@ -263,10 +317,20 @@ export default function AdminReports() {
                       aria-label="Select all"
                     />
                   </th>
-                  {['ID', 'User', 'Type', 'Status', 'Location', 'Date', 'Actions'].map((h) => (
+                  {[
+                    'ID',
+                    'User',
+                    'Type',
+                    'AI Type',
+                    'Priority',
+                    'Status',
+                    'Location',
+                    'Date',
+                    'Actions',
+                  ].map((h) => (
                     <th
                       key={h}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider"
+                      className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider"
                     >
                       {h}
                     </th>
@@ -277,7 +341,7 @@ export default function AdminReports() {
                 {isLoading &&
                   Array.from({ length: 6 }).map((_, i) => (
                     <tr key={i}>
-                      {Array.from({ length: 8 }).map((__, j) => (
+                      {Array.from({ length: 10 }).map((__, j) => (
                         <td key={j} className="px-4 py-3">
                           <Skeleton className="h-4 w-full" />
                         </td>
@@ -288,7 +352,9 @@ export default function AdminReports() {
                   reports.map((r) => (
                     <tr
                       key={r.id}
-                      className={`hover:bg-gray-50 dark:hover:bg-slate-700/40 ${selected.has(r.id) ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
+                      className={`hover:bg-gray-50 dark:hover:bg-slate-700/40 ${
+                        r.is_flagged ? 'border-l-2 border-red-400' : ''
+                      } ${selected.has(r.id) ? 'bg-green-50 dark:bg-green-900/10' : ''}`}
                     >
                       <td className="px-4 py-3">
                         <input
@@ -299,29 +365,92 @@ export default function AdminReports() {
                           aria-label={`Select report ${r.id}`}
                         />
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                      {/* ID */}
+                      <td className="px-3 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs whitespace-nowrap overflow-hidden">
                         #{r.id}
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-800 dark:text-slate-200 max-w-[140px] truncate">
+                      {/* User */}
+                      <td className="px-3 py-3 font-medium text-gray-800 dark:text-slate-200 truncate overflow-hidden">
                         {r.user_detail?.full_name ?? r.user_detail?.email ?? '—'}
                       </td>
-                      <td className="px-4 py-3 capitalize text-gray-700 dark:text-slate-300">
+                      {/* Citizen-selected type */}
+                      <td className="px-3 py-3 capitalize text-gray-700 dark:text-slate-300 truncate overflow-hidden">
                         {r.waste_type.replace('_', ' ')}
                       </td>
-                      <td className="px-4 py-3">
+                      {/* AI suggested type + confidence */}
+                      <td className="px-3 py-3 text-xs">
+                        <div className="flex items-center gap-1 min-w-0">
+                          {r.ai_waste_type ? (
+                            <span className="text-indigo-600 dark:text-indigo-400 font-medium capitalize truncate">
+                              {r.ai_waste_type}
+                              {r.ai_confidence != null && (
+                                <span className="ml-1 text-gray-400 dark:text-slate-500">
+                                  {Math.round(r.ai_confidence * 100)}%
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300 dark:text-slate-600">—</span>
+                          )}
+                          {r.is_flagged && (
+                            <button
+                              onMouseEnter={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const text = (r.flag_reasons ?? [])
+                                  .map((code) => FLAG_LABELS[code] ?? code)
+                                  .join(' · ');
+                                setFraudTooltip({ text, x: rect.left, y: rect.bottom });
+                              }}
+                              onMouseLeave={() => setFraudTooltip(null)}
+                              className="shrink-0 inline-flex items-center text-red-500"
+                              aria-label="Fraud flags"
+                            >
+                              <AlertTriangle size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      {/* AI priority — reason is collapsible */}
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-1">
+                          <PriorityBadge priority={r.ai_priority} />
+                          {r.ai_priority_reason && (
+                            <button
+                              onClick={() => toggleReason(r.id)}
+                              title={expandedReasons.has(r.id) ? 'Hide reason' : 'Show reason'}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                            >
+                              <ChevronDown
+                                size={13}
+                                className={`transition-transform ${expandedReasons.has(r.id) ? 'rotate-180' : ''}`}
+                              />
+                            </button>
+                          )}
+                        </div>
+                        {expandedReasons.has(r.id) && r.ai_priority_reason && (
+                          <p className="mt-1 text-xs text-gray-400 dark:text-slate-500 leading-tight">
+                            {r.ai_priority_reason}
+                          </p>
+                        )}
+                      </td>
+                      {/* Status */}
+                      <td className="px-3 py-3">
                         <span
                           className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[r.status] ?? ''}`}
                         >
                           {r.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs">
+                      {/* Location */}
+                      <td className="px-3 py-3 text-gray-500 dark:text-slate-400 font-mono text-xs truncate overflow-hidden">
                         {r.latitude.toFixed(3)},{r.longitude.toFixed(3)}
                       </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-slate-400 text-xs">
+                      {/* Date */}
+                      <td className="px-3 py-3 text-gray-500 dark:text-slate-400 text-xs whitespace-nowrap overflow-hidden">
                         {new Date(r.created_at).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-3">
+                      {/* Actions */}
+                      <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => navigate(`/reports/${r.id}`)}
@@ -355,7 +484,7 @@ export default function AdminReports() {
                 {!isLoading && reports.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={10}
                       className="px-4 py-8 text-center text-gray-400 dark:text-slate-500"
                     >
                       No reports match the current filters.
@@ -429,6 +558,18 @@ export default function AdminReports() {
         onConfirm={(reason) => bulkReject.mutate(reason)}
         onCancel={() => setBulkRejectOpen(false)}
       />
+
+      {/* Fraud flag tooltip — rendered in a Portal so overflow-x-auto never clips it */}
+      {fraudTooltip !== null &&
+        createPortal(
+          <div
+            style={{ top: fraudTooltip.y + 6, left: fraudTooltip.x }}
+            className="fixed z-[9999] max-w-[280px] bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-xl pointer-events-none leading-relaxed"
+          >
+            {fraudTooltip.text}
+          </div>,
+          document.body
+        )}
     </>
   );
 }

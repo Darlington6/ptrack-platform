@@ -1,16 +1,16 @@
 # pTrack - Plastic Waste Tracking and Incentive Platform
 
-![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-6.0.6-092E20?logo=django&logoColor=white)
-![DRF](https://img.shields.io/badge/DRF-3.17.1-red)
-![React](https://img.shields.io/badge/React-19.2.6-61DAFB?logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8.1.1-646CFF?logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.3.1-06B6D4?logo=tailwindcss&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
-![PWA](https://img.shields.io/badge/PWA-Workbox_7.4.1-5A0FC8?logo=googlechrome&logoColor=white)
-![CI](https://github.com/Darlington6/ptrack-platform/actions/workflows/ci.yml/badge.svg)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://www.python.org)
+[![Django](https://img.shields.io/badge/Django-6.0.6-092E20?logo=django&logoColor=white)](https://www.djangoproject.com)
+[![DRF](https://img.shields.io/badge/DRF-3.17.1-red)](https://www.django-rest-framework.org)
+[![React](https://img.shields.io/badge/React-19.2.6-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-8.1.1-646CFF?logo=vite&logoColor=white)](https://vite.dev)
+[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.3.1-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io)
+[![PWA](https://img.shields.io/badge/PWA-Workbox_7.4.1-5A0FC8?logo=googlechrome&logoColor=white)](https://web.dev/articles/what-are-pwas)
+[![CI](https://github.com/Darlington6/ptrack-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Darlington6/ptrack-platform/actions/workflows/ci.yml)
 
 pTrack is a pilot digital incentive platform for plastic waste management in Kigali, Rwanda, developed as the capstone project for a BSc Software Engineering degree at African Leadership University (ALU). The platform targets Kimironko Sector, Gasabo District, and uses a gamified points-and-badges system to encourage citizens to report plastic waste hotspots and log recycling activities.
 
@@ -23,7 +23,7 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 | Service | URL |
 |---|---|
 | Frontend (Vercel) | https://ptrack-platform.vercel.app |
-| Backend API (Render) | https://ptrack-platform.onrender.com/api/v1/ |
+| Backend API (Render) | https://ptrack-platform.onrender.com/api/v1/health |
 | Swagger / OpenAPI docs | https://ptrack-platform.onrender.com/api/v1/docs/ |
 | ReDoc | https://ptrack-platform.onrender.com/api/v1/redoc/ |
 
@@ -74,6 +74,21 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 - Add a description; the map pins the exact location using Google Maps
 - Earn 5 points per report submitted; earn an additional 10 points when an admin verifies the report. All these are subject to the admin's configuration of the point values
 - Reports queue in IndexedDB when the device is offline and sync automatically on reconnect
+
+**AI-Powered Image Analysis (Google Gemini)**
+- Photos are analysed by Google Gemini in real time as soon as the citizen selects them — before the form is submitted
+- Invalid images (selfies, food, blank photos, scenery) are detected and blocked with an explanation; only genuine waste photos are accepted
+- Waste type is classified automatically (plastic bottles, bags, mixed, other) with a confidence score; the waste type selector is pre-filled with the AI suggestion
+- An environmental priority score (P1–P5) is assigned based on waste volume and proximity to waterways or high-traffic areas; P1 is highest urgency
+- A contextual description of the waste is generated in both English and Kinyarwanda and pre-filled in the description field for the citizen to review or edit
+
+**Fraud Detection**
+- Three algorithmic checks run every time a citizen selects a photo:
+  - **Duplicate image**: the MD5 hash of the photo is compared against all prior submissions — same image triggers a warning
+  - **Duplicate location**: new reports within 50 m of another report from the same user in the last 24 hours trigger a warning
+  - **High velocity**: submitting more than 5 reports per hour triggers a warning
+- Warnings are shown in real time on the submission form in both English and Kinyarwanda (non-blocking — the citizen can still proceed, but is informed)
+- Flagged reports are marked in the admin dashboard with a warning icon and a tooltip identifying which rules were triggered
 
 **Recycling Activity Logging**
 - Log drop-off, pickup, exchange, and other recycling activities
@@ -144,6 +159,9 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 
 **Report Management**
 - Filterable, sortable table of all reports (status, waste type, sector, date, user)
+- AI-detected waste type and confidence score displayed per report row
+- Environmental priority badge (P1–P5) per report with a collapsible priority reason
+- Fraud flag indicator with a tooltip listing which specific rules were triggered (duplicate image, duplicate location, or high velocity)
 - Single-report verify / reject / resolve with rejection reason
 - Bulk verify and bulk reject
 - CSV export of full report dataset
@@ -225,6 +243,7 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 | Email | django-anymail (Brevo) | 15.0 |
 | Web push | pywebpush | 2.3.0 |
 | OAuth | google-auth | 2.55.1 |
+| AI image analysis | Google Gemini (gemini-flash-latest) | — |
 | Password hashing | argon2-cffi | 25.1.0 |
 | Logging | python-json-logger | 4.1.0 |
 | Error tracking (BE) | sentry-sdk | 2.63.0 |
@@ -253,7 +272,7 @@ Browser / Mobile
       |
  Django 6 + DRF
    ├── accounts   (users, auth, OAuth, email verification)
-   ├── reports    (waste reports, recycling, leaderboard, badges, rewards)
+   ├── reports    (waste reports, AI analysis, fraud detection, recycling, leaderboard, badges, rewards)
    ├── core       (audit log, notifications, admin analytics)
    ├── recycling_centres
    ├── nudges     (behavioural nudges)
@@ -263,6 +282,8 @@ Browser / Mobile
       |          \── Redis (caching, axes lockout store)
       v
  Neon PostgreSQL (managed, serverless)
+      |
+      └── Google Gemini API (AI waste classification, priority scoring, description generation)
 
 Render Cron Jobs (1)
    └── cleanup_verification_codes  (daily 03:00 CAT)
@@ -409,6 +430,7 @@ Copy `backend/.env.example` and fill in the required values.
 | `VAPID_PUBLIC_KEY` | No | VAPID public key for Web Push |
 | `VAPID_PRIVATE_KEY` | No | VAPID private key for Web Push |
 | `VAPID_SUBJECT` | No | VAPID subject (mailto: or URL) |
+| `GEMINI_API_KEY` | No | Google Gemini API key for AI waste image analysis and fraud detection |
 | `USE_CLOUDINARY` | No | `True` to use Cloudinary for media; `False` uses local filesystem |
 | `CLOUDINARY_CLOUD_NAME` | No | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | No | Cloudinary API key |
@@ -450,7 +472,7 @@ pytest tests/accounts/test_auth.py
 pytest tests/accounts/test_auth.py::test_register_creates_user
 ```
 
-- 40+ tests across auth, models, services, admin, notifications, and reports
+- 106 tests across auth, models, services, reports (including AI analysis and fraud detection), admin, and notifications
 - Minimum coverage gate: 65% (enforced in CI)
 - Coverage report generated at `backend/coverage.xml` and printed to stdout
 - Uses a real PostgreSQL instance in CI (postgres:16 service container)
@@ -512,7 +534,7 @@ Playwright is configured to block Service Workers during tests to prevent Workbo
 
 | Suite | Runner | Tests | CI gate |
 |---|---|---|---|
-| Backend | pytest | 40+ | 65% coverage |
+| Backend | pytest | 106 | 65% coverage |
 | Frontend unit | Vitest | 31 | 60% line coverage |
 | E2E | Playwright | 8 | all pass |
 
@@ -582,6 +604,7 @@ All endpoints are documented interactively at `/api/v1/docs/` (Swagger UI) and `
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET/POST | `reports/` | JWT | List own reports or submit a new report |
+| POST | `reports/analyse-image/` | JWT | Analyse a photo with Gemini AI and run fraud pre-checks before submission |
 | GET | `reports/<id>/` | JWT | Get a single report |
 | PATCH | `reports/<id>/verify/` | Admin | Verify a report (+x pts to submitter) |
 | PATCH | `reports/<id>/reject/` | Admin | Reject a report with a reason |
@@ -764,7 +787,7 @@ GitHub Actions runs five jobs on every push and pull request to `main` and `deve
 | `frontend-quality` | TypeScript typecheck, ESLint, Prettier format check, Vite production build |
 | `frontend-test` | Vitest (31 unit tests) with v8 coverage, uploads coverage artifact |
 | `backend-quality` | Ruff lint, Black format check, mypy type checking |
-| `backend-test` | pytest (69 tests) against a real PostgreSQL 16 container, uploads coverage.xml |
+| `backend-test` | pytest (106 tests) against a real PostgreSQL 16 container, uploads coverage.xml |
 | `e2e` | Playwright (8 E2E tests across 5 spec files) — builds the frontend, starts Django, serves the dist with `npx serve --single`, runs Chromium |
 | `secrets-scan` | Gitleaks scan of the full git history |
 
@@ -853,3 +876,4 @@ MIT © 2026 Desmond Tunyinko
 - **African Leadership University (ALU)** — institutional support and capstone framework
 - **Supervisor: Mr. Neza David Tuyishimire** — guidance and feedback throughout the capstone
 - React, Django, TailwindCSS, Vite, and the broader open-source ecosystem
+- Google Gemini API — AI-powered waste image analysis

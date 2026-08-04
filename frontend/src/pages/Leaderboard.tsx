@@ -35,7 +35,9 @@ export default function Leaderboard() {
   const { user } = useAuth();
   const { t } = useTranslation('leaderboard');
   const [period, setPeriod] = useState<LeaderboardPeriod>('week');
-  const [sectorOnly, setSectorOnly] = useState(true);
+  const [sectorOnly, setSectorOnly] = useState(
+    () => localStorage.getItem('lb_sector_only') !== 'false'
+  );
 
   const PERIODS: { key: LeaderboardPeriod; label: string }[] = [
     { key: 'week', label: t('this_week') },
@@ -90,7 +92,11 @@ export default function Leaderboard() {
         <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-2">
           <span className="text-xs text-gray-500 dark:text-slate-400">{t('sector_only')}</span>
           <button
-            onClick={() => setSectorOnly((v) => !v)}
+            onClick={() => {
+              const next = !sectorOnly;
+              setSectorOnly(next);
+              localStorage.setItem('lb_sector_only', String(next));
+            }}
             aria-label="Toggle sector filter"
             className={`relative w-11 h-6 rounded-full transition-colors ${
               sectorOnly ? 'bg-green-600' : 'bg-gray-300 dark:bg-slate-600'

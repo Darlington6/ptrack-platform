@@ -26,3 +26,6 @@ def notify(
         logging.getLogger(__name__).exception(
             "Failed to create notification for user %s", getattr(user, "pk", "?")
         )
+
+
+# ----

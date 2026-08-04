@@ -13,6 +13,8 @@ Komeza kurinda ibidukikije bya Kigali!
 
 Fungura pTrack: https://ptrack-platform.vercel.app/dashboard
 
+Hindura ibikunda: https://ptrack-platform.vercel.app/settings/notifications
+
 — Itsinda rya pTrack
 {% else %}Hi {{ user.full_name|default:user.username }},
 
@@ -27,6 +29,8 @@ Here's your pTrack weekly summary:
 Keep up the great work protecting Kigali's environment!
 
 Open pTrack: https://ptrack-platform.vercel.app/dashboard
+
+Update preferences: https://ptrack-platform.vercel.app/settings/notifications
 
 — The pTrack Team
 {% endif %}
