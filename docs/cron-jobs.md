@@ -62,6 +62,10 @@ Render sends an email if a cron job exits non-zero — ensure your Django settin
 VAPID_PUBLIC_KEY=<your-public-key>
 VAPID_PRIVATE_KEY=<your-private-key>
 VAPID_SUBJECT=mailto:<youremail@example.com>
+
+# Google Gemini AI (required for AI waste image analysis on report submission)
+# Get your free key from: https://aistudio.google.com/
+GEMINI_API_KEY=<your-google-ai-studio-key>
 ```
 
 Set these in: Render Dashboard → Service → Environment → Environment Variables.

@@ -102,7 +102,7 @@ def _pil_to_jpeg_bytes(pil_image, max_side: int = 1024, quality: int = 85) -> by
     w, h = pil_image.size
     if max(w, h) > max_side:
         scale = max_side / max(w, h)
-        pil_image = pil_image.resize((int(w * scale), int(h * scale)), PIL.Image.LANCZOS)
+        pil_image = pil_image.resize((int(w * scale), int(h * scale)), PIL.Image.Resampling.LANCZOS)
     buf = io.BytesIO()
     pil_image.save(buf, format="JPEG", quality=quality)
     return buf.getvalue()

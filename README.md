@@ -472,7 +472,7 @@ pytest tests/accounts/test_auth.py
 pytest tests/accounts/test_auth.py::test_register_creates_user
 ```
 
-- 40+ tests across auth, models, services, admin, notifications, and reports
+- 106 tests across auth, models, services, reports (including AI analysis and fraud detection), admin, and notifications
 - Minimum coverage gate: 65% (enforced in CI)
 - Coverage report generated at `backend/coverage.xml` and printed to stdout
 - Uses a real PostgreSQL instance in CI (postgres:16 service container)
@@ -534,7 +534,7 @@ Playwright is configured to block Service Workers during tests to prevent Workbo
 
 | Suite | Runner | Tests | CI gate |
 |---|---|---|---|
-| Backend | pytest | 40+ | 65% coverage |
+| Backend | pytest | 106 | 65% coverage |
 | Frontend unit | Vitest | 31 | 60% line coverage |
 | E2E | Playwright | 8 | all pass |
 
@@ -787,7 +787,7 @@ GitHub Actions runs five jobs on every push and pull request to `main` and `deve
 | `frontend-quality` | TypeScript typecheck, ESLint, Prettier format check, Vite production build |
 | `frontend-test` | Vitest (31 unit tests) with v8 coverage, uploads coverage artifact |
 | `backend-quality` | Ruff lint, Black format check, mypy type checking |
-| `backend-test` | pytest (69 tests) against a real PostgreSQL 16 container, uploads coverage.xml |
+| `backend-test` | pytest (106 tests) against a real PostgreSQL 16 container, uploads coverage.xml |
 | `e2e` | Playwright (8 E2E tests across 5 spec files) — builds the frontend, starts Django, serves the dist with `npx serve --single`, runs Chromium |
 | `secrets-scan` | Gitleaks scan of the full git history |
 
