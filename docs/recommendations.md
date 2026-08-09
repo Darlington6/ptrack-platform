@@ -137,3 +137,5 @@ The data collected during the Kimironko pilot - report frequency per user over t
 - Use the engagement funnel data to identify the bottleneck that most reduces programme effectiveness
 
 The platform is designed so that this data is already being collected. No additional instrumentation is required for a follow-up study.
+
+<!-- updated -->

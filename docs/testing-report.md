@@ -469,3 +469,5 @@ The primary bottleneck at higher concurrency will be the Gunicorn worker pool (2
 | Load testing (Locust, browser UI) | 13/76 (17%) failures — traced to login/submit throttling on a shared test account, not a defect; see §11 |
 
 All automated checks pass on every commit to `main`. The live deployment at `https://ptrack-platform.vercel.app` has been manually verified to match the expected behaviour described in this report.
+
+<!-- updated -->

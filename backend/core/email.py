@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 def send_email(to: str, subject: str, template: str, context: dict) -> bool:
     """Render template pair and send via configured email backend (Brevo in prod, console in dev)."""
+    # Uses Django's EMAIL_BACKEND setting — django-anymail routes to Brevo when configured.
     try:
         html = render_to_string(f"emails/{template}.html", context)
         text = render_to_string(f"emails/{template}.txt", context)

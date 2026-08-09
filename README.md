@@ -532,6 +532,8 @@ Playwright is configured to block Service Workers during tests to prevent Workbo
 
 ### Load Testing (Locust)
 
+<!-- See docs/testing-report.md §11 for full results, including the diagnosed browser-UI throttle cascade -->
+
 `backend/locustfile.py` drives the four highest-traffic authenticated endpoints (report listing, leaderboard, notifications, report submission with the AI path) against a target host. Add `LOCUST_EMAIL` / `LOCUST_PASSWORD` for a real test account to `backend/.env`, then run headless (scripted) or with Locust's interactive browser UI at `http://localhost:8089`:
 
 ```bash

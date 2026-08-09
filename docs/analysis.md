@@ -200,3 +200,5 @@ The platform is designed so that administrators can adjust point values and badg
 The implementation successfully delivered all core objectives from the approved proposal. One feature (SMS notifications) was descoped due to cost implications, which is a reasonable prioritisation decision given the breadth of what was delivered.
 
 The final system exceeded the proposal in architectural quality, observability, and feature richness. The deployment is live, verified, and publicly accessible. The codebase is covered by an automated test suite of 145 tests across three testing layers and enforced by a CI pipeline that runs on every commit.
+
+<!-- updated -->
