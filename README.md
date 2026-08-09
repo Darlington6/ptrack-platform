@@ -108,7 +108,7 @@ pTrack is a pilot digital incentive platform for plastic waste management in Kig
 **Notifications**
 - In-app notification inbox with read/unread state, category badges, etc.
 - Push notification support (Web Push / VAPID) — opt-in per device
-- Email notifications via Resend (badge earned, streak warnings, weekly digest, community updates)
+- Email notifications via Brevo (badge earned, streak warnings, weekly digest, community updates)
 - Notification preference controls per category in the settings page
 
 **Maps and Recycling Centres**
@@ -423,7 +423,7 @@ Copy `backend/.env.example` and fill in the required values.
 | `CORS_ALLOWED_ORIGINS` | Yes | Comma-separated list of allowed frontend origins |
 | `REDIS_URL` | Yes | Redis connection string (`redis://localhost:6379/0`) |
 | `SENTRY_DSN` | No | Sentry DSN for error tracking |
-| `RESEND_API_KEY` | No | Resend API key for transactional email |
+| `BREVO_API_KEY` | No | Brevo API key for transactional email |
 | `DEFAULT_FROM_EMAIL` | No | From address for transactional email |
 | `GOOGLE_OAUTH_CLIENT_ID` | No | Google OAuth 2.0 client ID |
 | `GOOGLE_MAPS_API_KEY` | No | Google Maps API key (used by the backend geocoder) |
@@ -529,6 +529,24 @@ PLAYWRIGHT_BASE_URL=https://ptrack-platform.vercel.app npx playwright test
 | `05-offline-report-queue.spec.ts` | Report queued in IndexedDB when offline |
 
 Playwright is configured to block Service Workers during tests to prevent Workbox from racing with CDP-level route mocks. Screenshots are captured on failure; traces are collected on first retry.
+
+### Load Testing (Locust)
+
+<!-- See docs/testing-report.md §11 for full results, including the diagnosed browser-UI throttle cascade -->
+
+`backend/locustfile.py` drives the four highest-traffic authenticated endpoints (report listing, leaderboard, notifications, report submission with the AI path) against a target host. Add `LOCUST_EMAIL` / `LOCUST_PASSWORD` for a real test account to `backend/.env`, then run headless (scripted) or with Locust's interactive browser UI at `http://localhost:8089`:
+
+```bash
+cd backend
+
+# Headless — prints a summary table to the terminal
+locust -f locustfile.py --host=https://ptrack-platform.onrender.com --headless -u 10 -r 2 -t 60s
+
+# Browser UI — live charts and per-endpoint stats at http://localhost:8089
+locust -f locustfile.py --host=https://ptrack-platform.onrender.com
+```
+
+Full setup, step-by-step browser instructions, and results (including a diagnosed 429/401 cascade caused by the load test authenticating every simulated user as one shared account) are in [`docs/testing-report.md` §11](docs/testing-report.md#11-load-testing-locust).
 
 ### Test Summary
 

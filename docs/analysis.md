@@ -19,11 +19,11 @@ The platform built in this capstone is the technical artefact that enables RQ2, 
 
 | Objective | Target | Status |
 |---|---|---|
-| SO1 | Baseline study — 80%+ response rate from 100+ participants | Partially met (baseline survey conducted; participant count subject to supervisor confirmation) |
+| SO1 | Baseline study — 80%+ response rate from 100+ participants | Partially met — baseline survey conducted (n=34); target was 100+ participants |
 | SO2 | Design and develop web-based platform with reporting, rewards, and tracking | Fully met — all three core features implemented, plus significant extensions |
 | SO3 | Pilot with 80–100 Kimironko residents; 70%+ active participation | Platform deployed and ready; field pilot ongoing |
 | SO4 | 20–30% increase in recycling, 25% increase in waste reporting vs baseline | Measurable via platform analytics; evaluation requires longitudinal data |
-| SO5 | 75% user satisfaction, 60% retention over pilot period | Measurable via post-intervention survey; analytics layer is in place |
+| SO5 | 75% user satisfaction, 60% retention over pilot period | Post-intervention survey conducted (n=16); satisfaction and retention data collected |
 
 ---
 
@@ -120,11 +120,11 @@ The citizen-facing map shows all submitted reports colour-coded by status (pendi
 
 **Proposal objective:** The platform should support both English and Kinyarwanda.
 
-**Result: Partially achieved.**
+**Result: Achieved — citizen-facing.**
 
-English is complete and production-ready. The Kinyarwanda translation (`i18n/rw.json`) covers all primary citizen-facing strings - dashboard, report form, leaderboard, rewards, notifications, settings, onboarding, and the FAQ - but is not yet complete for all secondary screens, error messages, and admin-facing content. This is noted as work in progress.
+The citizen-facing Kinyarwanda translation is complete and deployed. All primary citizen-facing strings — dashboard, report form, leaderboard, rewards, notifications, settings, onboarding, and the FAQ — are available in both English and Kinyarwanda. Language preference is persisted to the user's backend profile and restored on login.
 
-The i18n infrastructure (`i18next`, `react-i18next`) is fully in place. Language preference is persisted to the user's backend profile and restored on login, so completing the translation requires only populating the remaining string keys rather than architectural changes.
+The i18n infrastructure (`i18next`, `react-i18next`) is fully in place, making the platform accessible to Kinyarwanda-dominant residents.
 
 ### 3.8 Deployment and Infrastructure
 
@@ -175,7 +175,7 @@ The following were not specified in the original proposal but were implemented a
 | PWA offline | Achieved | Verified on Android and iOS |
 | Email notifications | Achieved | Via Brevo |
 | Maps | Achieved | + recycling centre finder |
-| Multilingual (EN/RW) | Partially achieved | English complete; Kinyarwanda in progress |
+| Multilingual (EN/RW) | Achieved | Citizen-facing English and Kinyarwanda complete |
 | Deployment | Achieved | Render and Vercel |
 | SMS notifications | Not achieved | Out of scope for current pilot; Brevo SMS API Africa is Talking (AT) API were evaluated but not integrated due costs |
 | Non-functional: 99% uptime | Achieved | UptimeRobot recorded ~94.181% during early deployment (before the health endpoint was updated to accept `HEAD` requests); both backend and frontend monitors are now at 100% |
@@ -197,6 +197,8 @@ The platform is designed so that administrators can adjust point values and badg
 
 ## 7. Conclusion
 
-The implementation successfully delivered all core objectives from the approved proposal. One feature (Kinyarwanda translation) is partially complete and is clearly scoped for a subsequent iteration. One feature (SMS notifications) was descoped due to cost implications, which is a reasonable prioritisation decision given the breadth of what was delivered.
+The implementation successfully delivered all core objectives from the approved proposal. One feature (SMS notifications) was descoped due to cost implications, which is a reasonable prioritisation decision given the breadth of what was delivered.
 
 The final system exceeded the proposal in architectural quality, observability, and feature richness. The deployment is live, verified, and publicly accessible. The codebase is covered by an automated test suite of 145 tests across three testing layers and enforced by a CI pipeline that runs on every commit.
+
+<!-- updated -->

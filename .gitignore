@@ -97,8 +97,5 @@ playwright-report/
 # ── Docker ────────────────────────────────────────────────────────────────────
 .env.prod
 *.dump
+# backend/locustfile.py is intentionally tracked (not ignored) — see docs/testing-report.md §11
 # ---
-
-# ── Load testing (not for version control) ────────────────────────────────────
-backend/locustfile.py
-# ----

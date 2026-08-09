@@ -354,7 +354,103 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
 
 ---
 
-## 11. Summary
+## 11. Load Testing (Locust)
+
+**Tool:** Locust 2.46.x (Python)
+**Target:** Production backend — `https://ptrack-platform.onrender.com`
+**File:** `backend/locustfile.py`
+
+`PTrackUser` logs in once (`on_start`) with a real test account, then repeatedly fires the four highest-traffic authenticated endpoints at the weighted ratios below. Report submissions use a tiny (~632 byte) test JPEG and are labelled `"Load test report — safe to delete"` so they're easy to identify and clean up; the backend's Gemini LRU cache (keyed by image MD5) means only the first submission per run actually calls the AI service.
+
+| Task | Endpoint | Weight |
+|---|---|---|
+| List reports | `GET /api/v1/reports/` | 3 |
+| Leaderboard | `GET /api/v1/leaderboard/` | 2 |
+| Notifications inbox | `GET /api/v1/notifications/` | 1 |
+| Submit report | `POST /api/v1/reports/` (image + AI validation path) | 1 |
+
+A `201` or a `400 invalid_image` (Gemini correctly rejecting the test image as non-waste) both count as success for `submit_report` — either outcome proves the endpoint and the AI path executed correctly.
+
+### Prerequisites
+
+Add real credentials for a test account to `backend/.env` (gitignored — never commit real values):
+
+```bash
+LOCUST_EMAIL=your-ptrack-account@example.com
+LOCUST_PASSWORD=your-ptrack-password
+```
+
+### Running locally — headless (scripted / CI-style)
+
+Runs to completion with no UI and prints a summary table to the terminal.
+
+```bash
+cd backend
+locust -f locustfile.py --host=https://ptrack-platform.onrender.com \
+  --headless -u 10 -r 2 -t 60s
+```
+
+`-u 10` = 10 simulated users, `-r 2` = spawn rate (users/sec), `-t 60s` = run duration.
+
+### Running locally — Browser UI (interactive demo)
+
+Drop `--headless` to launch Locust's web UI instead, useful for live demos or watching charts update in real time:
+
+```bash
+cd backend
+locust -f locustfile.py --host=https://ptrack-platform.onrender.com
+```
+
+1. Locust starts a web server and prints something like `Starting web interface at http://0.0.0.0:8089`.
+2. Open **http://localhost:8089** in a browser (works the same as `0.0.0.0:8089`).
+3. On the "New test" screen, set:
+   - **Number of users (peak concurrency):** e.g. `10`
+   - **Ramp up (users started/second):** e.g. `2`
+   - **Host:** pre-filled from `--host`, but editable — confirm it reads `https://ptrack-platform.onrender.com`
+4. Click **Start**. The UI streams live charts (RPS, response times, number of users) and a per-endpoint stats table with request/failure counts.
+5. Click **Stop** to end the run early, or let it run indefinitely until stopped (no `-t` was passed).
+6. Optional: the **Download Data** tab exports the run as CSV; the **Charts** tab can be saved as a report snapshot for evidence screenshots.
+
+To stop the process entirely, `Ctrl+C` in the terminal running `locust`.
+
+### Results
+
+**Headless run — 2026-08-09** (`-u 10 -r 2 -t 60s` against production):
+
+| Endpoint | Requests | Failures | Median | Avg | Max |
+|---|---|---|---|---|---|
+| `POST /api/v1/auth/login/` | 10 | 0 | 11.0 s | 12.8 s | 22.2 s |
+| `GET /api/v1/leaderboard/` | 16 | 0 | 4.2 s | 4.8 s | 12.1 s |
+| `GET /api/v1/notifications/` | 6 | 0 | 4.0 s | 6.8 s | 15.1 s |
+| `GET /api/v1/reports/` | 21 | 0 | 4.8 s | 7.5 s | 20.8 s |
+| `POST /api/v1/reports/` (AI path) | 9 | 0 | 4.4 s | 5.9 s | 19.1 s |
+| **Aggregated** | **62** | **0 (0.00%)** | **4.7 s** | **7.4 s** | **22.2 s** |
+
+0 failures at 10 concurrent users, consistent with the earlier 5-user smoke test. Response times are elevated and long-tailed (login up to 22 s) — expected on Render's free tier given the 2-worker Gunicorn pool, Neon serverless database, and cold-start effects on first contact, rather than an error condition.
+
+**Browser-UI run — 2026-08-09** (same `-u 10 -r 2 -t 60s` configuration, run interactively at `http://localhost:8089`):
+
+| Endpoint | Requests | Failures | Failure cause |
+|---|---|---|---|
+| `POST /api/v1/auth/login/` | 10 | 1 | `429` — per-IP login throttle |
+| `GET /api/v1/leaderboard/` | 19 | 4 | `401 Unauthorized` (downstream of the failed login, below) |
+| `GET /api/v1/notifications/` | 14 | 1 | `401 Unauthorized` (downstream of the failed login, below) |
+| `GET /api/v1/reports/` | 25 | 1 | `401 Unauthorized` (downstream of the failed login, below) |
+| `POST /api/v1/reports/` | 8 | 6 | 5× `429` (per-user submit throttle) + 1× `401` |
+| **Aggregated** | **76** | **13 (17%)** | |
+
+**Root cause — diagnosed.** All 13 failures trace back to two throttle rules already built into the backend's abuse-protection layer (`backend/accounts/throttles.py`) — this is the app's rate limiting doing its job under synthetic load, not a defect:
+
+1. **Login throttle (`AuthThrottle`, 5 requests/minute per IP).** All 10 simulated users run from the same machine and the same IP, ramping up within a few seconds of each other. Once the 6th `on_start` login lands inside the same rolling minute, the backend correctly throttles it: `429 {"detail": "Request was throttled. Expected available in 39 seconds."}`. `locustfile.py`'s `on_start` sets `self.token = None` on any non-200 login response, so that one simulated user then sends every subsequent request for the rest of the 60 s run with no `Authorization` header — which is why a single throttled login cascades into 7 separate `401 Unauthorized` failures spread across the leaderboard, notifications, reports-list, and one report-submit call (one user's several task cycles over the run).
+2. **Report-submit throttle (`ReportSubmitThrottle`, 10 submissions/hour per authenticated user).** `locustfile.py` logs every simulated user in with the *same* single test account (`LOCUST_EMAIL`/`LOCUST_PASSWORD`), so this per-user quota is shared across the whole 10-user swarm instead of being 10-per-simulated-user. Combined with quota already spent by the headless run minutes earlier in the same rolling hour, the account hit its cap quickly, and the remaining `submit_report` calls correctly received `429 {"detail": "Report submission rate limit exceeded. Try again later."}`.
+
+Both throttles behaved exactly as designed — `AuthThrottle` is brute-force protection on the login endpoint, and `ReportSubmitThrottle` is the anti-spam control that complements the fraud detector's own "high velocity" flag (`backend/reports/fraud_detector.py`, >5 reports/hour), except the throttle hard-rejects at 10/hour while the fraud detector only flags for admin review. The 17% "failure" rate is an artefact of the load test authenticating every simulated user as one shared identity at high concurrency — a real deployment has each citizen on their own account, so neither throttle would collapse onto a single quota the way it does here. **For a more representative future run:** seed N distinct test accounts (one per simulated user, e.g. via a `manage.py` fixture) so the login and submit-report throttles are exercised per-user instead of pooling onto one identity.
+
+The primary bottleneck at higher concurrency will be the Gunicorn worker pool (2 workers on the current Render free tier) and the Neon database connection pool. If throughput constraints emerge, the first remediation should be increasing the Gunicorn worker count (via the `--workers` flag in `render.yaml`) and enabling database connection pooling via PgBouncer (available on Neon).
+
+---
+
+## 12. Summary
 
 | Strategy | Status |
 |---|---|
@@ -369,5 +465,9 @@ pTrack was tested as an installed Progressive Web App (PWA) and as a mobile brow
 | Sentry error monitoring | Active, zero unresolved errors |
 | Cross-device testing (5+ device types) | All pass |
 | Offline PWA (IndexedDB + background sync) | Verified on Android, iPhone, and MacBook |
+| Load testing (Locust, headless) | 0 failures at 10 concurrent users (62 reqs) |
+| Load testing (Locust, browser UI) | 13/76 (17%) failures — traced to login/submit throttling on a shared test account, not a defect; see §11 |
 
 All automated checks pass on every commit to `main`. The live deployment at `https://ptrack-platform.vercel.app` has been manually verified to match the expected behaviour described in this report.
+
+<!-- updated -->
