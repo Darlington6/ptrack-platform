@@ -26,11 +26,9 @@ The gamification loop depends on timely admin verification. If a citizen submits
 
 ## 2. Recommendations for Future Technical Work
 
-### 2.1 Complete the Kinyarwanda Translation
+### 2.1 Kinyarwanda Translation
 
-The i18n infrastructure is in place and English is fully translated. Completing the Kinyarwanda translation requires populating the remaining string keys in `frontend/src/i18n/rw.json`. This is the highest-priority technical task before scaling the pilot, as language is the primary accessibility barrier for Kinyarwanda-dominant residents.
-
-A community translator or a native Kinyarwanda speaker with technical literacy can contribute the translations without needing to understand the codebase - the string keys and English equivalents make the task self-explanatory.
+The citizen-facing Kinyarwanda translation is complete and deployed. All primary citizen-facing strings — dashboard, report form, leaderboard, rewards, notifications, settings, onboarding, and the FAQ — are available in both English and Kinyarwanda. Language preference is persisted to the user's backend profile and restored on login.
 
 ### 2.2 Integrate SMS Notifications
 
@@ -83,11 +81,20 @@ As the report volume grows, relying on a single administrator is a structural bo
 - **Triage queue:** Reports sorted by AI priority score (see 2.4) so reviewers work the highest-impact items first
 - **Response SLA tracking:** A flag on reports older than 48 hours without admin action, visible on the admin dashboard KPI cards
 
-### 2.7 Add Load Testing
+### 2.7 Load Testing
 
-The platform has been unit-tested and E2E-tested but not load-tested. Before expansion, a load test should be performed simulating the concurrent submission of reports from hundreds of users. Tools such as Locust (Python) or k6 are appropriate. The primary bottleneck is expected to be the Gunicorn worker pool (2 workers on the current Render free tier) and the Neon database connection pool.
+Load testing has been initiated using Locust (Python). A `locustfile.py` has been written at `backend/locustfile.py` and run against the production backend. The test simulates concurrent authenticated users performing the four highest-frequency API calls: report listing (weight 3), leaderboard retrieval (weight 2), notification inbox (weight 1), and report submission with the AI validation path (weight 1).
 
-If the load test reveals throughput constraints, the first remediation should be increasing the Gunicorn worker count (via the `--workers` flag in `render.yaml`) and enabling database connection pooling via PgBouncer (available on Neon).
+A headless run at 10 concurrent users over 60 seconds produced 0 failures (62 requests). Response times on the Render free tier were elevated and long-tailed (median 4.7 s aggregated, login up to 22 s), which is expected given the 2-worker Gunicorn pool, Neon serverless database, and cold-start effects. A browser-UI run at the same concurrency showed 13/76 (17%) failures; these were traced to the backend's per-IP login throttle and per-user report-submit throttle both being exercised by the whole swarm because every simulated user shares one test account — not a defect in the platform. See [testing-report.md §11](testing-report.md#11-load-testing-locust) for the full breakdown. The recommended next step is a run against N distinct seeded accounts to exercise throttling the way real concurrent citizens would.
+
+The primary bottleneck at higher concurrency will be the Gunicorn worker pool (2 workers on the current Render free tier) and the Neon database connection pool. If throughput constraints emerge, the first remediation should be increasing the Gunicorn worker count (via the `--workers` flag in `render.yaml`) and enabling database connection pooling via PgBouncer (available on Neon).
+
+Locust supports two run modes — headless (scripted) and an interactive browser UI (`http://localhost:8089`) for live demos. Full setup, both commands, and step-by-step browser UI instructions are in [testing-report.md §11](testing-report.md#11-load-testing-locust). Quick reference for headless:
+
+```bash
+cd backend
+locust -f locustfile.py --host=https://ptrack-platform.onrender.com --headless -u 10 -r 2 -t 60s
+```
 
 ### 2.8 Implement Report Content Moderation
 

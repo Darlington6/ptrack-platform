@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def send_email(to: str, subject: str, template: str, context: dict) -> bool:
-    """Render template pair and send via configured email backend (Resend in prod, console in dev)."""
+    """Render template pair and send via configured email backend (Brevo in prod, console in dev)."""
     try:
         html = render_to_string(f"emails/{template}.html", context)
         text = render_to_string(f"emails/{template}.txt", context)
