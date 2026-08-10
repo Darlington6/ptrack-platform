@@ -4,12 +4,12 @@ certifi==2026.7.22
 charset-normalizer==3.4.9
 cloudinary==1.45.0
 django-cloudinary-storage==0.3.0
-Django==6.0.7
+Django==6.1
 gunicorn==26.0.0
 whitenoise==6.12.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
-djangorestframework==3.17.1
+djangorestframework==3.17.2
 djangorestframework-simplejwt[token_blacklist]==5.5.1
 drf-spectacular==0.30.0
 idna==3.18
@@ -51,10 +51,10 @@ django-anymail==15.1
 python-json-logger==4.1.0
 
 # ── Web Push ──────────────────────────────────────────────────────────────────
-pywebpush==2.3.0
+pywebpush==2.4.0
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
-google-auth==2.56.2
+google-auth==2.56.3
 
 # ── AI / Gemini ───────────────────────────────────────────────────────────────
 # Used for waste image analysis and priority scoring via google-generativeai SDK.
