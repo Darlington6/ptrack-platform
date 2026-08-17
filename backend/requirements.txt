@@ -1,15 +1,15 @@
 asgiref==3.12.1
 attrs==26.1.0
 certifi==2026.7.22
-charset-normalizer==3.4.9
+charset-normalizer==3.5.0
 cloudinary==1.45.0
 django-cloudinary-storage==0.3.0
-Django==6.0.7
+Django==6.1
 gunicorn==26.0.0
 whitenoise==6.12.0
 psycopg2-binary==2.9.12
 django-cors-headers==4.9.0
-djangorestframework==3.17.1
+djangorestframework==3.18.0
 djangorestframework-simplejwt[token_blacklist]==5.5.1
 drf-spectacular==0.30.0
 idna==3.18
@@ -23,9 +23,9 @@ PyYAML==6.0.3
 referencing==0.37.0
 requests==2.34.2
 rpds-py==2026.6.3
-sentry-sdk==2.66.1
+sentry-sdk==2.68.0
 six==1.17.0
-sqlparse==0.5.5
+sqlparse==0.6.0
 typing_extensions==4.16.0
 uritemplate==4.2.0
 urllib3==2.7.0
@@ -42,7 +42,7 @@ django-csp==4.0
 argon2-cffi==25.1.0
 
 # ── Config validation ─────────────────────────────────────────────────────────
-pydantic-settings==2.14.2
+pydantic-settings==2.15.0
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 django-anymail==15.1
@@ -51,10 +51,10 @@ django-anymail==15.1
 python-json-logger==4.1.0
 
 # ── Web Push ──────────────────────────────────────────────────────────────────
-pywebpush==2.3.0
+pywebpush==2.4.0
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────
-google-auth==2.56.2
+google-auth==2.56.3
 
 # ── AI / Gemini ───────────────────────────────────────────────────────────────
 # Used for waste image analysis and priority scoring via google-generativeai SDK.
