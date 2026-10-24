@@ -45,7 +45,7 @@
     "recharts": "^3.10.1",
     "sonner": "^2.0.8",
     "workbox-window": "^7.4.1",
-    "zod": "^4.4.3",
+    "zod": "^4.6.7",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
